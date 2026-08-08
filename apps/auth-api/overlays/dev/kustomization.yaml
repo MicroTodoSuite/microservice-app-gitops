@@ -6,14 +6,13 @@ kind: Kustomization
 namespace: microtodo-dev
 
 resources:
-- ../../base
+  - ../../base
 
 replicas:
-- count: 1
-  name: auth-api
+  - name: auth-api
+    count: 1
 
 # Este tag es lo que actualiza scripts/bump-image.sh (y en el punto 4, el PR automático de CI)
 images:
-- name: auth-api
-  newName: auth-api
-  newTag: 0.1.1-local
+  - name: auth-api
+    newTag: 0.1.0-local
