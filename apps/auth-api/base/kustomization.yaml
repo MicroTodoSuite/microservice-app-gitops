@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base de auth-api: manifiestos comunes a todos los ambientes.
+# Los overlays (dev/staging/prod) fijan namespace, réplicas y tag de imagen.
+resources:
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+
+# JWT_SECRET del piloto local. NO es el secreto real.
+# TODO(tarea 2): reemplazar por External Secrets Operator -> AWS Secrets Manager.
+secretGenerator:
+  - name: auth-api-secrets
+    literals:
+      - JWT_SECRET=local-dev-secret-not-for-prod
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: auth-api
+      app.kubernetes.io/part-of: microtodosuite

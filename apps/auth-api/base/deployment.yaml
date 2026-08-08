@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-api
+spec:
+  # replicas: lo fija cada overlay
+  selector: {}
+  template:
+    spec:
+      containers:
+        - name: auth-api
+          # El tag lo fija cada overlay vía images: de Kustomize.
+          # En AWS será <account>.dkr.ecr.<region>.amazonaws.com/auth-api (tarea 1).
+          image: auth-api:placeholder
+          imagePullPolicy: IfNotPresent # imágenes cargadas con `kind load` no son pulleables
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: auth-api-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-secrets
+                  key: JWT_SECRET
+          # /version es la ruta más liviana del servicio y no depende de users-api
+          livenessProbe:
+            httpGet:
+              path: /version
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /version
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /version
+              port: http
+            failureThreshold: 12
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            # TODO: runAsNonRoot: true cuando el Dockerfile deje de correr como root
+            # (el Dockerfile actual usa golang:latest sin USER; se mejora fuera del punto 3)

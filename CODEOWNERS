@@ -1,0 +1,6 @@
+# Propuesta de ownership por carpeta (ajustar usernames reales de GitHub).
+# infrastructure/: contenido de los add-ons = tarea 2 del roadmap (infra).
+# Resto del repo: cableado GitOps/ArgoCD = tarea 3 del roadmap.
+
+* @juanmad
+infrastructure/ @companero-infra

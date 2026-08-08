@@ -1,0 +1,42 @@
+# ApplicationSet de add-ons de plataforma: genera una Application de ArgoCD
+# por cada carpeta de infrastructure/. Hoy las carpetas son placeholders (tarea 2
+# del roadmap las llena); cuando tengan contenido, ArgoCD lo despliega sin tocar
+# este archivo. Ese es el contrato entre la tarea 3 (este cableado) y la tarea 2.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: infrastructure
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+        revision: main
+        directories:
+          - path: infrastructure/*
+  template:
+    metadata:
+      name: "infra-{{ .path.basename }}"
+      annotations:
+        # Los add-ons van antes que las apps de negocio (que usan wave >= 1 en apps.yaml).
+        # El orden fino entre add-ons (ej. cert-manager antes que quien use sus CRDs)
+        # se define con sync-waves DENTRO de cada carpeta (tarea 2).
+        argocd.argoproj.io/sync-wave: "0"
+    spec:
+      project: microtodosuite
+      source:
+        repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+        targetRevision: main
+        path: "{{ .path.path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .path.basename }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true # add-ons con CRDs grandes (kyverno, keda) lo requieren

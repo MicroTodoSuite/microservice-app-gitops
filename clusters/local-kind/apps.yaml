@@ -1,0 +1,42 @@
+# ApplicationSet de microservicios: genera una Application por cada combinación
+# {servicio x ambiente} recorriendo apps/*/overlays/*. Agregar un microservicio
+# nuevo = crear su carpeta en apps/ con base/ y overlays/; no se toca este archivo.
+#
+# Versión económica: cada ambiente es un namespace de este mismo clúster.
+# Versión completa: este archivo se replica por clúster (eks-dev, eks-staging, ...)
+# filtrando el overlay correspondiente y cambiando destination.server.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+        revision: main
+        directories:
+          - path: apps/*/overlays/*
+  template:
+    metadata:
+      # apps/auth-api/overlays/dev -> auth-api-dev
+      name: "{{ index .path.segments 1 }}-{{ .path.basename }}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "1" # después de los add-ons de infraestructura
+    spec:
+      project: microtodosuite
+      source:
+        repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+        targetRevision: main
+        path: "{{ .path.path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "microtodo-{{ .path.basename }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-api-config
+data:
+  # El binario no tiene puerto por defecto: AUTH_API_PORT es obligatorio (main.go:46)
+  AUTH_API_PORT: "8000"
+  # D1-a: placeholder hasta que users-api se migre. El pod arranca y sirve
+  # /version y /metrics; /login queda degradado hasta que exista users-api.
+  USERS_API_ADDRESS: "http://users-api:8083"
+  # ZIPKIN_URL se omite a propósito: si está vacío, el tracing queda desactivado (main.go:93)
