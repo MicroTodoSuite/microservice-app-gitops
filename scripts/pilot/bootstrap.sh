@@ -28,21 +28,11 @@ if [ ! -d "$BARE_REPO" ]; then
   printf '#!/bin/sh\nexec git update-server-info\n' > "$BARE_REPO/hooks/post-update"
   chmod +x "$BARE_REPO/hooks/post-update"
 fi
-log "seeding bare main from current checkout revision (agent tooling filtered)"
+log "seeding bare main from current checkout revision"
 assert_pilot_remote_safe "$BARE_REPO"
-# The repo carries developer tooling symlinks (.agents/.claude/.specify) that
-# point at sibling repos. They are out-of-bounds for a standalone clone and
-# ArgoCD rejects such symlinks. They are not GitOps manifests, so the pilot
-# seeds a filtered tree without them via a disposable detached worktree.
-SEED="$LOCAL_DIR/seed"
-git -C "$REPO_ROOT" worktree remove --force "$SEED" >/dev/null 2>&1 || true
-rm -rf "$SEED"; git -C "$REPO_ROOT" worktree prune
-git -C "$REPO_ROOT" worktree add -q --detach "$SEED" HEAD
-git -C "$SEED" rm -rq --ignore-unmatch .agents .claude/skills .specify >/dev/null 2>&1 || true
-git -C "$SEED" -c user.email=pilot@local -c user.name=pilot commit -q \
-  -m "pilot seed: exclude out-of-bounds tooling symlinks for ArgoCD" >/dev/null
-git -C "$SEED" push --force "$BARE_REPO" HEAD:refs/heads/main >/dev/null 2>&1
-git -C "$REPO_ROOT" worktree remove --force "$SEED" >/dev/null 2>&1 || true
+# Developer tooling symlinks (.agents/.claude/skills/.specify) are gitignored and
+# untracked, so the tracked tree contains no out-of-bounds symlinks for ArgoCD.
+git -C "$REPO_ROOT" push --force "$BARE_REPO" HEAD:refs/heads/main >/dev/null 2>&1
 git -C "$BARE_REPO" update-server-info
 
 # Serve the bare repo over SMART HTTP (git http-backend). ArgoCD's go-git needs

@@ -1,5 +1,13 @@
 .DS_Store
 
+# Spec Kit developer tooling. These are per-developer, regenerated locally by the
+# distribute script, and are symlinks into sibling repos (microservice-app-ai-agents,
+# microservice-app-docs). Committing them breaks standalone clones and ArgoCD
+# rejects out-of-bounds symlinks, so they are kept local-only. The canonical
+# constitution lives in microservice-app-docs.
+/.agents/
+/.claude/skills
+/.specify/
 
 # Pilot runtime state: local git source, registry data, port-forward pids,
 # disposable clones, and captured evidence scratch. Never committed.
