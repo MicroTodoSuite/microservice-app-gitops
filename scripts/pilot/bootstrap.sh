@@ -28,22 +28,36 @@ if [ ! -d "$BARE_REPO" ]; then
   printf '#!/bin/sh\nexec git update-server-info\n' > "$BARE_REPO/hooks/post-update"
   chmod +x "$BARE_REPO/hooks/post-update"
 fi
-log "seeding bare main from current checkout revision"
+log "seeding bare main from current checkout revision (agent tooling filtered)"
 assert_pilot_remote_safe "$BARE_REPO"
-git -C "$REPO_ROOT" push --force "$BARE_REPO" HEAD:refs/heads/main >/dev/null 2>&1
+# The repo carries developer tooling symlinks (.agents/.claude/.specify) that
+# point at sibling repos. They are out-of-bounds for a standalone clone and
+# ArgoCD rejects such symlinks. They are not GitOps manifests, so the pilot
+# seeds a filtered tree without them via a disposable detached worktree.
+SEED="$LOCAL_DIR/seed"
+git -C "$REPO_ROOT" worktree remove --force "$SEED" >/dev/null 2>&1 || true
+rm -rf "$SEED"; git -C "$REPO_ROOT" worktree prune
+git -C "$REPO_ROOT" worktree add -q --detach "$SEED" HEAD
+git -C "$SEED" rm -rq --ignore-unmatch .agents .claude/skills .specify >/dev/null 2>&1 || true
+git -C "$SEED" -c user.email=pilot@local -c user.name=pilot commit -q \
+  -m "pilot seed: exclude out-of-bounds tooling symlinks for ArgoCD" >/dev/null
+git -C "$SEED" push --force "$BARE_REPO" HEAD:refs/heads/main >/dev/null 2>&1
+git -C "$REPO_ROOT" worktree remove --force "$SEED" >/dev/null 2>&1 || true
 git -C "$BARE_REPO" update-server-info
 
-# Serve the bare repo over dumb HTTP if not already serving.
-if ! curl -fsS "http://127.0.0.1:${PILOT_GIT_PORT}/microservice-app-gitops.git/info/refs" >/dev/null 2>&1; then
-  log "starting local Git HTTP source on :$PILOT_GIT_PORT"
-  ( cd "$LOCAL_GIT_DIR" && exec python3 -m http.server "$PILOT_GIT_PORT" --bind 127.0.0.1 ) \
+# Serve the bare repo over SMART HTTP (git http-backend). ArgoCD's go-git needs
+# smart HTTP; a static/dumb server is not enough.
+SMART_REFS="http://127.0.0.1:${PILOT_GIT_PORT}/microservice-app-gitops.git/info/refs?service=git-upload-pack"
+if ! curl -fsS "$SMART_REFS" >/dev/null 2>&1; then
+  log "starting local smart-HTTP Git source on :$PILOT_GIT_PORT"
+  python3 "$(dirname "$0")/lib/git-http-server.py" "$LOCAL_GIT_DIR" "$PILOT_GIT_PORT" \
     >"$LOCAL_DIR/git-http.log" 2>&1 &
   echo $! > "$LOCAL_DIR/git-http.pid"
   sleep 2
 fi
-curl -fsS "http://127.0.0.1:${PILOT_GIT_PORT}/microservice-app-gitops.git/info/refs" >/dev/null \
-  || die "local Git HTTP source is not serving the bare repo"
-ok "local Git source reachable"
+curl -fsS "$SMART_REFS" | grep -q "git-upload-pack" \
+  || die "local smart-HTTP Git source is not advertising refs"
+ok "local Git source reachable (smart HTTP)"
 
 # 3) kind cluster ------------------------------------------------------------
 if ! kind get clusters 2>/dev/null | grep -qx "$PILOT_CLUSTER"; then
