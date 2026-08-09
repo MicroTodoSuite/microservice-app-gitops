@@ -6,9 +6,15 @@ kind: Kustomization
 # replicas, capacity, registry, and the immutable image digest.
 namespace: microtodo-local
 
+# Local is pinned to the economical component directly (single kind cluster, no
+# mesh) — it does NOT follow the managed global default (apps/auth-api/topology),
+# so switching the managed profile never changes the local pilot.
 resources:
-  - ../../topology
+  - ../../base
   - external-secret.yaml # ESO Password generator + ExternalSecret -> auth-api-secrets
+
+components:
+  - ../../components/topology-economical
 
 replicas:
   - name: auth-api

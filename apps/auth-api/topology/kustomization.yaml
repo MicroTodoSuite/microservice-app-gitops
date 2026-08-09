@@ -1,14 +1,19 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# SINGLE SWITCH between the economical and full versions for this service.
-# All three environment overlays build from here, so flipping the component
-# below changes every environment at once — no per-overlay edits.
+# GLOBAL profile default for MANAGED environments (dev/staging/prod).
+# The default is the FULL (expensive) profile, as the constitution assumes.
+# The managed overlays build from here, so flipping the component below switches
+# the whole managed fleet between profiles in one line — no per-overlay edits.
 #
-# Economical (active):  ../components/topology-economical
-# Full:                 ../components/topology-full   <-- change this one line
+# Full / expensive (default):  ../components/topology-full
+# Economical:                  ../components/topology-economical  <-- flip to switch
+#
+# NOTE: the local pilot (overlays/local) does NOT build from here. It is pinned
+# to the economical component directly, because Istio/multi-cluster cannot run on
+# a single local kind cluster. Switching the managed profile never affects local.
 resources:
   - ../base
 
 components:
-  - ../components/topology-economical
+  - ../components/topology-full
