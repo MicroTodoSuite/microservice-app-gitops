@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Complete KEDA release bundle plus a Kubernetes-native capability check. The
+# check is intentionally self-contained: it needs no hosted event source or
+# cloud credential and proves the operator can reconcile a ScaledObject.
+resources:
+  - vendor/v2.20.1/install.yaml
+  - capability-check.yaml
+
+# Multi-platform release-index digests observed from the upstream registries on
+# 2026-08-09. Version tags remain only in the untouched vendored source.
+images:
+  - name: ghcr.io/kedacore/keda
+    digest: sha256:8888d1896d316c9e087ce0ca3b72bd945dfbad6f3ef2d64ca24ee394feccc023
+  - name: ghcr.io/kedacore/keda-metrics-apiserver
+    digest: sha256:ba32172082a2ff935d5b62ffa0bd0698424d373b55c5cae0846db057e237b28e
+  - name: ghcr.io/kedacore/keda-admission-webhooks
+    digest: sha256:0350cbb59471123623134801a3e9a753c90e0945bb4eb7e36086746fc4b35fb8
+  - name: registry.k8s.io/pause
+    digest: sha256:278fb9dbcca9518083ad1e11276933a2e96f23de604a3a08cc3c80002767d24c

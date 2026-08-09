@@ -9,12 +9,12 @@ export REPO_ROOT
 
 # Pilot-owned constants. Everything the pilot creates carries these names so
 # cleanup can target them exactly and never touch unrelated resources.
-export PILOT_CLUSTER="microtodo-pilot"
-export PILOT_REGISTRY_NAME="microtodo-pilot-registry"
-export PILOT_REGISTRY_PORT="5001"
-export PILOT_GIT_PORT="8081"
-export PILOT_HEALTH_PORT="18000"
-export PILOT_KUBE_CONTEXT="kind-${PILOT_CLUSTER}"
+export PILOT_CLUSTER="${PILOT_CLUSTER:-microtodo-pilot}"
+export PILOT_REGISTRY_NAME="${PILOT_REGISTRY_NAME:-microtodo-pilot-registry}"
+export PILOT_REGISTRY_PORT="${PILOT_REGISTRY_PORT:-5001}"
+export PILOT_GIT_PORT="${PILOT_GIT_PORT:-8081}"
+export PILOT_HEALTH_PORT="${PILOT_HEALTH_PORT:-18000}"
+export PILOT_KUBE_CONTEXT="${PILOT_KUBE_CONTEXT:-kind-${PILOT_CLUSTER}}"
 export LOCAL_DIR="${REPO_ROOT}/.local"
 export LOCAL_GIT_DIR="${LOCAL_DIR}/git"
 export BARE_REPO="${LOCAL_GIT_DIR}/microservice-app-gitops.git"

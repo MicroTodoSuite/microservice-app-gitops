@@ -22,8 +22,8 @@ labels:
     pairs:
       app.kubernetes.io/name: auth-api
       app.kubernetes.io/part-of: microtodosuite
-  # Business-service marker used by verification to count workloads; it must not
-  # enter selectors so it can be added or removed without pod churn.
-  - includeSelectors: false
+  # Business-service is part of the pilot's established selector contract. Keep
+  # it stable: Deployment selectors are immutable once the workload exists.
+  - includeSelectors: true
     pairs:
       app.kubernetes.io/component: business-service

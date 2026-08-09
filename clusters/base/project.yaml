@@ -1,6 +1,35 @@
-# Trust boundary for every MicroTodoSuite Application on this cluster.
-# No */* wildcards: cluster-scoped kinds are limited to what the pinned ArgoCD
-# render and namespace management actually require.
+# Permanent, least-privilege project for the bootstrap root Application. ArgoCD
+# creates `default` during bootstrap; keeping it in root desired state prevents
+# the root from pruning the project it needs in order to reconcile everything
+# else.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  description: MicroTodoSuite bootstrap root only
+  sourceRepos:
+    - https://registration.invalid/microservice-app-gitops.git # value injected by the cluster registration
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: argoproj.io
+      kind: AppProject
+    - group: argoproj.io
+      kind: Application
+    - group: argoproj.io
+      kind: ApplicationSet
+  namespaceResourceBlacklist: []
+---
+# Trust boundary for every non-root MicroTodoSuite Application on this cluster.
+# No */* wildcards: cluster-scoped kinds are limited to what the pinned add-on
+# and namespace-management renders actually require.
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
@@ -28,6 +57,10 @@ spec:
       namespace: kyverno
     - server: https://kubernetes.default.svc
       namespace: argo-rollouts
+    # Full upstream KEDA and cert-manager renders include narrowly named
+    # authentication-reader and leader-election RBAC objects here.
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
   # Cluster-scoped kinds the platform add-ons actually install (derived from the
   # pinned renders): namespaces, CRDs, cluster RBAC, and admission webhooks.
   # No "*/*" wildcard.
@@ -44,4 +77,8 @@ spec:
       kind: ValidatingWebhookConfiguration
     - group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
+    - group: apiregistration.k8s.io
+      kind: APIService
+    - group: kyverno.io
+      kind: ClusterPolicy
   namespaceResourceBlacklist: []

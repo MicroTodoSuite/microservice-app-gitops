@@ -7,10 +7,15 @@ kind: Kustomization
 # overlay declares a Password generator + ExternalSecret and ESO produces the
 # Secret in-cluster.
 #
-# Ownership note: per constitution principle 11, ArgoCD owns this add-on. Its
-# content here is the local (generator-based) install; managed environments will
-# add an AWS Secrets Manager SecretStore using the same Secret contract.
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on. The
+# controller install is provider-neutral; each environment supplies its own
+# store and identity values without changing this folder.
 namespace: external-secrets
 
 resources:
+  - namespace.yaml
   - vendor/v2.9.0/manifests.yaml
+
+images:
+  - name: ghcr.io/external-secrets/external-secrets
+    digest: sha256:44eb290f1c7f5d8f4eec2168cea4a6cfbc72a955c6781eb835e1c40700475dbd

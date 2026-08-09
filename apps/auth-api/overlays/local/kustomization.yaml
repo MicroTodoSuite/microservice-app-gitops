@@ -32,6 +32,9 @@ patches:
         name: auth-api
       spec:
         template:
+          metadata:
+            annotations:
+              policy.microtodosuite.io/baseline: kyverno-v1
           spec:
             containers:
               - name: auth-api

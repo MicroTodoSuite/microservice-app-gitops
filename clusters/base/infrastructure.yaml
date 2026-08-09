@@ -1,6 +1,6 @@
-# Platform add-on ApplicationSet: one Application per infrastructure/ folder.
-# Folder content is owned by roadmap task 2; filling a folder is enough for it
-# to deploy. Empty placeholder folders sync to nothing and stay inactive.
+# Platform add-on ApplicationSet: one Application per active infrastructure/
+# Kustomize root. Vendor descendants and inactive capability placeholders are
+# excluded explicitly.
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -15,6 +15,8 @@ spec:
         revision: registration-revision # injected by registration
         directories:
           - path: infrastructure/*
+          - path: infrastructure/argo-rollouts
+            exclude: true # inactive until the canary capability is activated
           - path: infrastructure/*/vendor
             exclude: true
   template:

@@ -12,7 +12,9 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: default # root creates the microtodosuite project for everything else
+  # ArgoCD creates this project at bootstrap; clusters/base retains and narrows
+  # it so the root never prunes its own reconciliation prerequisite.
+  project: default
   source:
     repoURL: http://host.docker.internal:8081/microservice-app-gitops.git
     targetRevision: main

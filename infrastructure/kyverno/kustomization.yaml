@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Complete Kyverno controller bundle. The policies were reconciled and reviewed
+# in Audit first, then promoted as a separate GitOps revision to Enforce.
+resources:
+  - vendor/v1.18.2/install.yaml
+  - policies.yaml
+
+# Kubernetes defaults these CEL-policy CRDs to conversion.strategy=None. State
+# the default explicitly so ArgoCD's strict comparison remains stable without a
+# broad ignoreDifferences rule.
+patches:
+  - target:
+      group: apiextensions.k8s.io
+      version: v1
+      kind: CustomResourceDefinition
+      name: '^(deletingpolicies|generatingpolicies|imagevalidatingpolicies|mutatingpolicies|namespaceddeletingpolicies|namespacedgeneratingpolicies|namespacedimagevalidatingpolicies|namespacedmutatingpolicies|namespacedvalidatingpolicies|policyexceptions|validatingpolicies)\.policies\.kyverno\.io$'
+    patch: |-
+      - op: remove
+        path: /metadata/labels
+      - op: add
+        path: /spec/conversion
+        value:
+          strategy: None
+
+images:
+  - name: reg.kyverno.io/kyverno/kyverno
+    digest: sha256:0a540e2ddf74d0d2d3d45f9ef248d7dbc96576accdbcc6a2dd7eaff9fea56504
+  - name: reg.kyverno.io/kyverno/background-controller
+    digest: sha256:d62566ce41bd0d4a32bf2cf44b9ebfc02c36374f821f83070890287f62f68671
+  - name: reg.kyverno.io/kyverno/cleanup-controller
+    digest: sha256:b0395d29ae332276e6910eb40418be9bc127c068d659f90aa1bcddd6be99ccb4
+  - name: reg.kyverno.io/kyverno/reports-controller
+    digest: sha256:f09cf305170014e191b94e1c54f5be73163d8824eefad49349675c4efe43159a
+  - name: reg.kyverno.io/kyverno/kyvernopre
+    digest: sha256:cd8cb4a31d25b3992734fb8f24a90ef691c90ce49338c89bea96792160eacb98

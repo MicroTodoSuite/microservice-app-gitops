@@ -1,0 +1,31 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: platform-selfsigned
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/part-of: microtodosuite-platform
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: platform-certificate-check
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/part-of: microtodosuite-platform
+spec:
+  secretName: platform-certificate-check-tls
+  duration: 1h
+  renewBefore: 15m
+  commonName: platform-check.local
+  dnsNames:
+    - platform-check.local
+  issuerRef:
+    kind: Issuer
+    name: platform-selfsigned

@@ -1,0 +1,68 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-immutable-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    policies.kyverno.io/title: Require Immutable Images
+    policies.kyverno.io/category: MicroTodoSuite Baseline
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/minversion: 1.18.0
+    pod-policies.kyverno.io/autogen-controllers: none
+spec:
+  validationFailureAction: Enforce
+  admission: true
+  background: true
+  emitWarning: false
+  rules:
+    - name: require-sha256-digest
+      skipBackgroundRequests: true
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - "microtodo-*"
+      validate:
+        allowExistingViolations: true
+        message: Business workload images must use an immutable SHA-256 digest.
+        foreach:
+          - list: request.object.spec.containers
+            pattern:
+              image: "*@sha256:*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-health-probes
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    policies.kyverno.io/title: Require Health Probes
+    policies.kyverno.io/category: MicroTodoSuite Baseline
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/minversion: 1.18.0
+    pod-policies.kyverno.io/autogen-controllers: none
+spec:
+  validationFailureAction: Enforce
+  admission: true
+  background: true
+  emitWarning: false
+  rules:
+    - name: require-liveness-and-readiness
+      skipBackgroundRequests: true
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - "microtodo-*"
+      validate:
+        allowExistingViolations: true
+        message: Every business workload container must define liveness and readiness probes.
+        foreach:
+          - list: request.object.spec.containers
+            pattern:
+              livenessProbe: {}
+              readinessProbe: {}

@@ -6,3 +6,11 @@
 
 # Temporary test scratch.
 /tmp-render/
+
+# Kubernetes secret and local client material.
+*.secret.yaml
+secrets/
+.kube/
+kubeconfig*
+*.key
+*.crt

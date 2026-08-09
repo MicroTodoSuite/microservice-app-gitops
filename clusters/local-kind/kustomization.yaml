@@ -36,6 +36,11 @@ replacements:
         fieldPaths:
           - spec.sourceRepos.0
       - select:
+          kind: AppProject
+          name: default
+        fieldPaths:
+          - spec.sourceRepos.0
+      - select:
           kind: Application
           name: argocd
         fieldPaths:
