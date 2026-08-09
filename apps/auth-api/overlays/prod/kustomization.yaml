@@ -1,19 +1,27 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Ambiente prod — versión económica: ambiente = namespace.
-# El aislamiento se refuerza con ResourceQuota (y a futuro NetworkPolicies/RBAC).
+# Prod environment — economical version: environment = namespace.
+# Isolation is reinforced with a ResourceQuota (NetworkPolicies/RBAC to follow).
 namespace: microtodo-prod
 
+# Builds from topology/ (base + selected version component), plus prod-only extras.
 resources:
-  - ../../base
+  - ../../topology
   - resourcequota.yaml
 
 replicas:
   - name: auth-api
     count: 3
 
-# Prod recibe el tag ya validado en staging (PR con aprobación manual)
+# Deployment strategy (US3): prod is where canary applies. To activate the
+# progressive canary, install the argo-rollouts add-on and uncomment the line
+# below — it swaps the rolling Deployment for a Rollout. Left off by default so
+# prod is never applied with a CRD the cluster does not yet have (FR-007).
+# components:
+#   - ../../components/strategy-canary
+
+# Prod receives the tag already validated in staging (manually approved PR).
 images:
   - name: auth-api
     newTag: 0.1.0-local

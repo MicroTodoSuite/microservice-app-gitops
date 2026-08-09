@@ -1,0 +1,25 @@
+# Automated canary gate (plan §6): between canary steps, query Prometheus for
+# error rate; if it degrades, Argo Rollouts aborts and rolls back automatically.
+# Prepared but not wired: it depends on Prometheus (roadmap #5). Reference it from
+# the Rollout steps once observability is in place.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: auth-api-success-rate
+spec:
+  metrics:
+    - name: error-rate
+      interval: 30s
+      # Abort the canary after this many failed measurements.
+      failureLimit: 2
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc:9090
+          # Fraction of 5xx responses over the last minute for the canary.
+          query: |
+            sum(rate(http_requests_total{service="auth-api",code=~"5.."}[1m]))
+            /
+            sum(rate(http_requests_total{service="auth-api"}[1m]))
+      # Fail the step if the error rate exceeds 5%.
+      failureCondition: result > 0.05
+      successCondition: result <= 0.05

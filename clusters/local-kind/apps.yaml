@@ -1,10 +1,16 @@
-# ApplicationSet de microservicios: genera una Application por cada combinación
-# {servicio x ambiente} recorriendo apps/*/overlays/*. Agregar un microservicio
-# nuevo = crear su carpeta en apps/ con base/ y overlays/; no se toca este archivo.
+# Microservice ApplicationSet.
 #
-# Versión económica: cada ambiente es un namespace de este mismo clúster.
-# Versión completa: este archivo se replica por clúster (eks-dev, eks-staging, ...)
-# filtrando el overlay correspondiente y cambiando destination.server.
+# Generates one ArgoCD Application per {service × environment} from a matrix of:
+#   - a git generator that discovers services  (apps/*)
+#   - a list generator that declares environments and, crucially, WHERE each one
+#     is deployed (server + namespace).
+#
+# THE DUAL-TOPOLOGY SEAM (spec 001, US1): the destination is data, not template
+# logic. Today every environment points at the local cluster
+# (https://kubernetes.default.svc) in its own namespace = economical version.
+# To move to the full version, change the `server` of each environment entry to a
+# registered remote cluster URL — no edits to any service base/overlays.
+# See clusters/README.md for the full-version layout.
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -14,26 +20,41 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-    - git:
-        repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
-        revision: main
-        directories:
-          - path: apps/*/overlays/*
+    - matrix:
+        generators:
+          # 1) Discover services: apps/auth-api, apps/todos-api, ...
+          - git:
+              repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+              revision: main
+              directories:
+                - path: apps/*
+          # 2) Declare environments and their physical destination.
+          - list:
+              elements:
+                - env: dev
+                  server: https://kubernetes.default.svc
+                  namespace: microtodo-dev
+                - env: staging
+                  server: https://kubernetes.default.svc
+                  namespace: microtodo-staging
+                - env: prod
+                  server: https://kubernetes.default.svc
+                  namespace: microtodo-prod
   template:
     metadata:
-      # apps/auth-api/overlays/dev -> auth-api-dev
-      name: "{{ index .path.segments 1 }}-{{ .path.basename }}"
+      # apps/auth-api + env dev -> auth-api-dev
+      name: "{{.path.basename}}-{{.env}}"
       annotations:
-        argocd.argoproj.io/sync-wave: "1" # después de los add-ons de infraestructura
+        argocd.argoproj.io/sync-wave: "1" # after platform add-ons
     spec:
       project: microtodosuite
       source:
         repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
         targetRevision: main
-        path: "{{ .path.path }}"
+        path: "{{.path.path}}/overlays/{{.env}}"
       destination:
-        server: https://kubernetes.default.svc
-        namespace: "microtodo-{{ .path.basename }}"
+        server: "{{.server}}"
+        namespace: "{{.namespace}}"
       syncPolicy:
         automated:
           prune: true

@@ -1,0 +1,37 @@
+# Argo Rollouts progressive canary for prod (plan §6).
+# Requires the argo-rollouts controller (infrastructure/argo-rollouts).
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: auth-api
+spec:
+  replicas: 3
+  # Reuse the base Deployment's pod template instead of copying it. Argo Rollouts
+  # scales the referenced Deployment to zero and manages pods from its spec.
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-api
+    scaleDown: onsuccess
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: auth-api
+      app.kubernetes.io/part-of: microtodosuite
+  strategy:
+    canary:
+      # Economical: weight is approximated by replica proportion (no mesh).
+      # Full version: Istio routes exact traffic percentages for these same steps.
+      steps:
+        - setWeight: 10
+        - pause: { duration: 30s }
+        - setWeight: 25
+        # Gate the next step on the analysis below. Kept commented until
+        # Prometheus exists (roadmap #5 observability); without it the canary
+        # still progresses on the timed pauses.
+        # - analysis:
+        #     templates:
+        #       - templateName: auth-api-success-rate
+        - pause: { duration: 30s }
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - setWeight: 100
