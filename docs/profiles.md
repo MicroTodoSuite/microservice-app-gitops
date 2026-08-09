@@ -1,13 +1,13 @@
-# Deployment Profiles: full (default) and economical
+# Deployment Profiles: economical (adopted) and full (reversible)
 
 The plan (§17) defines two cost profiles. This repo supports **both** and lets you
-switch between them. **The default is the full (expensive) profile**, as the
-constitution assumes; the economical profile is available as a deliberate switch.
+switch between them. Constitution v1.2.0 formally adopts the **economical
+profile** for managed environments: one EKS cluster, environment namespaces,
+no service mesh, native replica-based canaries, and no AKS DR target.
 
-Governance: making the economical profile *available* needs no amendment. Actually
-*running* a managed environment in economical mode is "moving to the cost-optimized
-profile" and, per constitution principles 1 and 5, requires an approved amendment
-in `microservice-app-docs` first.
+The full profile remains a reversible design seam, not an active deployment
+target. Returning to separate EKS clusters, Istio, and AKS DR requires another
+approved amendment in `microservice-app-docs` before GitOps activation.
 
 ## What differs between the profiles
 
@@ -45,11 +45,13 @@ does **not** follow the managed default, because Istio and multi-cluster cannot
 run on a single local kind cluster. Switching the managed profile never affects
 the local pilot.
 
-## ArgoCD ownership and disaster recovery
+## ArgoCD ownership and the reversible full-profile DR seam
 
-ArgoCD is deliberately per-cluster in both profiles. `eks-dev`, `eks-staging`,
-`eks-prod`, and `aks-dr` each bootstrap and run their own reconciler against the
-in-cluster Kubernetes API. Terraform cluster endpoints and certificate
+ArgoCD is deliberately per-cluster in both profiles. Under the adopted profile,
+the single shared EKS cluster owns one reconciler and activates `dev`, `staging`,
+and `prod`. A future full-profile implementation would give `eks-dev`,
+`eks-staging`, `eks-prod`, and `aks-dr` their own reconcilers against each
+cluster's in-cluster Kubernetes API. Terraform cluster endpoints and certificate
 authorities are operator/bootstrap inputs; they are not ApplicationSet remote
 destinations.
 
