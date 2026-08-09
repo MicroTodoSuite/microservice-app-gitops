@@ -1,0 +1,46 @@
+{
+  "recordedAt": "2026-08-09T19:06:11Z",
+  "result": "pass",
+  "gitRevert": {
+    "scenario": "git-revert",
+    "result": "pass",
+    "baselineRevision": "831b0093745c0334baed3cca5f7765b074597ac8",
+    "changeCommit": "82ac4c020c23710076af671861553a46c46bbe1a",
+    "revertCommit": "b3ae23e9a1135efdd387c5669fb70ba794678410",
+    "replicas": {
+      "baseline": 1,
+      "change": 2,
+      "reverted": 1
+    },
+    "manifestRestored": true,
+    "baselineManifestBlob": "368e088e13d5b47d4995bf8053ba29eda491a203",
+    "revertManifestBlob": "368e088e13d5b47d4995bf8053ba29eda491a203",
+    "changeReadyAt": "2026-08-09T19:00:39Z",
+    "changeConvergenceMs": 6716,
+    "revertConvergenceMs": 33057,
+    "maxAllowedMs": 300000,
+    "directClusterMutations": 0,
+    "health": {
+      "baseline": 200,
+      "change": 200,
+      "revert": 200
+    }
+  },
+  "selfHeal": {
+    "scenario": "self-heal-uncommitted-drift",
+    "result": "pass",
+    "sourceRevision": "b3ae23e9a1135efdd387c5669fb70ba794678410",
+    "sourceRevisionUnchanged": true,
+    "injectedAtEpochMs": 1786302366785,
+    "replicas": {
+      "committed": 1,
+      "injected": 2,
+      "selfHealed": 1
+    },
+    "selfHealMs": 2559,
+    "maxAllowedMs": 300000,
+    "directDriftInjections": 1,
+    "manualCorrections": 0,
+    "healthAfterSelfHeal": 200
+  }
+}

@@ -1,0 +1,41 @@
+commit b3ae23e9a1135efdd387c5669fb70ba794678410
+Author:     pilot validation <pilot-validation@local>
+AuthorDate: Sun Aug 9 14:05:31 2026 -0500
+Commit:     pilot validation <pilot-validation@local>
+CommitDate: Sun Aug 9 14:05:31 2026 -0500
+
+    Revert "test(pilot): exercise auth-api git revert"
+    
+    This reverts commit 82ac4c020c23710076af671861553a46c46bbe1a.
+
+commit 82ac4c020c23710076af671861553a46c46bbe1a
+Author:     pilot validation <pilot-validation@local>
+AuthorDate: Sun Aug 9 14:00:32 2026 -0500
+Commit:     pilot validation <pilot-validation@local>
+CommitDate: Sun Aug 9 14:00:32 2026 -0500
+
+    test(pilot): exercise auth-api git revert
+
+commit 831b0093745c0334baed3cca5f7765b074597ac8
+Author:     pilot <pilot@local>
+AuthorDate: Sun Aug 9 13:29:52 2026 -0500
+Commit:     pilot <pilot@local>
+CommitDate: Sun Aug 9 13:29:52 2026 -0500
+
+    docs: complete service onboarding evidence tasks
+
+commit 793f22fafeade3e7cd5fe38a2c07b744ca0621fa
+Author:     pilot <pilot@local>
+AuthorDate: Sun Aug 9 13:27:29 2026 -0500
+Commit:     pilot <pilot@local>
+CommitDate: Sun Aug 9 13:27:29 2026 -0500
+
+    fix(pilot): restore bootstrap Git endpoint
+
+commit 2864b8de2773f354be6761c0ca388e2d75dca23f
+Author:     pilot <pilot@local>
+AuthorDate: Sun Aug 9 13:23:38 2026 -0500
+Commit:     pilot <pilot@local>
+CommitDate: Sun Aug 9 13:23:38 2026 -0500
+
+    fix: preserve pilot registration during publication

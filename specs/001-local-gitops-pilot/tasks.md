@@ -9,6 +9,12 @@
 existing App-of-Apps, ApplicationSet, and `auth-api` base/overlay baseline. Do
 not run implementation as part of task generation.
 
+**Acceptance reconciliation (2026-08-09)**: Checkboxes now follow
+[checklists/acceptance.md](./checklists/acceptance.md). A task is checked only
+when its **DONE** row cites the specific source or retained evidence file that
+proves it. Partial, open, and superseded tasks remain unchecked; the feature as
+a whole remains only partially accepted.
+
 **Tests**: The specification requires measurable clean-run, commit/revert,
 uncommitted-edit, health, exactly-one-service, conformance, and operator
 evidence. Test/harness tasks are therefore mandatory and appear before the
@@ -26,9 +32,9 @@ implementation they validate.
 **Purpose**: Establish tracked, pinned inputs and common test/script structure
 without creating a cluster or changing desired state.
 
-- [ ] T001 Extend `.gitignore` for `.local/`, pilot port-forward state, temporary clones, and test scratch while retaining the transitional `apps/auth-api/base/secret-values.local.env` ignore until ESO conversion
+- [x] T001 Extend `.gitignore` for `.local/`, pilot port-forward state, temporary clones, and test scratch while retaining the transitional `apps/auth-api/base/secret-values.local.env` ignore until ESO conversion
 - [ ] T002 Create `bootstrap/local/assets.lock` with verified versions, upstream references, platforms, file checksums, and OCI manifest/index digests for Kind, the node image, Distribution, the Git HTTP helper, ArgoCD, Dex, Redis, ESO, and every rendered controller image
-- [ ] T003 [P] Vendor Argo CD 3.5.0 into `bootstrap/argocd/vendor/v3.5.0/install.yaml`, `bootstrap/argocd/vendor/v3.5.0/SHA256SUMS`, and `bootstrap/argocd/vendor/v3.5.0/README.md`, then point `bootstrap/argocd/kustomization.yaml` at the local manifest
+- [x] T003 [P] Vendor Argo CD 3.5.0 into `bootstrap/argocd/vendor/v3.5.0/install.yaml`, `bootstrap/argocd/vendor/v3.5.0/SHA256SUMS`, and `bootstrap/argocd/vendor/v3.5.0/README.md`, then point `bootstrap/argocd/kustomization.yaml` at the local manifest
 - [ ] T004 [P] Vendor External Secrets Operator 2.7.0 into `infrastructure/external-secrets/vendor/v2.7.0/`, record checksum/provenance in `infrastructure/external-secrets/vendor/v2.7.0/README.md`, and create `infrastructure/external-secrets/kustomization.yaml`
 - [ ] T005 [P] Add the digest-pinned Kind and local-registry topology in `bootstrap/local/kind-config.yaml` and `bootstrap/local/registry/hosts.toml`, including loopback-only port mappings and the containerd registry alias before cluster creation
 - [ ] T006 [P] Create strict-mode logging, redaction, exact-target, and assertion helpers in `scripts/pilot/lib/common.sh` and `tests/lib/assert.sh`
@@ -53,7 +59,7 @@ ESO healthy and proves zero business workloads exist.
 - [ ] T013 Create a disabled-by-default, value-only registration in `clusters/local-kind/kustomization.yaml`, `clusters/local-kind/registration.yaml`, and `clusters/local-kind/root-app.yaml` for repository URL, revision, destination, namespace, environment, registry, and capacity
 - [ ] T014 Replace the wildcard project with exact trust-boundary definitions in `clusters/base/projects/apps.yaml`, `clusters/base/projects/environment.yaml`, `clusters/base/projects/platform.yaml`, and `clusters/base/projects/default.yaml`, deriving platform kind permissions from the pinned render and forbidding `*/*`
 - [ ] T015 Move namespace ownership into `clusters/base/environment/kustomization.yaml`, `resourcequota.yaml`, `limitrange.yaml`, `networkpolicy-default-deny.yaml`, `networkpolicy-allow-dns.yaml`, `networkpolicy-allow-health.yaml`, `serviceaccounts.yaml`, `roles.yaml`, and `rolebindings.yaml`
-- [ ] T016 Configure only implemented platform dependencies in `clusters/base/argocd.yaml` and `clusters/base/infrastructure.yaml`, make ArgoCD self-manage from vendored manifests, make ESO reconcile before workloads, and leave every placeholder add-on inactive
+- [x] T016 Configure only implemented platform dependencies in `clusters/base/argocd.yaml` and `clusters/base/infrastructure.yaml`, make ArgoCD self-manage from vendored manifests, make ESO reconcile before workloads, and leave every placeholder add-on inactive
 - [ ] T017 Implement `scripts/pilot/bootstrap.sh` to create the local source/registry/cluster, commit disabled connection values to `pilot main`, execute and audit only the vendored ArgoCD plus root-Application bootstrap exception, wait read-only for ArgoCD/environment/ESO health, and satisfy `tests/contract/local-assets.sh` plus `tests/integration/bootstrap-boundary.sh`
 
 **Checkpoint**: The local repository and registry are machine-local, ArgoCD owns
@@ -80,15 +86,15 @@ three times over at least 60 seconds; no unsupported mutation may appear.
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] Normalize the retained workload in `apps/auth-api/base/deployment.yaml`, `service.yaml`, `configmap.yaml`, `serviceaccount.yaml`, and `kustomization.yaml`: English content, intrinsic probes, business-service labels, token-disabled account, neutral image key, and no Kind/capacity/provider values
+- [x] T020 [P] [US1] Normalize the retained workload in `apps/auth-api/base/deployment.yaml`, `service.yaml`, `configmap.yaml`, `serviceaccount.yaml`, and `kustomization.yaml`: English content, intrinsic probes, business-service labels, token-disabled account, neutral image key, and no Kind/capacity/provider values
 - [ ] T021 [P] [US1] Create `apps/auth-api/overlays/local/kustomization.yaml`, `jwt-password.yaml`, `external-secret.yaml`, `configmap-patch.yaml`, and `deployment-patch.yaml` with local namespace/config/capacity, ESO `JWT_SECRET` output, and disabled all-zero digest placeholder that cannot be activated
-- [ ] T022 [US1] After T017 proves ESO healthy, remove `secretGenerator` and `generatorOptions` from `apps/auth-api/base/kustomization.yaml`, remove the transitional rule from `.gitignore`, and delete the ignored `apps/auth-api/base/secret-values.local.env` bridge without treating deletion as secret rotation
-- [ ] T023 [US1] Complete `clusters/base/apps.yaml` as the Matrix ApplicationSet that selects only `apps/*/overlays/{{ .environment }}`, uses exact application project/destination values, retains automated prune/self-heal, and labels generated business Applications for verification
-- [ ] T024 [P] [US1] Convert `scripts/bump-image.sh` to the digest-only contract: validate `sha256:[a-f0-9]{64}`, preserve `newName`, reject tags/placeholders/image IDs, render `newName@digest`, commit only, and never push or mutate a cluster
-- [ ] T025 [US1] Implement `scripts/pilot/publish-auth.sh` to push the acquired image locally, resolve the registry manifest/index digest, update and activate only the local overlay in the disposable pilot worktree, run contract checks, commit, and push only `pilot main`
+- [x] T022 [US1] After T017 proves ESO healthy, remove `secretGenerator` and `generatorOptions` from `apps/auth-api/base/kustomization.yaml`, remove the transitional rule from `.gitignore`, and delete the ignored `apps/auth-api/base/secret-values.local.env` bridge without treating deletion as secret rotation
+- [x] T023 [US1] Complete `clusters/base/apps.yaml` as the Matrix ApplicationSet that selects only `apps/*/overlays/{{ .environment }}`, uses exact application project/destination values, retains automated prune/self-heal, and labels generated business Applications for verification
+- [x] T024 [P] [US1] Convert `scripts/bump-image.sh` to the digest-only contract: validate `sha256:[a-f0-9]{64}`, preserve `newName`, reject tags/placeholders/image IDs, render `newName@digest`, commit only, and never push or mutate a cluster
+- [x] T025 [US1] Implement `scripts/pilot/publish-auth.sh` to push the acquired image locally, resolve the registry manifest/index digest, update and activate only the local overlay in the disposable pilot worktree, run contract checks, commit, and push only `pilot main`
 - [ ] T026 [P] [US1] Implement schema-valid evidence/timeline/command-audit writers with secret redaction in `scripts/pilot/lib/evidence.sh` against `specs/001-local-gitops-pilot/contracts/pilot-evidence.schema.json`
-- [ ] T027 [US1] Implement `scripts/pilot/verify.sh` to compare local Git and Argo revisions, wait for sync/health/readiness, count exactly one labeled business service, perform three `/version` checks over 60 seconds, and retain all raw evidence
-- [ ] T028 [P] [US1] Document the historical JWT literal as compromised, list out-of-Git rotation actions and ownership, and explain the stable ESO target contract in `docs/secret-rotation.md` without reproducing the literal
+- [x] T027 [US1] Implement `scripts/pilot/verify.sh` to compare local Git and Argo revisions, wait for sync/health/readiness, count exactly one labeled business service, perform three `/version` checks over 60 seconds, and retain all raw evidence
+- [x] T028 [P] [US1] Document the historical JWT literal as compromised, list out-of-Git rotation actions and ownership, and explain the stable ESO target contract in `docs/secret-rotation.md` without reproducing the literal
 - [ ] T029 [US1] Make `tests/contract/auth-api-local.sh` and `tests/integration/initial-deploy.sh` pass from a clean foundational checkpoint and store a schema-valid redacted example in `evidence/examples/initial-deploy/`
 
 **Checkpoint**: User Story 1 is independently usable as the pilot MVP. The only
@@ -178,13 +184,13 @@ score clarity at least 4/5.
 
 - [ ] T046 [US4] Implement `scripts/pilot/run-three-clean.sh` to repeat cleanup/bootstrap/publish/verify three times from retained local assets and aggregate source-to-sync/ready/healthy durations plus success rate
 - [ ] T047 [P] [US4] Implement exact-target cleanup with pilot label/context/path validation and a recoverability report in `scripts/pilot/cleanup.sh`
-- [ ] T048 [P] [US4] Write the executable eight-command newcomer guide, expected checkpoints, read-only diagnostics, Git-fix/revert paths, and cleanup in `docs/local-pilot-quickstart.md`, and link it from `README.md`
+- [x] T048 [P] [US4] Write the executable eight-command newcomer guide, expected checkpoints, read-only diagnostics, Git-fix/revert paths, and cleanup in `docs/local-pilot-quickstart.md`, and link it from `README.md`
 - [ ] T049 [P] [US4] Create the first-time operator instructions and schema/template in `docs/operator-evaluation.md` and `evidence/operators/template.json`
 - [ ] T050 [P] [US4] Document raw/summary retention, failure preservation, JSON-schema validation, secret redaction, and acceptance aggregation in `evidence/README.md`
 - [ ] T051 [US4] Translate all retained Spanish comments, script messages, usage strings, and pilot documentation in `apps/auth-api/`, `clusters/`, `bootstrap/`, `scripts/`, and `README.md` to English without changing behavior beyond planned reconciliation
 - [ ] T052 [US4] Execute three clean local runs through `scripts/pilot/run-three-clean.sh` and commit the schema-valid records under `evidence/runs/` only after checking that logs contain no secret values or unsupported mutation
 - [ ] T053 [US4] Have two first-time operators execute `docs/local-pilot-quickstart.md` and commit their completed records under `evidence/operators/`, requiring no undocumented help, at most ten commands to health, correct state identification, and clarity ratings of at least 4/5
-- [ ] T054 [US4] Reconcile SC-001 through SC-009 against captured artifacts and record pass/fail plus evidence paths in `specs/001-local-gitops-pilot/checklists/acceptance.md` without converting missing runtime proof into a pass
+- [x] T054 [US4] Reconcile SC-001 through SC-009 against captured artifacts and record pass/fail plus evidence paths in `specs/001-local-gitops-pilot/checklists/acceptance.md` without converting missing runtime proof into a pass
 
 **Checkpoint**: The pilot is reproducible, diagnosable, measurable, and safely
 cleanable by someone without prior context.
@@ -326,4 +332,3 @@ finished workflow and cannot be replaced by parallel synthetic records.
   services remain inactive in this feature.
 - Do not run `$speckit-implement` until this task list is reviewed and explicitly
   authorized.
-

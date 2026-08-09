@@ -1,0 +1,172 @@
+{
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+        "annotations": {
+            "argocd.argoproj.io/tracking-id": "auth-api-local:apps/Deployment:microtodo-local/auth-api",
+            "deployment.kubernetes.io/revision": "3",
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{\"argocd.argoproj.io/tracking-id\":\"auth-api-local:apps/Deployment:microtodo-local/auth-api\"},\"labels\":{\"app.kubernetes.io/component\":\"business-service\",\"app.kubernetes.io/name\":\"auth-api\",\"app.kubernetes.io/part-of\":\"microtodosuite\",\"microtodosuite.io/topology\":\"economical\"},\"name\":\"auth-api\",\"namespace\":\"microtodo-local\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app.kubernetes.io/component\":\"business-service\",\"app.kubernetes.io/name\":\"auth-api\",\"app.kubernetes.io/part-of\":\"microtodosuite\"}},\"template\":{\"metadata\":{\"annotations\":{\"policy.microtodosuite.io/baseline\":\"kyverno-v1\",\"sidecar.istio.io/inject\":\"false\"},\"labels\":{\"app.kubernetes.io/component\":\"business-service\",\"app.kubernetes.io/name\":\"auth-api\",\"app.kubernetes.io/part-of\":\"microtodosuite\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"JWT_SECRET\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"JWT_SECRET\",\"name\":\"auth-api-secrets\"}}}],\"envFrom\":[{\"configMapRef\":{\"name\":\"auth-api-config\"}}],\"image\":\"localhost:5001/auth-api@sha256:306b9473ee1b6ebd28673729ac812adcbe175792741b73b089d6a8a508bddce8\",\"livenessProbe\":{\"httpGet\":{\"path\":\"/version\",\"port\":\"http\"},\"initialDelaySeconds\":5,\"periodSeconds\":10},\"name\":\"auth-api\",\"ports\":[{\"containerPort\":8000,\"name\":\"http\"}],\"readinessProbe\":{\"httpGet\":{\"path\":\"/version\",\"port\":\"http\"},\"initialDelaySeconds\":3,\"periodSeconds\":5},\"resources\":{\"limits\":{\"cpu\":\"250m\",\"memory\":\"256Mi\"},\"requests\":{\"cpu\":\"50m\",\"memory\":\"64Mi\"}},\"securityContext\":{\"allowPrivilegeEscalation\":false},\"startupProbe\":{\"failureThreshold\":12,\"httpGet\":{\"path\":\"/version\",\"port\":\"http\"},\"periodSeconds\":5}}],\"serviceAccountName\":\"auth-api\"}}}}\n"
+        },
+        "creationTimestamp": "2026-08-09T16:32:39Z",
+        "generation": 5,
+        "labels": {
+            "app.kubernetes.io/component": "business-service",
+            "app.kubernetes.io/name": "auth-api",
+            "app.kubernetes.io/part-of": "microtodosuite",
+            "microtodosuite.io/topology": "economical"
+        },
+        "name": "auth-api",
+        "namespace": "microtodo-local",
+        "resourceVersion": "61350",
+        "uid": "fc093c6c-e057-480c-9f7e-f35dcabeb23a"
+    },
+    "spec": {
+        "progressDeadlineSeconds": 600,
+        "replicas": 2,
+        "revisionHistoryLimit": 10,
+        "selector": {
+            "matchLabels": {
+                "app.kubernetes.io/component": "business-service",
+                "app.kubernetes.io/name": "auth-api",
+                "app.kubernetes.io/part-of": "microtodosuite"
+            }
+        },
+        "strategy": {
+            "rollingUpdate": {
+                "maxSurge": "25%",
+                "maxUnavailable": "25%"
+            },
+            "type": "RollingUpdate"
+        },
+        "template": {
+            "metadata": {
+                "annotations": {
+                    "policy.microtodosuite.io/baseline": "kyverno-v1",
+                    "sidecar.istio.io/inject": "false"
+                },
+                "labels": {
+                    "app.kubernetes.io/component": "business-service",
+                    "app.kubernetes.io/name": "auth-api",
+                    "app.kubernetes.io/part-of": "microtodosuite"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "JWT_SECRET",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "JWT_SECRET",
+                                        "name": "auth-api-secrets"
+                                    }
+                                }
+                            }
+                        ],
+                        "envFrom": [
+                            {
+                                "configMapRef": {
+                                    "name": "auth-api-config"
+                                }
+                            }
+                        ],
+                        "image": "localhost:5001/auth-api@sha256:306b9473ee1b6ebd28673729ac812adcbe175792741b73b089d6a8a508bddce8",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/version",
+                                "port": "http",
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 5,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "name": "auth-api",
+                        "ports": [
+                            {
+                                "containerPort": 8000,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/version",
+                                "port": "http",
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 3,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "250m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false
+                        },
+                        "startupProbe": {
+                            "failureThreshold": 12,
+                            "httpGet": {
+                                "path": "/version",
+                                "port": "http",
+                                "scheme": "HTTP"
+                            },
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "auth-api",
+                "serviceAccountName": "auth-api",
+                "terminationGracePeriodSeconds": 30
+            }
+        }
+    },
+    "status": {
+        "availableReplicas": 1,
+        "conditions": [
+            {
+                "lastTransitionTime": "2026-08-09T16:32:39Z",
+                "lastUpdateTime": "2026-08-09T18:03:38Z",
+                "message": "ReplicaSet \"auth-api-7bdcfb449b\" has successfully progressed.",
+                "reason": "NewReplicaSetAvailable",
+                "status": "True",
+                "type": "Progressing"
+            },
+            {
+                "lastTransitionTime": "2026-08-09T19:00:39Z",
+                "lastUpdateTime": "2026-08-09T19:00:39Z",
+                "message": "Deployment has minimum availability.",
+                "reason": "MinimumReplicasAvailable",
+                "status": "True",
+                "type": "Available"
+            }
+        ],
+        "observedGeneration": 5,
+        "readyReplicas": 1,
+        "replicas": 1,
+        "terminatingReplicas": 0,
+        "updatedReplicas": 1
+    }
+}

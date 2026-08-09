@@ -1,0 +1,1 @@
+{"observedAt":"2026-08-09T19:00:32.287941738Z","observedAtEpochMs":1786302032290546387,"application":{"sync":"Synced","health":"Healthy","revision":"831b0093745c0334baed3cca5f7765b074597ac8"},"deployment":{"desiredReplicas":1,"readyReplicas":1,"availableReplicas":1,"generation":3,"resourceVersion":"43635"}}

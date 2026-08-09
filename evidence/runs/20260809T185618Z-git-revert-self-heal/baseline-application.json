@@ -1,0 +1,232 @@
+{
+    "apiVersion": "argoproj.io/v1alpha1",
+    "kind": "Application",
+    "metadata": {
+        "annotations": {
+            "argocd.argoproj.io/sync-wave": "1"
+        },
+        "creationTimestamp": "2026-08-09T16:32:39Z",
+        "finalizers": [
+            "resources-finalizer.argocd.argoproj.io"
+        ],
+        "generation": 320,
+        "labels": {
+            "microtodosuite.io/business-service": "true"
+        },
+        "name": "auth-api-local",
+        "namespace": "argocd",
+        "ownerReferences": [
+            {
+                "apiVersion": "argoproj.io/v1alpha1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "ApplicationSet",
+                "name": "apps",
+                "uid": "1ad529fa-906c-4d78-bd70-587d626c67aa"
+            }
+        ],
+        "resourceVersion": "59602",
+        "uid": "21e0b446-665f-45c7-b984-f92ae1b71af8"
+    },
+    "spec": {
+        "destination": {
+            "namespace": "microtodo-local",
+            "server": "https://kubernetes.default.svc"
+        },
+        "project": "microtodosuite",
+        "source": {
+            "path": "apps/auth-api/overlays/local",
+            "repoURL": "http://172.22.0.4:8080/microservice-app-gitops.git",
+            "targetRevision": "main"
+        },
+        "syncPolicy": {
+            "automated": {
+                "prune": true,
+                "selfHeal": true
+            },
+            "syncOptions": [
+                "CreateNamespace=true"
+            ]
+        }
+    },
+    "status": {
+        "controllerNamespace": "argocd",
+        "health": {
+            "lastTransitionTime": "2026-08-09T18:03:38Z",
+            "status": "Healthy"
+        },
+        "history": [
+            {
+                "deployStartedAt": "2026-08-09T16:32:39Z",
+                "deployedAt": "2026-08-09T16:32:39Z",
+                "id": 0,
+                "initiatedBy": {
+                    "automated": true
+                },
+                "revision": "3a9a9bcba4aa35b0a44600fdcbe7ca1b9d0114a3",
+                "source": {
+                    "path": "apps/auth-api/overlays/local",
+                    "repoURL": "http://172.22.0.4:8080/microservice-app-gitops.git",
+                    "targetRevision": "main"
+                }
+            },
+            {
+                "deployStartedAt": "2026-08-09T16:50:03Z",
+                "deployedAt": "2026-08-09T16:50:04Z",
+                "id": 1,
+                "initiatedBy": {
+                    "automated": true
+                },
+                "revision": "111186a8d6bb4ea8d5a4a647fd9166bcd180caf2",
+                "source": {
+                    "path": "apps/auth-api/overlays/local",
+                    "repoURL": "http://172.22.0.4:8080/microservice-app-gitops.git",
+                    "targetRevision": "main"
+                }
+            },
+            {
+                "deployStartedAt": "2026-08-09T18:03:32Z",
+                "deployedAt": "2026-08-09T18:03:33Z",
+                "id": 2,
+                "initiatedBy": {
+                    "automated": true
+                },
+                "revision": "5930572912362f32561c60c70f2020a05de3e8af",
+                "source": {
+                    "path": "apps/auth-api/overlays/local",
+                    "repoURL": "http://172.22.0.4:8080/microservice-app-gitops.git",
+                    "targetRevision": "main"
+                }
+            }
+        ],
+        "operationState": {
+            "finishedAt": "2026-08-09T18:03:33Z",
+            "message": "successfully synced (all tasks run)",
+            "operation": {
+                "initiatedBy": {
+                    "automated": true
+                },
+                "retry": {
+                    "limit": 5
+                },
+                "sync": {
+                    "autoHealAttemptsCount": 1,
+                    "prune": true,
+                    "resources": [
+                        {
+                            "group": "apps",
+                            "kind": "Deployment",
+                            "name": "auth-api"
+                        }
+                    ],
+                    "revision": "5930572912362f32561c60c70f2020a05de3e8af",
+                    "source": {
+                        "path": "apps/auth-api/overlays/local",
+                        "repoURL": "http://172.22.0.4:8080/microservice-app-gitops.git",
+                        "targetRevision": "main"
+                    },
+                    "syncOptions": [
+                        "CreateNamespace=true"
+                    ]
+                }
+            },
+            "phase": "Succeeded",
+            "startedAt": "2026-08-09T18:03:33Z",
+            "syncResult": {
+                "resources": [
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "localhost:5001/auth-api@sha256:306b9473ee1b6ebd28673729ac812adcbe175792741b73b089d6a8a508bddce8"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/auth-api unchanged",
+                        "name": "auth-api",
+                        "namespace": "microtodo-local",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    }
+                ],
+                "revision": "5930572912362f32561c60c70f2020a05de3e8af",
+                "source": {
+                    "path": "apps/auth-api/overlays/local",
+                    "repoURL": "http://172.22.0.4:8080/microservice-app-gitops.git",
+                    "targetRevision": "main"
+                }
+            }
+        },
+        "reconciledAt": "2026-08-09T19:00:02Z",
+        "resourceHealthSource": "appTree",
+        "resources": [
+            {
+                "kind": "ConfigMap",
+                "name": "auth-api-config",
+                "namespace": "microtodo-local",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "auth-api",
+                "namespace": "microtodo-local",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "auth-api",
+                "namespace": "microtodo-local",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "auth-api",
+                "namespace": "microtodo-local",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "external-secrets.io",
+                "kind": "ExternalSecret",
+                "name": "auth-api-secrets",
+                "namespace": "microtodo-local",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "generators.external-secrets.io",
+                "kind": "Password",
+                "name": "auth-api-jwt",
+                "namespace": "microtodo-local",
+                "status": "Synced",
+                "version": "v1alpha1"
+            }
+        ],
+        "sourceHydrator": {},
+        "sourceType": "Kustomize",
+        "summary": {
+            "images": [
+                "localhost:5001/auth-api@sha256:306b9473ee1b6ebd28673729ac812adcbe175792741b73b089d6a8a508bddce8"
+            ]
+        },
+        "sync": {
+            "comparedTo": {
+                "destination": {
+                    "namespace": "microtodo-local",
+                    "server": "https://kubernetes.default.svc"
+                },
+                "source": {
+                    "path": "apps/auth-api/overlays/local",
+                    "repoURL": "http://172.22.0.4:8080/microservice-app-gitops.git",
+                    "targetRevision": "main"
+                }
+            },
+            "revision": "831b0093745c0334baed3cca5f7765b074597ac8",
+            "status": "Synced"
+        }
+    }
+}

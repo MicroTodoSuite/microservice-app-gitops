@@ -1,0 +1,8 @@
+{
+  "result": "harness-error",
+  "stoppedAt": "2026-08-09T19:05:31.6422228Z",
+  "reason": "initial harness used nanoseconds as milliseconds and exited after its first poll",
+  "changeCommit": "82ac4c020c23710076af671861553a46c46bbe1a",
+  "clusterStateAtRecovery": "change reconciled; 2/2 replicas Healthy",
+  "recoveryPath": "continue with git revert; no kubectl correction"
+}

@@ -1,0 +1,13 @@
+diff --git a/apps/auth-api/overlays/local/kustomization.yaml b/apps/auth-api/overlays/local/kustomization.yaml
+index 368e088..7cefe3d 100644
+--- a/apps/auth-api/overlays/local/kustomization.yaml
++++ b/apps/auth-api/overlays/local/kustomization.yaml
+@@ -18,7 +18,7 @@ components:
+ 
+ replicas:
+   - name: auth-api
+-    count: 1
++    count: 2
+ 
+ # Environment-owned capacity (kept out of the neutral base on purpose).
+ patches:

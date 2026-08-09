@@ -1,0 +1,2 @@
+To /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-gitops/.local/git/microservice-app-gitops.git
+   831b009..82ac4c0  main -> main

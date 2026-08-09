@@ -1,0 +1,17 @@
+{
+  "scenario": "self-heal-uncommitted-drift",
+  "result": "pass",
+  "sourceRevision": "b3ae23e9a1135efdd387c5669fb70ba794678410",
+  "sourceRevisionUnchanged": true,
+  "injectedAtEpochMs": 1786302366785,
+  "replicas": {
+    "committed": 1,
+    "injected": 2,
+    "selfHealed": 1
+  },
+  "selfHealMs": 2559,
+  "maxAllowedMs": 300000,
+  "directDriftInjections": 1,
+  "manualCorrections": 0,
+  "healthAfterSelfHeal": 200
+}
