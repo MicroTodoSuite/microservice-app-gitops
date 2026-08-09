@@ -1,6 +1,6 @@
 # Implementation Plan: Dual-Topology Plumbing
 
-**Branch**: `001-dual-topology-plumbing` | **Date**: 2026-08-08 | **Spec**: ./spec.md
+**Branch**: `002-dual-topology-plumbing` | **Date**: 2026-08-08 | **Spec**: ./spec.md
 
 ## Summary
 
@@ -44,7 +44,7 @@ economical/full parity as a cost decision not a rewrite. No violations.
 ### Documentation (this feature)
 
 ```text
-specs/001-dual-topology-plumbing/
+specs/002-dual-topology-plumbing/
 ├── spec.md
 ├── plan.md      # this file
 └── tasks.md

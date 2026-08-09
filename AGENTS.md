@@ -4,61 +4,63 @@
 
 GitOps source of truth for MicroTodoSuite. ArgoCD reconciles this repo into the
 cluster: every deployment is a commit here, every rollback is a `git revert`.
-Nothing is applied to a cluster by hand.
+Nothing is applied to a cluster by hand except the audited bootstrap boundary.
 
 ## Stack
 
-Kubernetes manifests + Kustomize v5. ArgoCD v3.5.0 (App-of-Apps + ApplicationSets).
-Argo Rollouts CRDs for the canary strategy (activation only). No application code.
+Kubernetes manifests + Kustomize v5. ArgoCD v3.5.0 and External Secrets Operator
+v2.9.0, both vendored and pinned. Argo Rollouts CRDs for the canary Component
+(activation only). Pilot scripts are Bash. No application code.
 
 ## Commands
 
 ```bash
-# Render + schema-validate every environment (no cluster needed)
-for e in dev staging prod; do
-  kustomize build apps/auth-api/overlays/$e | kubeconform -strict -summary
-done
+# Render + schema-validate an environment (no cluster needed)
+kustomize build apps/auth-api/overlays/local | kubeconform -strict -ignore-missing-schemas -summary
 
-# Local end-to-end (kind)
-kind create cluster --name microtodo
-kustomize build bootstrap/argocd | kubectl apply --server-side -f -
-kubectl -n argocd wait deploy --all --for=condition=Available --timeout=300s
-docker build -t auth-api:0.1.0-local ../microservice-app-auth-api
-kind load docker-image auth-api:0.1.0-local --name microtodo
-kubectl apply -f clusters/local-kind/root-app.yaml   # the only manual apply
+# Fully local pilot (see docs/local-pilot-quickstart.md)
+./scripts/pilot/preflight.sh
+./scripts/pilot/bootstrap.sh      # local registry + Git source + kind + vendored ArgoCD
+./scripts/pilot/publish-auth.sh   # build+push auth-api, commit its immutable digest locally
+./scripts/pilot/verify.sh         # prove Synced/Healthy, one service, 3x health
+./scripts/pilot/cleanup.sh        # remove only pilot-owned local resources
 
-# Promote / roll back
-scripts/bump-image.sh <service> <env> <tag>   # then: git push
-git revert <commit>                            # then: git push
+# Digest-only image update (never a tag)
+scripts/bump-image.sh auth-api <env> sha256:<64hex>
 ```
 
 ## Structure
 
-- `bootstrap/argocd/` — pinned ArgoCD install; applied once, then self-managed.
-- `clusters/<cluster>/` — App-of-Apps root, AppProject, and the ApplicationSets
-  that generate one Application per add-on and per {service × environment}.
-- `infrastructure/<addon>/` — platform add-ons (task 2 fills the content).
-- `apps/<service>/base` — shared manifests; `components/` — version-specific
+- `bootstrap/argocd/` — vendored pinned ArgoCD; applied once, then self-managed.
+- `bootstrap/local/` — kind + loopback registry config for the pilot.
+- `clusters/base/` — reusable delivery mechanism (AppProject + ApplicationSets).
+- `clusters/<cluster>/` — value-only registration: repo endpoint + activated envs.
+- `environments/<env>/` — environment-owned namespace policy (quota/limits/netpol).
+- `infrastructure/<addon>/` — ArgoCD-owned add-ons; External Secrets is vendored.
+- `apps/<service>/base` — environment-neutral manifests; `components/` — version
   fragments; `topology/` — single per-service economical↔full switch;
-  `overlays/{dev,staging,prod}` — environment-only differences.
-- `scripts/bump-image.sh` — manual image bump (replaced by CI PR in roadmap #4).
-- `specs/` — Spec-Driven Development artifacts (English).
+  `overlays/<env>/` — environment-owned values (namespace, capacity, digest).
+- `scripts/pilot/` — pilot lifecycle; `scripts/bump-image.sh` — digest bump.
+- `specs/`, `docs/` — Spec-Driven Development artifacts and pilot documentation.
 
 ## Conventions
 
 - All artifacts in English (suite-wide rule).
-- Economical topology (single cluster, environments as namespaces) is the live
-  default; full topology (multi-cluster + Istio) is prepared, not activated.
-- Version differences live in Components, destination differences live in the
-  ApplicationSet environment list — never in a service's base/overlays.
+- GitOps-only: no `kubectl apply`/patch/scale to managed state; corrections are
+  commits or `git revert`. The only exception is the audited bootstrap boundary
+  (docs/bootstrap-boundary.md).
+- No secret value in Git: the Secret contract `auth-api-secrets/JWT_SECRET` is
+  filled in-cluster by ESO (docs/secret-rotation.md).
+- Images are pinned by immutable digest, never tags (`newName@sha256:...`).
+- Version differences live in Components; destination differences live in the
+  cluster registration — never in a service base/overlays.
 - Trunk-based development, short-lived branches, feature specs under `specs/`.
 
 ## Notes for the infrastructure integration
 
-- Image references use local tags; they become ECR URLs when task 1 delivers the
-  registry (set the registry once in `base`, overlays keep only the tag).
-- The committed test JWT Secret is replaced by an `ExternalSecret` once External
-  Secrets Operator (task 2) and its IRSA role (task 1) exist.
-- `destination.server` is `https://kubernetes.default.svc` while ArgoCD runs in
-  the same cluster it deploys to (economical); full version registers remote
-  clusters and sets per-environment servers in the ApplicationSet list.
+- Managed environments (dev/staging/prod on EKS, aks-dr) are inactive scaffolds;
+  they activate when a cluster registration lists them (roadmap task 1 delivers
+  the clusters and ECR). `newName` becomes the ECR repo; the ESO store becomes
+  AWS Secrets Manager via IRSA.
+- Platform add-on folders under `infrastructure/` are owned by ArgoCD; their
+  content (Istio, KEDA, cert-manager, Kyverno) is roadmap task 2.

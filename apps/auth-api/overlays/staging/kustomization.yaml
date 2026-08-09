@@ -1,10 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Staging environment — economical version: environment = namespace.
+# INACTIVE managed-environment scaffold (see dev/kustomization.yaml for the
+# activation contract). Staging receives the digest already verified in dev,
+# promoted by copying the digest — never a rebuilt artifact.
 namespace: microtodo-staging
 
-# Builds from topology/ (base + selected version component), not base directly.
 resources:
   - ../../topology
 
@@ -12,7 +13,29 @@ replicas:
   - name: auth-api
     count: 2
 
-# Staging receives the tag already verified in dev (promotion via tag-copy PR).
+patches:
+  - target:
+      kind: Deployment
+      name: auth-api
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: auth-api
+      spec:
+        template:
+          spec:
+            containers:
+              - name: auth-api
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+                  limits:
+                    cpu: 250m
+                    memory: 256Mi
+
 images:
   - name: auth-api
-    newTag: 0.1.0-local
+    newName: ECR_REGISTRY_PLACEHOLDER/auth-api
+    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000

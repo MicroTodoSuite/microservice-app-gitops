@@ -1,0 +1,42 @@
+# Platform add-on ApplicationSet: one Application per infrastructure/ folder.
+# Folder content is owned by roadmap task 2; filling a folder is enough for it
+# to deploy. Empty placeholder folders sync to nothing and stay inactive.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: infrastructure
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
+        revision: registration-revision # injected by registration
+        directories:
+          - path: infrastructure/*
+          - path: infrastructure/*/vendor
+            exclude: true
+  template:
+    metadata:
+      name: "infra-{{ .path.basename }}"
+      annotations:
+        # Add-ons before business applications (apps run at wave 1). Ordering
+        # between add-ons is declared inside each folder with sync-waves.
+        argocd.argoproj.io/sync-wave: "0"
+    spec:
+      project: microtodosuite
+      source:
+        repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
+        targetRevision: registration-revision # injected by registration
+        path: "{{ .path.path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .path.basename }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true # large add-on CRDs (kyverno, keda) require it

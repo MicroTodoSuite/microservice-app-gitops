@@ -1,26 +1,29 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Base de auth-api: manifiestos comunes a todos los ambientes.
-# Los overlays (dev/staging/prod) fijan namespace, réplicas y tag de imagen.
+# auth-api reusable base: environment-neutral manifests shared by every
+# environment. Overlays own namespace, replicas, capacity, registry, and the
+# immutable image digest. Version (economical/full) differences are Components
+# selected through ../topology.
 resources:
   - deployment.yaml
   - service.yaml
   - configmap.yaml
+  - serviceaccount.yaml
 
-# Local bootstrap bridge only. This ignored file must contain a newly rotated
-# value generated outside Git. Managed environments will replace this generator
-# with an External Secrets Operator resource using the same Secret contract.
-secretGenerator:
-  - name: auth-api-secrets
-    envs:
-      - secret-values.local.env
-
-generatorOptions:
-  disableNameSuffixHash: true
+# The Secret `auth-api-secrets` (key JWT_SECRET) is provided per-environment by
+# External Secrets Operator, never committed. The local overlay uses an ESO
+# Password generator; managed environments use an AWS Secrets Manager store.
+# The base only declares that the workload consumes that Secret (see
+# deployment.yaml); it never carries the value.
 
 labels:
   - includeSelectors: true
     pairs:
       app.kubernetes.io/name: auth-api
       app.kubernetes.io/part-of: microtodosuite
+  # Business-service marker used by verification to count workloads; it must not
+  # enter selectors so it can be added or removed without pod churn.
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/component: business-service

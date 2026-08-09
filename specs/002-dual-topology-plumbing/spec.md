@@ -1,6 +1,6 @@
 # Feature Specification: Dual-Topology Plumbing (economical & full)
 
-**Feature Branch**: `001-dual-topology-plumbing`
+**Feature Branch**: `002-dual-topology-plumbing`
 
 **Created**: 2026-08-08
 

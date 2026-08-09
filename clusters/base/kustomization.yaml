@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Reusable cluster mechanism. A cluster registration (e.g. clusters/local-kind)
+# consumes this base and injects only values: repository URL, revision, and the
+# activated environment list. Registering a new cluster (eks-dev, eks-staging,
+# eks-prod, aks-dr) must never require editing these mechanism files.
+resources:
+  - project.yaml
+  - argocd.yaml
+  - infrastructure.yaml
+  - environments.yaml
+  - apps.yaml

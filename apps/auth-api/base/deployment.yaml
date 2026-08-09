@@ -3,16 +3,18 @@ kind: Deployment
 metadata:
   name: auth-api
 spec:
-  # replicas: lo fija cada overlay
+  # replicas: owned by each environment overlay
   selector: {}
   template:
     spec:
+      serviceAccountName: auth-api
       containers:
         - name: auth-api
-          # El tag lo fija cada overlay vía images: de Kustomize.
-          # En AWS será <account>.dkr.ecr.<region>.amazonaws.com/auth-api (tarea 1).
-          image: auth-api:placeholder
-          imagePullPolicy: IfNotPresent # imágenes cargadas con `kind load` no son pulleables
+          # Neutral image key. Each environment overlay sets newName (registry)
+          # and an immutable digest via the Kustomize images transformer.
+          # Capacity (resources) and pull behavior are environment-owned and
+          # therefore live in overlays, never here.
+          image: auth-api
           ports:
             - name: http
               containerPort: 8000
@@ -25,7 +27,8 @@ spec:
                 secretKeyRef:
                   name: auth-api-secrets
                   key: JWT_SECRET
-          # /version es la ruta más liviana del servicio y no depende de users-api
+          # /version is the lightest service-owned route and does not depend on
+          # users-api, so health never requires a second business service.
           livenessProbe:
             httpGet:
               path: /version
@@ -44,14 +47,7 @@ spec:
               port: http
             failureThreshold: 12
             periodSeconds: 5
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 250m
-              memory: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
-            # TODO: runAsNonRoot: true cuando el Dockerfile deje de correr como root
-            # (el Dockerfile actual usa golang:latest sin USER; se mejora fuera del punto 3)
+            # TODO: runAsNonRoot once the auth-api Dockerfile stops running as
+            # root (tracked outside this repository).

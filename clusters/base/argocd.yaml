@@ -1,0 +1,24 @@
+# ArgoCD self-management: ArgoCD reconciles its own vendored, pinned
+# installation from Git. Upgrading ArgoCD = vendoring a new pinned manifest.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: microtodosuite
+  source:
+    repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
+    targetRevision: registration-revision # injected by registration
+    path: bootstrap/argocd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false # never auto-delete ArgoCD components
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true # ArgoCD CRDs exceed client-side apply limits

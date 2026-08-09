@@ -1,13 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Bootstrap de ArgoCD. Se aplica UNA sola vez a mano en local
-# (`kustomize build bootstrap/argocd | kubectl apply -f -`); después,
-# la Application `argocd` de clusters/ hace que ArgoCD se gestione a sí mismo.
-# En AWS, este apply inicial lo dispara Terraform (tarea 1).
+# ArgoCD bootstrap. Uses the VENDORED, checksum-pinned manifest so the running
+# pilot never fetches ArgoCD from a hosted URL (spec 001, FR-017). Applied once
+# by scripts/pilot/bootstrap.sh inside the audited bootstrap boundary; after
+# that, clusters/base/argocd.yaml makes ArgoCD self-manage from this same path.
 namespace: argocd
 
 resources:
   - namespace.yaml
-  # Manifiesto oficial de instalación, versión PINNEADA (no usar stable/HEAD)
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.0/manifests/install.yaml
+  - vendor/v3.5.0/install.yaml

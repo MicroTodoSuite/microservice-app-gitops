@@ -1,0 +1,52 @@
+# Business-service ApplicationSet: matrix of {discovered service} x {activated
+# environment}. Services are discovered from apps/*; environments come from the
+# SAME registration-owned activation list as environments.yaml, so a cluster
+# only ever deploys the environments its registration names.
+#
+# Dual-topology seam: destination (server + namespace) is data. Economical
+# version: every element targets the local cluster with one namespace per
+# environment. Full version: each element carries its remote cluster's API
+# server. Service base/overlays never change when the topology changes.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - matrix:
+        generators:
+          # 1) Service discovery: apps/auth-api, apps/todos-api, ...
+          - git:
+              repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
+              revision: registration-revision # injected by registration
+              directories:
+                - path: apps/*
+          # 2) Activated environments (registration value; empty by default).
+          - list:
+              elements: [] # injected by the cluster registration (activation)
+  template:
+    metadata:
+      # apps/auth-api + env local -> auth-api-local
+      name: "{{ .path.basename }}-{{ .env }}"
+      labels:
+        microtodosuite.io/business-service: "true" # used by pilot verification
+      annotations:
+        argocd.argoproj.io/sync-wave: "1" # after platform add-ons and env policy
+    spec:
+      project: microtodosuite
+      source:
+        repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
+        targetRevision: registration-revision # injected by registration
+        path: "{{ .path.path }}/overlays/{{ .env }}"
+      destination:
+        server: "{{ .server }}"
+        namespace: "microtodo-{{ .env }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

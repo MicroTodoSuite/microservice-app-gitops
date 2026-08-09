@@ -1,7 +1,9 @@
-# App-of-Apps raíz del clúster local-kind.
-# ÚNICO manifiesto que se aplica a mano tras el bootstrap de ArgoCD:
-#   kubectl apply -f clusters/local-kind/root-app.yaml
-# Todo lo demás (project, self-manage, infra, apps) lo despliega ArgoCD desde Git.
+# App-of-Apps root for the local pilot cluster. This file is applied ONCE by
+# scripts/pilot/bootstrap.sh inside the audited bootstrap boundary (see
+# docs/bootstrap-boundary.md); everything else is reconciled by ArgoCD from the
+# machine-local Git source. It is intentionally NOT referenced by the
+# kustomization so a cluster sync never re-applies it as a child of itself
+# through a different path.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,9 +12,9 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: default # el root vive en default; crea el project microtodosuite para el resto
+  project: default # root creates the microtodosuite project for everything else
   source:
-    repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+    repoURL: http://host.docker.internal:8081/microservice-app-gitops.git
     targetRevision: main
     path: clusters/local-kind
   destination:

@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# External Secrets Operator, deployed by ArgoCD from a vendored, pinned render
+# (spec 001, FR-017 / T004). This is the platform capability that lets the pilot
+# provide auth-api's JWT_SECRET WITHOUT committing any secret value: the local
+# overlay declares a Password generator + ExternalSecret and ESO produces the
+# Secret in-cluster.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on. Its
+# content here is the local (generator-based) install; managed environments will
+# add an AWS Secrets Manager SecretStore using the same Secret contract.
+namespace: external-secrets
+
+resources:
+  - vendor/v2.9.0/manifests.yaml

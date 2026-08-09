@@ -4,7 +4,7 @@ description: "Task list for dual-topology plumbing"
 
 # Tasks: Dual-Topology Plumbing
 
-**Input**: Design documents from `/specs/001-dual-topology-plumbing/`
+**Input**: Design documents from `/specs/002-dual-topology-plumbing/`
 
 **Prerequisites**: plan.md, spec.md
 
@@ -15,7 +15,7 @@ test framework applies to declarative manifests.
 
 ## Phase 1: Setup
 
-- [X] T001 Create feature branch `001-dual-topology-plumbing` and directory scaffold
+- [X] T001 Create feature branch `002-dual-topology-plumbing` and directory scaffold
 - [X] T002 [P] Add `AGENTS.md` (+ `CLAUDE.md` symlink) per ai-agents convention
 
 ## Phase 2: Foundational

@@ -1,4 +1,9 @@
 .DS_Store
 
-# Local-only secret inputs. Never commit generated or rotated secret material.
-apps/auth-api/base/secret-values.local.env
+
+# Pilot runtime state: local git source, registry data, port-forward pids,
+# disposable clones, and captured evidence scratch. Never committed.
+.local/
+
+# Temporary test scratch.
+/tmp-render/
