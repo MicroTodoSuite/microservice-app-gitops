@@ -27,9 +27,12 @@ because the profiles genuinely differ in infrastructure:
 1. **Mesh / per-workload (the one-line switch)**:
    `apps/<service>/topology/kustomization.yaml` selects `topology-full` (default)
    or `topology-economical`. This flips every **managed** environment at once.
-2. **Cluster topology**: which `clusters/<cluster>` registrations exist and the
-   `server` in each environment entry — remote clusters (full) vs
-   `kubernetes.default.svc` + namespaces (economical). See `clusters/README.md`.
+2. **Cluster topology**: which `clusters/<cluster>` registrations exist and
+   which environments each registration activates. Every cluster runs its own
+   ArgoCD and therefore uses `server: https://kubernetes.default.svc`. The full
+   profile has one registration per isolated environment cluster; the
+   economical profile activates multiple environment namespaces in one
+   registration. See `clusters/README.md`.
 3. **Canary style**: `apps/<service>/overlays/prod` selects
    `components/strategy-canary` (replica-based; Istio adds traffic routing).
 4. **Add-ons**: content under `infrastructure/` (Istio/ELK for full; Loki for
@@ -41,3 +44,17 @@ because the profiles genuinely differ in infrastructure:
 does **not** follow the managed default, because Istio and multi-cluster cannot
 run on a single local kind cluster. Switching the managed profile never affects
 the local pilot.
+
+## ArgoCD ownership and disaster recovery
+
+ArgoCD is deliberately per-cluster in both profiles. `eks-dev`, `eks-staging`,
+`eks-prod`, and `aks-dr` each bootstrap and run their own reconciler against the
+in-cluster Kubernetes API. Terraform cluster endpoints and certificate
+authorities are operator/bootstrap inputs; they are not ApplicationSet remote
+destinations.
+
+A centralized ArgoCD hub in `eks-prod` would make production a control-plane
+dependency for every other cluster. If `eks-prod` failed, `aks-dr` would lose
+the reconciler needed to take over at the same moment it was needed most. The
+per-cluster topology removes that single point of failure and lets the DR
+cluster continue reconciling from the reviewed Git source independently.

@@ -3,10 +3,11 @@
 # SAME registration-owned activation list as environments.yaml, so a cluster
 # only ever deploys the environments its registration names.
 #
-# Dual-topology seam: destination (server + namespace) is data. Economical
-# version: every element targets the local cluster with one namespace per
-# environment. Full version: each element carries its remote cluster's API
-# server. Service base/overlays never change when the topology changes.
+# Dual-topology seam: the activated environment list is registration data.
+# Every per-cluster ArgoCD targets its in-cluster API. Economical registrations
+# list multiple environments; full-profile registrations list the one isolated
+# environment owned by that cluster. Service bases/overlays never change when
+# the cluster topology changes.
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
