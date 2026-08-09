@@ -1,0 +1,12 @@
+# Kind cluster for the local pilot, wired to the loopback registry started by
+# scripts/pilot/bootstrap.sh. containerd is told that images referenced as
+# localhost:5001/* are served by the host registry reachable from the node.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: microtodo-pilot
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5001"]
+      endpoint = ["http://microtodo-pilot-registry:5000"]
+nodes:
+  - role: control-plane

@@ -1,0 +1,6 @@
+# ACTIVATED state for the local pilot: exactly one environment, `local`.
+- op: replace
+  path: /spec/generators/0/matrix/generators/1/list/elements
+  value:
+    - env: local
+      server: https://kubernetes.default.svc

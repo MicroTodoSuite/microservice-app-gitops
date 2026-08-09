@@ -1,0 +1,13 @@
+# Default-deny declared as the environment baseline. NOTE: kind's default CNI
+# (kindnet) does not enforce NetworkPolicy, so on the local pilot these are
+# declarative intent only; managed clusters (EKS + VPC CNI with a policy engine)
+# enforce them.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

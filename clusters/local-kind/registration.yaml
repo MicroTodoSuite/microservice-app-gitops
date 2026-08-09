@@ -1,0 +1,17 @@
+# Cluster registration values for the local pilot cluster. These are the ONLY
+# values a cluster contributes: connection endpoints and revisions. The
+# mechanism lives in clusters/base and is shared by every cluster.
+#
+# repoURL: the machine-local Git source served by the pilot bootstrap
+# (scripts/pilot/bootstrap.sh). The running pilot never reconciles from a
+# hosted remote (spec 001, FR-001/FR-017). host.docker.internal reaches the
+# workstation loopback from inside the kind node on Docker Desktop; on plain
+# Linux Docker, replace it with the documented bridge gateway address.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-registration
+  namespace: argocd
+data:
+  repoURL: http://host.docker.internal:8081/microservice-app-gitops.git
+  revision: main

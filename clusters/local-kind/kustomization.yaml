@@ -1,0 +1,86 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Value-only registration of the local pilot cluster. It consumes the shared
+# mechanism (../base) and injects: repository endpoint + revision (replacements
+# from registration.yaml) and the activated environment list (activation-*.yaml
+# patches). Registering another cluster (eks-dev, ...) is a sibling folder with
+# different values — the mechanism files are never edited.
+resources:
+  - ../base
+  - registration.yaml
+
+patches:
+  - path: activation-apps.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: apps
+  - path: activation-environments.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: environments
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: cluster-registration
+      fieldPath: data.repoURL
+    targets:
+      - select:
+          kind: AppProject
+          name: microtodosuite
+        fieldPaths:
+          - spec.sourceRepos.0
+      - select:
+          kind: Application
+          name: argocd
+        fieldPaths:
+          - spec.source.repoURL
+      - select:
+          kind: ApplicationSet
+          name: infrastructure
+        fieldPaths:
+          - spec.generators.0.git.repoURL
+          - spec.template.spec.source.repoURL
+      - select:
+          kind: ApplicationSet
+          name: environments
+        fieldPaths:
+          - spec.template.spec.source.repoURL
+      - select:
+          kind: ApplicationSet
+          name: apps
+        fieldPaths:
+          - spec.generators.0.matrix.generators.0.git.repoURL
+          - spec.template.spec.source.repoURL
+  - source:
+      kind: ConfigMap
+      name: cluster-registration
+      fieldPath: data.revision
+    targets:
+      - select:
+          kind: Application
+          name: argocd
+        fieldPaths:
+          - spec.source.targetRevision
+      - select:
+          kind: ApplicationSet
+          name: infrastructure
+        fieldPaths:
+          - spec.generators.0.git.revision
+          - spec.template.spec.source.targetRevision
+      - select:
+          kind: ApplicationSet
+          name: environments
+        fieldPaths:
+          - spec.template.spec.source.targetRevision
+      - select:
+          kind: ApplicationSet
+          name: apps
+        fieldPaths:
+          - spec.generators.0.matrix.generators.0.git.revision
+          - spec.template.spec.source.targetRevision

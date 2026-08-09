@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Full topology: multi-cluster + Istio service mesh.
+# Enables Istio sidecar injection so the pod joins the mesh (mTLS, traffic
+# shifting). This component only sets the injection CONTRACT; installing Istio
+# itself is a platform add-on owned by task 2 (infrastructure/istio).
+labels:
+  - includeSelectors: false
+    pairs:
+      microtodosuite.io/topology: full
+
+patches:
+  - target:
+      kind: Deployment
+      name: auth-api
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: auth-api
+      spec:
+        template:
+          metadata:
+            annotations:
+              sidecar.istio.io/inject: "true"

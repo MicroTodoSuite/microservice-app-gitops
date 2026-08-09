@@ -1,0 +1,5 @@
+# Environment activation for the environments ApplicationSet (JSON6902 ops).
+# Kept in lockstep with activation-apps.yaml by the publish script.
+- op: replace
+  path: /spec/generators/0/list/elements
+  value: []

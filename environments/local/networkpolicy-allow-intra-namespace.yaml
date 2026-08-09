@@ -1,0 +1,17 @@
+# Pods inside one environment namespace may talk to each other (service-to-
+# service calls such as auth-api -> users-api once both live here).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector: {}
+  egress:
+    - to:
+        - podSelector: {}

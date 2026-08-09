@@ -1,0 +1,36 @@
+# Environment-policy ApplicationSet: one Application per ACTIVATED environment,
+# deploying environments/<env>/ (namespace quota, limits, network policy).
+# The element list is a registration value: the base ships it EMPTY so a new
+# cluster activates nothing until its registration explicitly lists
+# environments. Activation is therefore a reviewed Git change, never a default.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: environments
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements: [] # injected by the cluster registration (activation)
+  template:
+    metadata:
+      name: "env-{{ .env }}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "0" # policy before business applications
+    spec:
+      project: microtodosuite
+      source:
+        repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
+        targetRevision: registration-revision # injected by registration
+        path: "environments/{{ .env }}"
+      destination:
+        server: "{{ .server }}"
+        namespace: "microtodo-{{ .env }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

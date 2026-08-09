@@ -1,18 +1,44 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Ambiente dev — versión económica: ambiente = namespace.
-# En la versión completa este overlay apuntará al clúster eks-dev.
+# INACTIVE managed-environment scaffold. No cluster registration activates the
+# `dev` environment yet: it becomes active when the eks-dev registration exists
+# (roadmap task 1 delivers the cluster; see clusters/README.md). Values below
+# are environment-owned; the digest placeholder is replaced by the CI promotion
+# flow (roadmap task 4) with an immutable registry digest.
 namespace: microtodo-dev
 
 resources:
-  - ../../base
+  - ../../topology
 
 replicas:
   - name: auth-api
     count: 1
 
-# Este tag es lo que actualiza scripts/bump-image.sh (y en el punto 4, el PR automático de CI)
+patches:
+  - target:
+      kind: Deployment
+      name: auth-api
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: auth-api
+      spec:
+        template:
+          spec:
+            containers:
+              - name: auth-api
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+                  limits:
+                    cpu: 250m
+                    memory: 256Mi
+
+# newName will be the ECR repository once task 1 delivers the registry.
 images:
   - name: auth-api
-    newTag: 0.1.0-local
+    newName: ECR_REGISTRY_PLACEHOLDER/auth-api
+    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000

@@ -1,0 +1,12 @@
+# Namespace-level capacity ceiling for the local pilot environment.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: environment-quota
+spec:
+  hard:
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+    pods: "10"
