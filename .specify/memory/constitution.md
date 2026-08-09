@@ -1,6 +1,16 @@
+<!--
+Sync Impact Report
+- Version change: 1.0.0 -> 1.1.0
+- Modified principles:
+  - Principle 2, GitOps-Only Deployment: added a minimal one-time bootstrap exception.
+- Added sections: none.
+- Removed sections: none.
+- Follow-up TODOs: none.
+-->
+
 # MicroTodoSuite Constitution
 
-Version: 1.0.0
+Version: 1.1.0
 
 Ratified: 2026-08-08
 
@@ -19,6 +29,13 @@ This constitution defines the binding engineering and governance rules for evolv
 ### 2. GitOps-Only Deployment
 
 **Use GitOps as the only deployment path.** Every workload, platform add-on, configuration, and image change for a managed environment MUST be committed to `microservice-app-gitops` and reconciled by ArgoCD; direct `kubectl apply`, cloud-CLI application mutation, and CI-to-cluster deployment are forbidden — Rationale: Git history must be the complete, reversible record of desired state.
+
+Exception: a documented, minimal, one-time bootstrap sequence MAY use direct
+cluster mutation solely to install the GitOps controller itself and its
+initial root Application, before any GitOps-managed state exists. This
+exception MUST NOT be used for any other purpose, MUST be limited to the
+smallest set of commands that installs the controller and hands control to
+it, and MUST be recorded in bootstrap documentation so it remains auditable.
 
 ### 3. Stable Trunk Development
 
@@ -99,4 +116,4 @@ Status meanings: **HONORED** = concrete implementation exists; **PARTIAL** = som
 
 This constitution outranks feature specifications; approved feature specifications outrank plans and tasks; all of them outrank current code and deployed state. A conflicting feature specification MUST be changed to comply or blocked until a constitution amendment is approved first. Existing contradictory code creates remediation work and never establishes precedent or an implicit waiver. Ambiguity is resolved in a documented pull-request decision by the same maintainers required for an amendment, and no conversation, prompt, emergency command, or undocumented exception may override that decision hierarchy.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-08 | **Last Amended**: 2026-08-08
+**Version**: 1.1.0 | **Ratified**: 2026-08-08 | **Last Amended**: 2026-08-08
