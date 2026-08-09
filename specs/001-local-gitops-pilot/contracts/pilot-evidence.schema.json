@@ -1,0 +1,461 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://microtodosuite.local/schemas/local-gitops-pilot-evidence.json",
+  "title": "MicroTodoSuite Local GitOps Pilot Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "scenario",
+    "result",
+    "startedAt",
+    "completedAt",
+    "workstation",
+    "repository",
+    "reconciliation",
+    "workload",
+    "health",
+    "dependencies",
+    "commandAudit",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^[0-9]{8}T[0-9]{6}Z-[a-z0-9-]+$"
+    },
+    "scenario": {
+      "enum": [
+        "initial-deploy",
+        "uncommitted-edit",
+        "committed-change",
+        "git-revert",
+        "clean-run"
+      ]
+    },
+    "result": {
+      "enum": ["passed", "failed"]
+    },
+    "failureReason": {
+      "type": ["string", "null"]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "workstation": {
+      "$ref": "#/$defs/workstation"
+    },
+    "repository": {
+      "$ref": "#/$defs/repository"
+    },
+    "reconciliation": {
+      "$ref": "#/$defs/reconciliation"
+    },
+    "workload": {
+      "$ref": "#/$defs/workload"
+    },
+    "health": {
+      "$ref": "#/$defs/health"
+    },
+    "dependencies": {
+      "$ref": "#/$defs/dependencies"
+    },
+    "commandAudit": {
+      "$ref": "#/$defs/commandAudit"
+    },
+    "artifacts": {
+      "$ref": "#/$defs/artifacts"
+    }
+  },
+  "$defs": {
+    "gitSha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "durationMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "workstation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "architecture",
+        "logicalCpu",
+        "availableMemoryBytes",
+        "freeDiskBytes",
+        "toolVersions"
+      ],
+      "properties": {
+        "os": {
+          "const": "linux"
+        },
+        "architecture": {
+          "enum": ["amd64", "arm64"]
+        },
+        "logicalCpu": {
+          "type": "integer",
+          "minimum": 4
+        },
+        "availableMemoryBytes": {
+          "type": "integer",
+          "minimum": 8589934592
+        },
+        "freeDiskBytes": {
+          "type": "integer",
+          "minimum": 21474836480
+        },
+        "toolVersions": {
+          "type": "object",
+          "minProperties": 7,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readerUrl",
+        "branch",
+        "desiredRevision",
+        "availableRevision",
+        "sourceAvailableAt",
+        "workingTreeWasClean"
+      ],
+      "properties": {
+        "readerUrl": {
+          "type": "string",
+          "pattern": "^http://"
+        },
+        "branch": {
+          "const": "main"
+        },
+        "desiredRevision": {
+          "$ref": "#/$defs/gitSha"
+        },
+        "availableRevision": {
+          "$ref": "#/$defs/gitSha"
+        },
+        "sourceAvailableAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "workingTreeWasClean": {
+          "type": "boolean"
+        },
+        "parentRevision": {
+          "anyOf": [
+            { "$ref": "#/$defs/gitSha" },
+            { "type": "null" }
+          ]
+        },
+        "revertOfRevision": {
+          "anyOf": [
+            { "$ref": "#/$defs/gitSha" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "application",
+        "observedRevision",
+        "syncStatus",
+        "healthStatus",
+        "syncedAt",
+        "sourceToSyncMs"
+      ],
+      "properties": {
+        "application": {
+          "const": "auth-api-local"
+        },
+        "observedRevision": {
+          "$ref": "#/$defs/gitSha"
+        },
+        "syncStatus": {
+          "enum": ["Synced", "OutOfSync", "Unknown"]
+        },
+        "healthStatus": {
+          "enum": [
+            "Healthy",
+            "Progressing",
+            "Degraded",
+            "Suspended",
+            "Missing",
+            "Unknown"
+          ]
+        },
+        "syncedAt": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "sourceToSyncMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "operationPhase": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "namespace",
+        "name",
+        "image",
+        "imageDigest",
+        "desiredReplicas",
+        "readyReplicas",
+        "readyAt",
+        "sourceToReadyMs",
+        "businessServiceCount",
+        "businessServices"
+      ],
+      "properties": {
+        "namespace": {
+          "const": "microtodo-local"
+        },
+        "name": {
+          "const": "auth-api"
+        },
+        "image": {
+          "type": "string",
+          "pattern": "@sha256:[a-f0-9]{64}$"
+        },
+        "imageDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "desiredReplicas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "readyReplicas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "readyAt": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "sourceToReadyMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "businessServiceCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "businessServices": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "healthObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observedAt", "url", "httpStatus", "passed"],
+      "properties": {
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "url": {
+          "const": "http://127.0.0.1:18000/version"
+        },
+        "httpStatus": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "responseSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "observations",
+        "observationSpanSeconds",
+        "healthyAt",
+        "sourceToHealthyMs"
+      ],
+      "properties": {
+        "path": {
+          "const": "/version"
+        },
+        "observations": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/healthObservation"
+          }
+        },
+        "observationSpanSeconds": {
+          "type": "integer",
+          "minimum": 60
+        },
+        "healthyAt": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "sourceToHealthyMs": {
+          "$ref": "#/$defs/durationMs"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cloudCredentialsUsed",
+        "paidServicesUsed",
+        "hostedRuntimeServicesUsed",
+        "allRuntimeAssetsLocal"
+      ],
+      "properties": {
+        "cloudCredentialsUsed": {
+          "const": false
+        },
+        "paidServicesUsed": {
+          "const": false
+        },
+        "hostedRuntimeServicesUsed": {
+          "const": false
+        },
+        "allRuntimeAssetsLocal": {
+          "type": "boolean"
+        }
+      }
+    },
+    "commandAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enteredCommandCountToHealth",
+        "bootstrapMutations",
+        "unsupportedMutations",
+        "logFile"
+      ],
+      "properties": {
+        "enteredCommandCountToHealth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "bootstrapMutations": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "type": "string"
+          }
+        },
+        "unsupportedMutations": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "logFile": {
+          "type": "string",
+          "pattern": "^command-log\\.txt$"
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeline",
+        "argoApplication",
+        "workloads",
+        "health",
+        "gitLog",
+        "commandLog"
+      ],
+      "properties": {
+        "timeline": { "const": "timeline.ndjson" },
+        "argoApplication": { "const": "argo-application.json" },
+        "workloads": { "const": "workloads.json" },
+        "health": { "const": "health.json" },
+        "gitLog": { "const": "git-log.txt" },
+        "commandLog": { "const": "command-log.txt" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": { "const": "passed" }
+        },
+        "required": ["result"]
+      },
+      "then": {
+        "properties": {
+          "failureReason": { "type": "null" },
+          "repository": {
+            "properties": {
+              "workingTreeWasClean": { "const": true }
+            }
+          },
+          "reconciliation": {
+            "properties": {
+              "syncStatus": { "const": "Synced" },
+              "healthStatus": { "const": "Healthy" },
+              "sourceToSyncMs": { "maximum": 300000 }
+            }
+          },
+          "workload": {
+            "properties": {
+              "businessServiceCount": { "const": 1 },
+              "businessServices": {
+                "const": ["auth-api"]
+              },
+              "sourceToReadyMs": { "maximum": 300000 }
+            }
+          },
+          "health": {
+            "properties": {
+              "sourceToHealthyMs": { "maximum": 300000 }
+            }
+          },
+          "dependencies": {
+            "properties": {
+              "allRuntimeAssetsLocal": { "const": true }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

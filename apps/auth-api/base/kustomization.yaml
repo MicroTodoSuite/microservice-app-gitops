@@ -8,12 +8,13 @@ resources:
   - service.yaml
   - configmap.yaml
 
-# JWT_SECRET del piloto local. NO es el secreto real.
-# TODO(tarea 2): reemplazar por External Secrets Operator -> AWS Secrets Manager.
+# Local bootstrap bridge only. This ignored file must contain a newly rotated
+# value generated outside Git. Managed environments will replace this generator
+# with an External Secrets Operator resource using the same Secret contract.
 secretGenerator:
   - name: auth-api-secrets
-    literals:
-      - JWT_SECRET=local-dev-secret-not-for-prod
+    envs:
+      - secret-values.local.env
 
 generatorOptions:
   disableNameSuffixHash: true
