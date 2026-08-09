@@ -1,4 +1,5 @@
-# ACTIVATED state for the local pilot: exactly one environment, `local`.
+# ACTIVATED state for the local pilot: exactly one environment, `local`; the
+# shared apps generator deploys every reviewed service directory into it.
 - op: replace
   path: /spec/generators/0/matrix/generators/1/list/elements
   value:

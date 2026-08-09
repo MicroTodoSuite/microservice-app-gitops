@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prove the pilot succeeded via the GitOps path, not a running process (spec 001,
 # FR-012/FR-020). Read-only. Success requires: Argo revision == local Git SHA,
-# workload Ready, exactly one business service, three /version successes over 60s.
+# auth workload Ready, auth registration present, three /version successes over 60s.
 set -euo pipefail
 source "$(dirname "$0")/lib/common.sh"
 
@@ -26,10 +26,12 @@ ok "Argo revision matches Git and app is Synced+Healthy"
 log "waiting for deployment/auth-api to be Available"
 kro wait -n "$NS" deploy/auth-api --for=condition=Available --timeout=120s >&2
 
-# Exactly one business service.
+# auth-api remains registered even after later features add more services.
 BS=$(kro get applications -n argocd -l microtodosuite.io/business-service=true -o name | wc -l | tr -d ' ')
-[ "$BS" = "1" ] || die "expected exactly one business service, found $BS"
-ok "exactly one business service: $APP"
+(( BS >= 1 )) || die "expected at least auth-api, found $BS business services"
+kro get application "$APP" -n argocd >/dev/null \
+  || die "$APP is not registered as a business service"
+ok "$APP is present among $BS business services"
 
 # Three health checks over at least 60 seconds.
 log "starting health port-forward on :$PILOT_HEALTH_PORT"
@@ -44,4 +46,4 @@ for i in 1 2 3; do
 done
 ok "three /version successes over >=60s"
 
-echo "PILOT VERIFIED: revision $EXPECTED_SHA, one business service, healthy." >&2
+echo "AUTH PILOT VERIFIED: revision $EXPECTED_SHA, auth-api healthy with $BS business services registered." >&2

@@ -5,7 +5,9 @@ set -euo pipefail
 source "$(dirname "$0")/lib/common.sh"
 
 log "preflight: checking tools"
-for t in bash git docker kind kubectl kustomize curl jq; do require_tool "$t"; done
+for t in bash git docker kind kubectl curl jq python3 rsync; do require_tool "$t"; done
+render_kustomize "$REPO_ROOT/clusters/base" >/dev/null \
+  || die "neither standalone nor embedded Kustomize can render the shared base" 3
 
 log "preflight: checking docker daemon"
 docker info >/dev/null 2>&1 || die "docker daemon not available" 5

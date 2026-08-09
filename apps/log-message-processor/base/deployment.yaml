@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: log-message-processor}
+spec:
+  selector: {}
+  template:
+    spec:
+      serviceAccountName: log-message-processor
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: log-message-processor
+          image: log-message-processor
+          ports:
+            - name: metrics
+              containerPort: 9090
+          envFrom:
+            - configMapRef: {name: log-message-processor-config}
+          startupProbe:
+            httpGet: {path: /metrics, port: metrics}
+            periodSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: {path: /metrics, port: metrics}
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: {path: /metrics, port: metrics}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]

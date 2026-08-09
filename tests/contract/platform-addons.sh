@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Static contract for the four reusable, GitOps-managed platform add-ons.
+# Static contract for the reusable, GitOps-managed platform foundation.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -97,8 +97,8 @@ active_addon_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
   active_addon_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#active_addon_names[@]}" == "4" ]] \
-  || fail "expected exactly four active infrastructure roots, found ${#active_addon_names[@]}"
+[[ "${#active_addon_names[@]}" == "5" ]] \
+  || fail "expected exactly five active infrastructure roots, found ${#active_addon_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
   [[ " ${active_addon_names[*]} " == *" $addon "* ]] \
@@ -115,6 +115,14 @@ for addon in keda cert-manager external-secrets kyverno; do
   [[ -s "$render" ]] || fail "$addon rendered no resources"
   check_rendered_images "$render"
 done
+
+[[ " ${active_addon_names[*]} " == *" redis "* ]] \
+  || fail "active infrastructure root is missing: redis"
+require_file "infrastructure/redis/kustomization.yaml"
+render_kustomize "$ROOT/infrastructure/redis" >"$TMP_DIR/redis.yaml" \
+  || fail "Kustomize render failed for redis"
+[[ -s "$TMP_DIR/redis.yaml" ]] || fail "redis rendered no resources"
+check_rendered_images "$TMP_DIR/redis.yaml"
 
 require_resource "$TMP_DIR/keda.yaml" Deployment keda-admission
 require_resource "$TMP_DIR/keda.yaml" Deployment keda-metrics-apiserver
@@ -139,6 +147,25 @@ require_resource "$TMP_DIR/kyverno.yaml" Deployment kyverno-cleanup-controller
 require_resource "$TMP_DIR/kyverno.yaml" Deployment kyverno-reports-controller
 require_resource "$TMP_DIR/kyverno.yaml" ClusterPolicy require-immutable-images
 require_resource "$TMP_DIR/kyverno.yaml" ClusterPolicy require-health-probes
+
+require_resource "$TMP_DIR/redis.yaml" Namespace redis
+require_resource "$TMP_DIR/redis.yaml" ServiceAccount redis
+require_resource "$TMP_DIR/redis.yaml" Deployment redis
+require_resource "$TMP_DIR/redis.yaml" Service redis
+require_resource "$TMP_DIR/redis.yaml" NetworkPolicy redis-default-deny
+require_resource "$TMP_DIR/redis.yaml" NetworkPolicy redis-allow-business-services
+require_text infrastructure/redis/deployment.yaml 'redis:7\.4\.9-alpine@sha256:[a-f0-9]{64}' \
+  "Redis image is not versioned and digest-pinned"
+require_text infrastructure/redis/deployment.yaml '^[[:space:]]+- ""$' \
+  "Redis snapshot persistence is not explicitly disabled"
+require_text infrastructure/redis/deployment.yaml 'appendonly' \
+  "Redis append-only persistence is not explicitly disabled"
+require_text infrastructure/redis/deployment.yaml 'emptyDir: \{\}' \
+  "Redis data directory is not explicitly ephemeral"
+require_text infrastructure/redis/deployment.yaml 'redis-cli' \
+  "Redis protocol probes are missing"
+require_text infrastructure/redis/README.md 'non-durable' \
+  "Redis continuity risk is not documented"
 
 if [[ "$(rg -c '^  validationFailureAction: Enforce$' \
     "$ROOT/infrastructure/kyverno/policies.yaml")" != "2" ]]; then
@@ -198,7 +225,7 @@ reject_text clusters/base/project.yaml '^[[:space:]]+group:.*\*' \
 reject_text clusters/base/project.yaml '^[[:space:]]+kind:.*\*' \
   "cluster trust boundary contains a kind wildcard"
 
-for addon in keda cert-manager external-secrets kyverno; do
+for addon in keda cert-manager external-secrets kyverno redis; do
   first_party_files=("$ROOT/infrastructure/$addon/kustomization.yaml")
   [[ -f "$ROOT/infrastructure/$addon/capability-check.yaml" ]] \
     && first_party_files+=("$ROOT/infrastructure/$addon/capability-check.yaml")
@@ -234,7 +261,7 @@ require_text clusters/base/project.yaml 'description: MicroTodoSuite bootstrap r
 require_text clusters/base/project.yaml 'namespace: kube-system' \
   "upstream add-on kube-system RBAC destination is missing"
 
-for addon in keda cert-manager external-secrets kyverno; do
+for addon in keda cert-manager external-secrets kyverno redis; do
   require_text clusters/base/project.yaml "namespace: $addon" \
     "$addon destination is missing from the AppProject"
 done

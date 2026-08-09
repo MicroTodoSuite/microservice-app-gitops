@@ -1,7 +1,8 @@
 # Platform Add-ons
 
-MicroTodoSuite installs four platform add-ons through the same reusable ArgoCD
-registration mechanism used by business services. The shared desired state is
+MicroTodoSuite installs four controller add-ons plus one Redis platform
+dependency through the same reusable ArgoCD registration mechanism used by
+business services. The shared desired state is
 fully local and provider-neutral: it does not require a hosted control plane,
 registry, secret backend, certificate authority, workload identity, or cloud
 account.
@@ -14,9 +15,10 @@ account.
 | `infra-cert-manager` | cert-manager 1.21.0 | `cert-manager` | a self-signed Certificate is Ready and has produced its Secret |
 | `infra-external-secrets` | External Secrets Operator 2.9.0 | `external-secrets` | auth-api's ExternalSecret is Ready with reason `SecretSynced` |
 | `infra-kyverno` | Kyverno 1.18.2 | `kyverno` | both baseline ClusterPolicies are Ready and report passing results for auth-api |
+| `infra-redis` | Redis 7.4.9 | `redis` | Deployment is Available and service `PING` returns `PONG` |
 
 Every executable image is selected by an immutable digest. Every retained
-upstream manifest has a checksum and provenance note under
+controller manifest has a checksum and provenance note under
 `infrastructure/<add-on>/vendor/<version>/`. The retained file is not edited;
 Kustomize transformations beside it express repository-owned changes.
 
@@ -80,8 +82,8 @@ A new cluster registration is a sibling of `clusters/local-kind` and consumes
 5. Verify the generated infrastructure Applications and capabilities before
    activating business services.
 
-The shared ApplicationSet then discovers the same four paths and installs the
-same pinned controllers. Moving from one registered environment to the next is
+The shared ApplicationSet then discovers the same five paths and installs the
+same pinned controllers and Redis dependency. Moving from one registered environment to the next is
 a values-and-activation change, not a new platform layout.
 
 ## Validation
@@ -93,7 +95,7 @@ Static validation is cluster-free:
 ```
 
 It verifies retained checksums, complete controller inventory, immutable image
-references, exact cluster-scoped permissions, four-root discovery,
+references, exact cluster-scoped permissions, five-root discovery,
 provider-neutral first-party resources, Kyverno enforcement, and all Kustomize
 renders.
 
@@ -106,8 +108,8 @@ PILOT_KUBE_CONTEXT=kind-microtodo-gitops-pilot \
   ./scripts/pilot/verify-platform.sh
 ```
 
-Passing requires all four infrastructure Applications and auth-api to be
+Passing requires all five infrastructure Applications and auth-api to be
 Synced and Healthy at the machine-local Git revision; every expected Deployment
-to be Available; all four capability checks to pass; both Kyverno report
+to be Available; all four controller capability checks and Redis `PONG` to pass; both Kyverno report
 results for the freshly admitted auth-api Pod to pass; no unhealthy final pod
 state; and three HTTP 200 responses over at least 60 seconds.

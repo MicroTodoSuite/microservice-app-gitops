@@ -10,6 +10,20 @@
 set -euo pipefail
 source "$(dirname "$0")/lib/common.sh"
 
+apply_root_application() {
+  log "BOOTSTRAP-EXCEPTION: applying root Application"
+  kubectl --context "$PILOT_KUBE_CONTEXT" apply \
+    -f "$REPO_ROOT/clusters/local-kind/root-app.yaml" >/dev/null
+}
+
+if [[ "${1:-}" == --root-only ]]; then
+  [[ "$#" == 1 ]] || die "usage: $0 [--root-only]"
+  apply_root_application
+  ok "root Application re-offered from the tracked bootstrap definition"
+  exit 0
+fi
+[[ "$#" == 0 ]] || die "usage: $0 [--root-only]"
+
 mkdir -p "$LOCAL_GIT_DIR"
 
 # 1) Loopback registry -------------------------------------------------------
@@ -59,12 +73,11 @@ docker network connect kind "$PILOT_REGISTRY_NAME" >/dev/null 2>&1 || true
 
 # 4) Bootstrap boundary: vendored ArgoCD ------------------------------------
 log "BOOTSTRAP-EXCEPTION: installing vendored ArgoCD"
-kustomize build "$REPO_ROOT/bootstrap/argocd" | kubectl --context "$PILOT_KUBE_CONTEXT" apply --server-side -f - >/dev/null
+render_kustomize "$REPO_ROOT/bootstrap/argocd" | kubectl --context "$PILOT_KUBE_CONTEXT" apply --server-side -f - >/dev/null
 kro wait -n argocd deploy --all --for=condition=Available --timeout=300s >&2
 
 # 5) Bootstrap boundary: root Application -----------------------------------
-log "BOOTSTRAP-EXCEPTION: applying root Application"
-kubectl --context "$PILOT_KUBE_CONTEXT" apply -f "$REPO_ROOT/clusters/local-kind/root-app.yaml" >/dev/null
+apply_root_application
 
 log "waiting for ArgoCD to reconcile the platform from the local Git source"
 sleep 20

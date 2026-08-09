@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: todos-api}
+spec:
+  selector: {}
+  template:
+    metadata:
+      annotations:
+        data-continuity.microtodosuite.io/risk: process-local-todos
+    spec:
+      serviceAccountName: todos-api
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: todos-api
+          image: todos-api
+          ports:
+            - name: http
+              containerPort: 8082
+          envFrom:
+            - configMapRef: {name: todos-api-config}
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-secrets
+                  key: JWT_SECRET
+          startupProbe:
+            httpGet: {path: /metrics, port: http}
+            periodSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: {path: /metrics, port: http}
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: {path: /metrics, port: http}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]

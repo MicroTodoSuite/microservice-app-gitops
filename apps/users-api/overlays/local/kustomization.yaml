@@ -1,0 +1,44 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: microtodo-local
+
+resources:
+  - ../../base
+
+components:
+  - ../../components/topology-economical
+
+replicas:
+  - name: users-api
+    count: 1
+
+patches:
+  - target:
+      kind: Deployment
+      name: users-api
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: users-api
+      spec:
+        template:
+          metadata:
+            annotations:
+              policy.microtodosuite.io/baseline: kyverno-v1
+          spec:
+            containers:
+              - name: users-api
+                resources:
+                  requests:
+                    cpu: 150m
+                    memory: 256Mi
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+
+images:
+  - name: users-api
+    newName: localhost:5001/users-api
+    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000

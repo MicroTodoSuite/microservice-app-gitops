@@ -96,6 +96,42 @@ explicit platform path.
 service pilot because `/version` does not invoke it. Login is not an acceptance
 health path.
 
+## Remaining service mappings
+
+Feature 004 completes the business-service set without changing this contract.
+
+| Contract field | `todos-api` | `users-api` | `frontend` | `log-message-processor` |
+| --- | --- | --- | --- | --- |
+| Container/Service port | `8082` | `8083` | `8080` | `9090` |
+| Intrinsic health path | `/metrics` | `/prometheus` | `/` | `/metrics` |
+| Secret interface | `auth-api-secrets/JWT_SECRET` | `auth-api-secrets/JWT_SECRET` | none | none |
+| Required service | `redis.redis.svc.cluster.local:6379` | none | `auth-api:8000`, `todos-api:8082` | `redis.redis.svc.cluster.local:6379` |
+| Local replicas | 1 | 1 | 1 | 1 |
+| Continuity limit | process-local todo cache | pod-local H2 seed data | static assets | live Redis subscription |
+
+auth-api remains the single owner of the local ExternalSecret target. Both JWT
+validators reference that target; independent generators are forbidden because
+their values would differ.
+
+Redis is a platform dependency discovered from `infrastructure/redis`, not a
+business-service sidecar. Its local single-node data is intentionally
+non-durable and does not establish a production persistence or DR design. It
+must reconcile and answer `PONG` at an earlier local Git revision before the two
+Redis consumers are activated.
+
+users-api preserves its current H2 behavior: each pod creates the seed data from
+its image. No volume or database is implied, and restarts or multiple replicas
+can recreate or diverge state. todos-api likewise preserves its process-local
+cache and stays at one local replica.
+
+## User-facing exposure mapping
+
+The existing exposure input is sufficient for frontend. Locally, an operator
+port-forwards the ClusterIP Service and the frontend's NGINX process proxies
+same-origin `/login` and `/todos` requests to internal Services. No local
+Ingress, Gateway, NodePort, or host binding is part of the service registration.
+Managed TLS ingress remains an environment-owned value under this same contract.
+
 ## Cluster registration contract
 
 Every cluster directory reuses `clusters/base` and changes only:
@@ -164,4 +200,3 @@ it until every item in `docs/production-readiness.md` is satisfied and reviewed.
 The local project permits only `microtodo-local`, and
 `tests/conformance/production-disabled.sh` rejects `environment: prod` in any
 active pilot registration.
-

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prove four add-ons and auth-api succeeded through the local GitOps path.
+# Prove four controller add-ons, Redis, and auth-api through the local GitOps path.
 # This script is read-only: it uses get/wait/logs/port-forward and HTTP probes,
 # retaining raw evidence under the ignored .local/ runtime directory.
 set -euo pipefail
@@ -10,6 +10,7 @@ ADDON_APPLICATIONS=(
   infra-cert-manager
   infra-external-secrets
   infra-kyverno
+  infra-redis
 )
 
 EXPECTED_DEPLOYMENTS=(
@@ -27,6 +28,7 @@ EXPECTED_DEPLOYMENTS=(
   kyverno/kyverno-background-controller
   kyverno/kyverno-cleanup-controller
   kyverno/kyverno-reports-controller
+  redis/redis
   microtodo-local/auth-api
 )
 
@@ -50,6 +52,7 @@ mkdir -p "$EVIDENCE_DIR/applications" "$EVIDENCE_DIR/deployments" \
   "$EVIDENCE_DIR/capabilities" "$EVIDENCE_DIR/health"
 
 PF_PID=""
+REDIS_FORWARD_PORT="${PILOT_REDIS_FORWARD_PORT:-16379}"
 cleanup_port_forward() {
   if [[ -n "$PF_PID" ]]; then
     kill "$PF_PID" >/dev/null 2>&1 || true
@@ -210,7 +213,7 @@ while :; do
 done
 ok "Kyverno reports pass for the newly admitted auth-api pod"
 
-for namespace in keda cert-manager external-secrets kyverno microtodo-local; do
+for namespace in keda cert-manager external-secrets kyverno redis microtodo-local; do
   kro get pods -n "$namespace" -o json >"$EVIDENCE_DIR/${namespace}-pods.json"
   if jq -e '
     any(.items[]?;
@@ -224,6 +227,31 @@ for namespace in keda cert-manager external-secrets kyverno microtodo-local; do
   fi
 done
 ok "no final Pending, Failed, Unknown, crash-looping, or image-pull pod state"
+
+log "starting read-only Redis port-forward on :$REDIS_FORWARD_PORT"
+kro port-forward -n redis svc/redis "$REDIS_FORWARD_PORT:6379" \
+  >"$EVIDENCE_DIR/health/redis-port-forward.log" 2>&1 &
+PF_PID=$!
+for _ in {1..30}; do
+  if (exec 8<>"/dev/tcp/127.0.0.1/$REDIS_FORWARD_PORT") 2>/dev/null; then
+    exec 8>&-
+    break
+  fi
+  kill -0 "$PF_PID" 2>/dev/null || die "Redis port-forward exited before readiness"
+  sleep 1
+done
+exec 9<>"/dev/tcp/127.0.0.1/$REDIS_FORWARD_PORT" \
+  || die "could not connect to Redis port-forward"
+printf '*1\r\n$4\r\nPING\r\n' >&9
+IFS= read -r -t 5 REDIS_RESPONSE <&9 || true
+exec 9>&- 9<&-
+REDIS_RESPONSE="${REDIS_RESPONSE%$'\r'}"
+printf '%s\n' "$REDIS_RESPONSE" >"$EVIDENCE_DIR/health/redis-ping.txt"
+[[ "$REDIS_RESPONSE" == +PONG ]] || die "Redis returned '$REDIS_RESPONSE'"
+kill "$PF_PID" 2>/dev/null || true
+wait "$PF_PID" 2>/dev/null || true
+PF_PID=""
+ok "Redis protocol check returned PONG"
 
 log "starting read-only auth-api port-forward on :$PILOT_HEALTH_PORT"
 kro port-forward -n microtodo-local svc/auth-api \
@@ -270,10 +298,11 @@ jq -n \
   --argjson healthWindowSeconds "$HEALTH_ELAPSED" \
   '{result:"pass",revision:$revision,context:$context,
     addOnApplications:["infra-keda","infra-cert-manager",
-      "infra-external-secrets","infra-kyverno"],
+      "infra-external-secrets","infra-kyverno","infra-redis"],
+    redisPing:"PONG",
     authApplication:"auth-api-local",authPod:$authPod,
     healthChecks:3,healthWindowSeconds:$healthWindowSeconds}' \
   >"$EVIDENCE_DIR/summary.json"
 
-printf 'PLATFORM VERIFIED: four add-ons and auth-api are Synced, Healthy, and live.\n' >&2
+printf 'PLATFORM VERIFIED: four controller add-ons, Redis, and auth-api are Synced, Healthy, and live.\n' >&2
 printf 'Evidence: %s\n' "$EVIDENCE_DIR" >&2

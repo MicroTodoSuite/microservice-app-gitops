@@ -15,6 +15,11 @@ this document defines its exact, minimal boundary (spec 001, FR-007).
 
 Each of these is logged. After step 3, ArgoCD owns all state.
 
+`scripts/pilot/bootstrap.sh --root-only` may idempotently re-offer that same
+tracked root Application after an ordinary Git commit has already aligned the
+machine connection values. This remains inside item 3: it changes no child
+Application or workload and is not a deployment recovery path.
+
 ## What the bootstrap MUST NOT do
 
 - Create, patch, scale, or configure any `auth-api` (or other business) workload.

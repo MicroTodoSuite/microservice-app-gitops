@@ -1,7 +1,8 @@
 # Environment activation for the apps ApplicationSet (JSON6902 ops).
-# Managed by scripts/pilot/publish-auth.sh: bootstrap seeds this file DISABLED
-# (empty list) so zero business services exist before activation; publish copies
-# activation-templates/local/activation-apps.yaml over this file and commits.
+# Bootstrap seeds this file DISABLED (empty list) so zero business services
+# exist before activation. The suite publisher copies the reviewed local
+# activation template only after every discovered service has an immutable
+# image digest.
 - op: replace
   path: /spec/generators/0/matrix/generators/1/list/elements
   value: []

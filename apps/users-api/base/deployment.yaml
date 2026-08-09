@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-api
+spec:
+  selector: {}
+  template:
+    metadata:
+      annotations:
+        # data.sql is loaded into an in-process H2 database for each pod. This
+        # label is evidence of the existing risk, not a persistence promise.
+        data-continuity.microtodosuite.io/risk: pod-local-h2
+        # Bump when users-api-config changes so envFrom updates roll pods.
+        runtime-config.microtodosuite.io/revision: users-api-jvm-bounds-v1
+    spec:
+      serviceAccountName: users-api
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: users-api
+          image: users-api
+          ports:
+            - name: http
+              containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: users-api-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  # auth-api owns the one ESO-generated signing key. Both
+                  # validators must read those exact bytes.
+                  name: auth-api-secrets
+                  key: JWT_SECRET
+          startupProbe:
+            httpGet:
+              path: /prometheus
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /prometheus
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /prometheus
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]

@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: microtodo-local
+resources: [../../base]
+components: [../../components/topology-economical]
+replicas:
+  - name: todos-api
+    count: 1
+patches:
+  - target: {kind: Deployment, name: todos-api}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: todos-api}
+      spec:
+        template:
+          metadata:
+            annotations: {policy.microtodosuite.io/baseline: kyverno-v1}
+          spec:
+            containers:
+              - name: todos-api
+                resources:
+                  requests: {cpu: 50m, memory: 64Mi}
+                  limits: {cpu: 250m, memory: 256Mi}
+images:
+  - name: todos-api
+    newName: localhost:5001/todos-api
+    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000

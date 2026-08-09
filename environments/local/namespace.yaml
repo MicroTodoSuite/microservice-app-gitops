@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: microtodo-local
+  labels:
+    # Platform dependencies select environment namespaces by this stable label,
+    # never by a local-only namespace name.
+    microtodosuite.io/environment: "true"
+    microtodosuite.io/environment-name: local

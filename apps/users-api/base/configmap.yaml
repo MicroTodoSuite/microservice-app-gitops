@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: users-api-config
+data:
+  SERVER_PORT: "8083"
+  SPRING_APPLICATION_NAME: users-api
+  # This Java 8 runtime does not reliably discover a cgroup-v2 memory limit.
+  # Bound native and managed pools explicitly so the legacy service remains
+  # inside the pod's 512 MiB limit without changing its H2 architecture.
+  JAVA_TOOL_OPTIONS: >-
+    -Xms64m -Xmx256m -Xss512k
+    -XX:MaxMetaspaceSize=112m
+    -XX:ReservedCodeCacheSize=48m
+    -XX:MaxDirectMemorySize=32m
+    -XX:+UseSerialGC

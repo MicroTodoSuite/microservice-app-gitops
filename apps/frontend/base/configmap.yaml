@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: frontend-config}
+data:
+  # Browsers call only the frontend origin. NGINX resolves these internal names.
+  AUTH_API_ADDRESS: "http://auth-api:8000"
+  TODOS_API_ADDRESS: "http://todos-api:8082"
+  # The template requires a syntactically valid value. No tracing service is
+  # installed by this feature; failed optional exports do not affect health.
+  ZIPKIN_URL: "http://127.0.0.1:9411/api/v2/spans"
