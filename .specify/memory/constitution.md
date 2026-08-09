@@ -1,24 +1,27 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 -> 1.1.0
-- Modified principles:
-  - Principle 2, GitOps-Only Deployment: added a minimal one-time bootstrap exception.
-- Added sections: none.
+- Version change: 1.1.0 -> 1.2.0
+- Modified principles: none.
+- Added sections:
+  - Profile adoption: cost-optimized (economical).
+- Superseded defaults:
+  - Section 17's shared-cluster, no-mesh, no-AKS, native-canary, and Spot-favored targets supersede the full-profile defaults.
 - Removed sections: none.
-- Follow-up TODOs: none.
+- Follow-up TODOs:
+  - Reconcile affected platform specifications and GitOps state with the adopted profile.
 -->
 
 # MicroTodoSuite Constitution
 
-Version: 1.1.0
+Version: 1.2.0
 
-Ratified: 2026-08-08
+Ratified: 2026-08-09
 
 Assessment basis: `docs/MicroTodoSuite evolution plan.md` and `context-snapshot.xml`.
 
 ## Purpose
 
-This constitution defines the binding engineering and governance rules for evolving MicroTodoSuite from its current Azure Container Apps implementation toward the planned AWS EKS platform with Azure AKS disaster recovery. It distinguishes enforceable direction from current fact: existing code is evidence, drift is debt, and an unimplemented plan item must never be represented as an available capability.
+This constitution defines the binding engineering and governance rules for evolving MicroTodoSuite from its current Azure Container Apps implementation toward the planned AWS EKS platform under the cost-optimized profile formally adopted below. It distinguishes enforceable direction from current fact: existing code is evidence, drift is debt, and an unimplemented plan item must never be represented as an available capability.
 
 ## Non-negotiable principles
 
@@ -77,29 +80,54 @@ it, and MUST be recorded in bootstrap documentation so it remains auditable.
 
 **Prove disaster recovery and disclose data loss.** AWS EKS MUST be primary, Azure AKS MUST be a synchronized active-active target routed by Route 53, Chaos Mesh game days MUST test failover, and Redis and business-data continuity limits MUST be explicit until durable replication exists — Rationale: an untested failover path or hidden state loss is not disaster recovery.
 
+## Profile adoption: cost-optimized (economical)
+
+Effective 2026-08-09, this project adopts the cost-optimized architecture
+profile defined in `docs/MicroTodoSuite evolution plan.md` section 17,
+superseding the full-profile default for AWS infrastructure.
+
+- Development, staging, and production environments share a single AWS EKS
+  cluster, isolated by Kubernetes namespace rather than by separate
+  clusters or VPCs.
+- Each environment namespace MUST have ResourceQuotas, LimitRanges,
+  NetworkPolicies, and RBAC enforcing isolation, per principle 1's
+  cost-optimized allowance.
+- No Istio/service mesh is used; resilience patterns are implemented in
+  service libraries, and canary deployment uses native Argo Rollouts
+  replica-based traffic shifting rather than Istio percentage routing.
+- No Azure AKS disaster-recovery target is provisioned under this profile;
+  resilience relies on multi-AZ placement within the single cluster, with
+  optional cold DR via Velero snapshots to S3.
+- Node capacity SHOULD favor Spot instances for cost, reserving On-Demand
+  capacity for evidence-gathering windows or genuinely stateful workloads.
+
+This trades weaker workload isolation for materially lower cost. It is a
+deliberate, informed trade-off, not an oversight, and is reversible via a
+future amendment reverting to the full profile if isolation needs change.
+
 ## Current state vs. plan
 
 Status meanings: **HONORED** = concrete implementation exists; **PARTIAL** = some required behavior exists; **ASPIRATIONAL** = no implementation evidence exists; **CONTRADICTED** = current behavior violates the planned rule.
 
 | Plan principle or component | Status | Snapshot evidence and discrepancy |
 | --- | --- | --- |
-| Single AWS account and isolated dev/staging/prod | **CONTRADICTED** | The infrastructure is one Azure Container Apps environment tagged as production; no AWS account configuration, EKS cluster, VPC, namespace isolation, or separate environment state is present. |
+| Single AWS account and isolated dev/staging/prod | **CONTRADICTED** | The infrastructure is one Azure Container Apps environment tagged as production; no AWS account configuration, shared EKS cluster, or dev/staging/prod namespace isolation is present. |
 | GitOps-only delivery | **CONTRADICTED** | No `microservice-app-gitops` repository or ArgoCD configuration appears. Service workflows build and directly run `az containerapp update` and revision restart; their pull-request trigger also reaches the deploy step. Ops workflows directly apply Terraform and mutate resiliency policies. |
 | Trunk-Based Development and feature flags | **PARTIAL** | Repositories use `main`, PR triggers, and short-lived `feat/*` references, and ops documentation names trunk-based development. No feature-flag implementation or enforcement is present, and historical docs still describe GitHub Flow for application repositories. |
 | Specification as source of truth | **PARTIAL** | Repository `AGENTS.md` files state the rule, and this file establishes the Constitution stage. The snapshot contains no `specs/`, feature specs, clarifications, plans, tasks, version-controlled acceptance criteria, OpenAPI, AsyncAPI, Spectral, or Pact artifacts. |
 | FinOps-informed design | **ASPIRATIONAL** | No checked-in Infracost or OpenCost configuration exists; a Git reference named `feat/infracost` is not an implementation. |
 | Planned repository topology | **PARTIAL** | Auth, todos, users, frontend, log processor, ops, docs, Prometheus, and AI-agents repositories exist. The GitOps and organization-level shared-workflow repositories do not appear; AI-agents is only partially populated. |
-| Terraform cloud foundation | **CONTRADICTED / PARTIAL** | Modular Terraform and Azure Blob remote state are real, but they create Azure Container Apps, ACR, Log Analytics, and one environment. S3/DynamoDB state per environment, VPC, EKS, IAM/IRSA, ECR, Route 53, Karpenter, a separate AKS module/backend, and Infracost are absent. |
-| Kubernetes platform add-ons | **ASPIRATIONAL** | No Kubernetes manifests or configuration for Istio, Kiali, KEDA, cert-manager, External Secrets Operator, Kyverno, Chaos Mesh, Falco, or OpenCost exists. |
+| Terraform cloud foundation | **CONTRADICTED / PARTIAL** | Modular Terraform and Azure Blob remote state are real, but they create Azure Container Apps, ACR, Log Analytics, and one environment. The adopted target's single multi-AZ EKS/VPC foundation, AWS state, IAM/IRSA, ECR, Spot-oriented capacity, and Infracost are absent. |
+| Kubernetes platform add-ons | **ASPIRATIONAL** | No Kubernetes manifests or configuration for Argo Rollouts, KEDA, cert-manager, External Secrets Operator, Kyverno, Chaos Mesh, Falco, or OpenCost exists; Istio/Kiali are no longer target add-ons under the adopted profile. |
 | ArgoCD layout, promotion, rollback, and notifications | **CONTRADICTED** | There are no cluster folders, bases/overlays, auto-sync, dev-update PRs, staging/production promotion PRs, production approval, Git-revert rollback flow, or ArgoCD Slack notifications. Current pipelines deploy application images directly. |
-| Environment-specific deployment strategy | **CONTRADICTED** | Azure Container Apps uses `revision_mode = "Single"`, sends 100% of traffic to the latest revision, and deploys `:latest`; no Argo Rollout, AnalysisTemplate, Prometheus gate, canary steps, or distinct dev/staging/prod/DR strategy exists. |
+| Environment-specific deployment strategy | **CONTRADICTED** | Azure Container Apps uses `revision_mode = "Single"`, sends 100% of traffic to the latest revision, and deploys `:latest`; no Argo Rollout, AnalysisTemplate, Prometheus gate, native replica-based canary steps, or distinct dev/staging/prod strategy exists. |
 | Reusable CI, OIDC, and artifact supply chain | **PARTIAL / CONTRADICTED** | Per-repository GitHub Actions build images and semantic-release creates releases, but workflows are duplicated and use Azure credential, subscription, registry-admin, and GitHub token secrets. There is no shared workflow, AWS/Azure OIDC, build-once promotion, SonarQube, Trivy, Syft SBOM, Cosign signing, or signature admission. |
-| Resilience and configuration patterns | **PARTIAL** | Services read environment variables, Terraform converts selected values to secret references, Todos retries Redis connections, and an ops workflow imperatively applies Azure's recommended resiliency policy. General retry behavior is not demonstrated; Istio circuit breaker, bulkhead, timeout, OpenFeature, and Spring Cloud Config are absent. |
+| Resilience and configuration patterns | **PARTIAL** | Services read environment variables, Terraform converts selected values to secret references, Todos retries Redis connections, and an ops workflow imperatively applies Azure's recommended resiliency policy. General service-library circuit breaker, bulkhead, and timeout behavior is not demonstrated; OpenFeature and Spring Cloud Config are absent. |
 | Test strategy and quality reporting | **PARTIAL, NEARLY ABSENT** | Users API has one Spring context-load test and Maven packaging runs it; frontend has a lint command. Auth, Todos, frontend, log processor, Prometheus, and ops have no functional suites, several `npm test` scripts deliberately fail, and CI runs none of the planned unit, Testcontainers, contract, E2E, Locust, ZAP, coverage, or SonarQube gates. |
-| Observability and workload health | **PARTIAL** | Prometheus metrics, a custom Prometheus image, Grafana, an nginx exporter, Zipkin tracing, stdout logging, and Azure Log Analytics exist. OpenTelemetry, Jaeger, business metrics, ELK, Filebeat, Alertmanager/Slack, and deployment probes are absent; only Users exposes an actuator health capability, which is not wired as a probe. |
+| Observability and workload health | **PARTIAL** | Prometheus metrics, a custom Prometheus image, Grafana, an nginx exporter, Zipkin tracing, stdout logging, and Azure Log Analytics exist. OpenTelemetry, short-retention Jaeger, business metrics, Loki, Alertmanager/Slack, and deployment probes are absent; only Users exposes an actuator health capability, which is not wired as a probe. |
 | Security controls | **PARTIAL / CONTRADICTED** | JWT authentication and some Azure secret references exist. Static CI credentials, ACR admin access, source JWT fallbacks, Terraform's `PRFT` JWT default, Grafana password `12345`, public monitoring ingress, and unsigned `:latest` images contradict the target; External Secrets, RBAC/IRSA, explicit TLS/mTLS, Trivy, Kyverno, Falco, `kube-bench`, and `kube-hunter` are absent. |
 | Change management and traceability | **PARTIAL / CONTRADICTED** | Semantic-release, semantic versions, release tags, and changelogs exist. Deployments nevertheless select `:latest`; PR rollback plans, spec-to-image traceability, immutable promotion, and GitOps `git revert` rollback are absent. |
-| Multicloud DR, chaos engineering, and cost profiles | **ASPIRATIONAL** | There is no EKS, AKS, Route 53 routing, active-active operation, Chaos Mesh experiment, game-day record, OpenCost, or Infracost. Namespace quotas/policies, multi-AZ or Velero recovery, Spot/Karpenter, native canaries, service-library resilience, Loki, short-retention Jaeger, and SonarCloud are also absent; neither target profile is implemented, and current Azure Container Apps is a third, legacy state. |
+| Cost-optimized resilience, chaos engineering, and cost controls | **ASPIRATIONAL** | This amendment adopts the cost-optimized profile, but the assessment snapshot contains no EKS, namespace quotas/policies/RBAC, multi-AZ or Velero recovery, Spot/Karpenter, native canaries, service-library resilience, Loki, short-retention Jaeger, SonarCloud, cluster-level Chaos Mesh evidence, OpenCost, or Infracost. Current Azure Container Apps remains a legacy state, not an implementation of the adopted profile. |
 | Data continuity | **CONTRADICTED AS A DR CAPABILITY; HONESTLY IDENTIFIED AS A RISK** | Redis is an unreplicated, unpersisted Pub/Sub service, Todos stores data in process memory, and Users uses pod-local H2 seed data. Restarts and scaling can lose or diverge state, so the code confirms the plan's warning but provides no continuity. |
 | AI-agents repository | **PARTIAL** | The repository contains context documentation plus scripts to generate `AGENTS.md` files and index repositories. The advertised `.claude/agents`, `.claude/skills`, and `.claude/mcp` content does not appear in the snapshot, so specialized agents, Spec Kit skills, and MCP configuration are not delivered. |
 | Suggested roadmap | **PARTIAL, PRE-MIGRATION** | Legacy Terraform, container images, basic telemetry, semantic release, and agent-context scripts predate the target. Roadmap steps for AWS foundations, platform add-ons, GitOps, shared CI, target observability, multicloud, chaos, and FinOps remain undone; this constitution begins only the governance portion of step 6. |
@@ -116,4 +144,4 @@ Status meanings: **HONORED** = concrete implementation exists; **PARTIAL** = som
 
 This constitution outranks feature specifications; approved feature specifications outrank plans and tasks; all of them outrank current code and deployed state. A conflicting feature specification MUST be changed to comply or blocked until a constitution amendment is approved first. Existing contradictory code creates remediation work and never establishes precedent or an implicit waiver. Ambiguity is resolved in a documented pull-request decision by the same maintainers required for an amendment, and no conversation, prompt, emergency command, or undocumented exception may override that decision hierarchy.
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-08 | **Last Amended**: 2026-08-08
+**Version**: 1.2.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09
