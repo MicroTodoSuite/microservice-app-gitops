@@ -1,1 +1,4 @@
 .DS_Store
+
+# Local-only secret inputs. Never commit generated or rotated secret material.
+apps/auth-api/base/secret-values.local.env
