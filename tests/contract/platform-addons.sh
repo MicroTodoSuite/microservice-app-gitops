@@ -192,12 +192,19 @@ require_text infrastructure/kyverno/policies.yaml 'livenessProbe' \
 require_text infrastructure/kyverno/policies.yaml 'readinessProbe' \
   "Kyverno health policy does not require readiness probes"
 
-require_text clusters/base/infrastructure.yaml 'path: infrastructure/\*' \
-  "shared infrastructure folder discovery is missing"
-require_text clusters/base/infrastructure.yaml 'name: "infra-\{\{ \.path\.basename \}\}"' \
-  "infrastructure Application naming is not folder-driven"
-require_text clusters/base/infrastructure.yaml 'path: infrastructure/\*/vendor' \
-  "vendor folders are not excluded from discovery"
+reject_text clusters/base/infrastructure.yaml 'directories:|infrastructure/\*' \
+  "shared infrastructure still uses unsafe folder discovery"
+require_text clusters/base/infrastructure.yaml 'elements: \[\]' \
+  "shared infrastructure lacks an explicit empty activation default"
+require_text clusters/base/infrastructure.yaml 'name: "infra-\{\{ \.name \}\}"' \
+  "infrastructure Application naming is not driven by explicit values"
+require_text clusters/base/infrastructure.yaml 'path: "\{\{ \.path \}\}"' \
+  "infrastructure source path is not driven by explicit values"
+require_text clusters/base/infrastructure.yaml 'namespace: "\{\{ \.namespace \}\}"' \
+  "infrastructure namespace is not driven by explicit values"
+if [[ "$(rg -c '^    - name: ' "$ROOT/clusters/local-kind/activation-infrastructure.yaml")" != "5" ]]; then
+  fail "local infrastructure activation must contain exactly five entries"
+fi
 require_text clusters/base/infrastructure.yaml 'CreateNamespace=true' \
   "infrastructure applications do not create their destination namespace"
 require_text clusters/base/infrastructure.yaml 'ServerSideApply=true' \
@@ -243,12 +250,8 @@ reject_text infrastructure/cert-manager/capability-check.yaml \
   '^[[:space:]]+(acme|ca|vault|venafi):' \
   "cert-manager capability check uses a provider-backed issuer"
 
-require_text clusters/base/infrastructure.yaml 'path: infrastructure/argo-rollouts' \
-  "inactive Argo Rollouts placeholder is not explicitly excluded"
-if ! rg -U -q 'path: infrastructure/argo-rollouts\n[[:space:]]+exclude: true' \
-    "$ROOT/clusters/base/infrastructure.yaml"; then
-  fail "inactive Argo Rollouts placeholder exclusion is incomplete"
-fi
+reject_text clusters/local-kind/activation-infrastructure.yaml \
+  'argo-rollouts' "inactive Argo Rollouts placeholder is explicitly activated"
 
 render_kustomize "$ROOT/clusters/local-kind" >"$TMP_DIR/local-registration.yaml" \
   || fail "local cluster registration does not render"

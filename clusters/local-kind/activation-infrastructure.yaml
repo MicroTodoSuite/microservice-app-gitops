@@ -1,0 +1,18 @@
+- op: replace
+  path: /spec/generators/0/list/elements
+  value:
+    - name: keda
+      path: infrastructure/keda
+      namespace: keda
+    - name: cert-manager
+      path: infrastructure/cert-manager
+      namespace: cert-manager
+    - name: external-secrets
+      path: infrastructure/external-secrets
+      namespace: external-secrets
+    - name: kyverno
+      path: infrastructure/kyverno
+      namespace: kyverno
+    - name: redis
+      path: infrastructure/redis
+      namespace: redis

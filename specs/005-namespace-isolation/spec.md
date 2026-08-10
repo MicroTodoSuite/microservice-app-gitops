@@ -4,9 +4,9 @@
 
 **Created**: 2026-08-09
 
-**Status**: Draft
+**Status**: In implementation
 
-**Input**: User description: "Establish namespace-based isolation for development, staging, and production on the single shared AWS EKS cluster under constitution v1.2.0. Enforce resource, network, and access boundaries through ArgoCD, prove isolation live, and preserve existing development workloads without disruption."
+**Input**: User description: "Establish namespace-based isolation for development, staging, and production on the single shared AWS EKS cluster under constitution v1.2.0. Enforce resource, network, access, and Redis event-stream boundaries through ArgoCD, prove isolation live, and preserve existing development workloads without disruption."
 
 ## Clarifications
 
@@ -18,13 +18,20 @@
   GitOps repository and MUST NOT edit Terraform.
 - Q: What may the prerequisite registration activate for this feature? → A:
   Exactly the three environment-policy entries. Business-service activation
-  remains empty and infrastructure/add-on discovery remains disabled. The
-  current lockstep apps/environments wording and automatic infrastructure
-  discovery must be decoupled by the separate registration work first.
+  remains empty. The four already-running controller Applications
+  (`infra-keda`, `infra-cert-manager`, `infra-external-secrets`, and
+  `infra-kyverno`) and the existing `infra-redis` remain explicitly allowlisted
+  during the foundation and default-deny stages, while folder-wide
+  infrastructure discovery is disabled. A later reviewed registration value
+  removes only `infra-redis` after all three replacements pass. The current
+  lockstep apps/environments wording and automatic infrastructure discovery
+  must be decoupled before activation.
 - Q: Does this feature deploy platform add-ons or business services into all
-  three environments? → A: No. It layers isolation around the existing dev
-  workload and may use temporary, GitOps-managed verification fixtures. Real
-  add-on and service activation in dev, staging, or prod is separate work.
+  three environments? → A: No new controller add-on or business service is
+  activated. It layers isolation around the existing dev workload, retains the
+  four already-running controller add-ons, and may use environment-owned Redis
+  plus temporary GitOps-managed verification fixtures. Real service activation
+  in dev, staging, or prod is separate work.
 - Q: How is a default-deny network posture introduced without interrupting dev?
   → A: The rollout first records the live dev dependency and health baseline,
   proves CNI enforcement, and reconciles required allow rules before enabling
@@ -34,6 +41,12 @@
   those groups belongs to the cluster-access handoff; reusable manifests MUST
   NOT contain personal IAM ARNs or grant one environment's group another
   environment's permissions.
+- Q: Does Redis remain one shared infrastructure instance? → A: No. The shared
+  EKS cluster uses one environment-owned Redis instance inside each of
+  `microtodo-dev`, `microtodo-staging`, and `microtodo-prod`. The managed
+  registration MUST NOT create `infra-redis`; the existing local pilot may keep
+  its local-only `infra-redis` contract. Business-service activation remains
+  empty in this feature.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -80,7 +93,8 @@ access.
 **Independent Test**: Reconcile temporary test workloads through GitOps in dev,
 staging, and prod, attempt every directed cross-environment connection, and
 verify all six fail while DNS and one same-environment connection per namespace
-succeed.
+succeed. Publish a unique Redis event in each namespace and prove it is visible
+only to the subscriber connected to that namespace's Redis instance.
 
 **Acceptance Scenarios**:
 
@@ -92,6 +106,9 @@ succeed.
 3. **Given** a required platform dependency, **When** an exception is approved,
    **Then** it selects the exact source, destination, protocol, and port rather
    than broadly allowing another environment namespace.
+4. **Given** one Redis instance in each environment namespace, **When** a unique
+   event is published in one environment, **Then** only that environment's
+   subscriber observes it and the other two Redis instances remain independent.
 
 ---
 
@@ -170,6 +187,10 @@ change isolation controls, and an unbound subject is denied everywhere.
   only one group at a time.
 - A probe image cannot be pulled after egress isolation; verification assets
   must use an approved immutable image available before the deny stage.
+- A future todos-api or log-message-processor overlay retains the former
+  `redis.redis.svc.cluster.local` endpoint; static acceptance must reject the
+  managed overlay before any business-service activation can expose events to
+  the wrong environment.
 - ArgoCD reports Healthy at an older revision; acceptance waits for the exact
   reviewed revision in every environment application.
 - A new cluster registration reuses the current matching environment/app lists
@@ -194,7 +215,8 @@ change isolation controls, and an unbound subject is denied everywhere.
   ApplicationSet; no second namespace delivery mechanism may be introduced.
 - **FR-005**: Each managed environment MUST reconcile a Namespace,
   ResourceQuota, LimitRange, ingress-and-egress default-deny NetworkPolicy,
-  explicit required allow policies, Role, and RoleBinding.
+  explicit required allow policies, Role, RoleBinding, and one namespace-local
+  Redis Deployment, ServiceAccount, Service, and Redis-specific policy set.
 - **FR-006**: Shared isolation behavior MUST have one reusable definition, with
   environment-specific quota values and identity groups supplied as explicit
   reviewed values rather than copied policy forks.
@@ -207,7 +229,8 @@ change isolation controls, and an unbound subject is denied everywhere.
 - **FR-009**: LimitRanges MUST provide bounded CPU and memory defaults for
   containers that omit them and MUST reject per-container values above the
   environment's approved maximum.
-- **FR-010**: The sum of approved environment budgets MUST leave documented
+- **FR-010**: The sum of approved environment budgets MUST include each
+  environment's Redis requests and rollout headroom while leaving documented
   capacity for `kube-system`, ArgoCD, platform controllers, node disruption, and
   evidence workloads; quota totals MUST NOT be represented as guaranteed node
   reservations.
@@ -235,9 +258,9 @@ change isolation controls, and an unbound subject is denied everywhere.
 - **FR-018**: The later cluster-access handoff MUST map each authorized AWS
   principal to only its approved Kubernetes group; absent mapping is a blocked
   live-acceptance prerequisite, not permission to broaden GitOps RBAC.
-- **FR-019**: Namespace creation, policy changes, RBAC changes, verification
-  fixture activation, and fixture cleanup MUST occur only through reviewed Git
-  commits reconciled by ArgoCD.
+- **FR-019**: Namespace creation, policy changes, RBAC changes, Redis lifecycle,
+  verification fixture activation, and fixture cleanup MUST occur only through
+  reviewed Git commits reconciled by ArgoCD.
 - **FR-020**: Verification commands MAY read cluster state, logs, events,
   authorization results, and application endpoints, but MUST NOT apply, patch,
   create, replace, scale, or delete a GitOps-managed Kubernetes resource.
@@ -261,14 +284,37 @@ change isolation controls, and an unbound subject is denied everywhere.
   stop the rollout and use a reviewed Git revert for recovery; it MUST NOT be
   repaired by direct cluster mutation.
 - **FR-027**: This feature MUST NOT provision or register EKS, modify Terraform,
-  install add-ons, deploy real services into staging or prod, change application
-  source, add a service mesh, or claim multicluster or AKS disaster recovery.
+  install cluster-wide controllers or add-ons, activate any business service in
+  dev, staging, or prod, change application source code, add a service mesh, or
+  claim multicluster or AKS disaster recovery. The three namespace-local Redis
+  instances are the only runtime dependency introduced by this feature.
 - **FR-028**: The external `eks-main` registration MUST be capable of activating
   the three environment-policy Applications independently while producing zero
-  business-service Applications and zero platform-add-on Applications. The
-  current lockstep application/environment activation and automatic
-  infrastructure discovery MUST be resolved by the separate registration work,
-  not bypassed by this feature.
+  business-service Applications. During foundation and default-deny rollout,
+  its infrastructure inventory MUST be an exact allowlist containing
+  `infra-keda`, `infra-cert-manager`, `infra-external-secrets`, `infra-kyverno`,
+  and the existing `infra-redis`; after the Redis retirement gate it MUST
+  contain only the four controllers. Folder-wide infrastructure discovery is
+  forbidden. This feature MAY refactor the reusable infrastructure activation
+  mechanism, but it MUST NOT create the EKS cluster or perform the audited root
+  bootstrap.
+- **FR-029**: Each managed namespace MUST contain exactly one independently
+  addressed Redis instance; no Redis Service, endpoint, storage, or Pub/Sub
+  stream may be shared across dev, staging, and prod.
+- **FR-030**: The shared-cluster registration MUST retire or suppress the
+  cluster-wide `infra-redis` Application and MUST prove no `redis` namespace or
+  `infra-redis` Application is created on the shared EKS cluster. The existing
+  local Kind pilot's `infra-redis` Application MUST remain unchanged.
+- **FR-031**: The dev, staging, and prod overlays for todos-api and
+  log-message-processor MUST resolve Redis through the namespace-local service
+  name. The local overlay MAY retain the local pilot's cross-namespace Redis
+  endpoint.
+- **FR-032**: Live Redis verification MUST prove all three instances are Ready,
+  return `PONG`, reject cross-environment connections, and keep a uniquely
+  published event observable only in its source environment.
+- **FR-033**: This feature MUST leave the managed business-service activation
+  list empty throughout implementation and acceptance; Redis and feature-005
+  verification fixtures are the only non-policy workloads it may activate.
 
 ### Key Entities
 
@@ -291,8 +337,13 @@ change isolation controls, and an unbound subject is denied everywhere.
 - **Isolation evidence run**: One immutable observation set tying a Git revision
   to all resource, network, RBAC, ArgoCD, and no-disruption outcomes.
 - **Policy-only registration state**: The external cluster-registration state in
-  which `env-dev`, `env-staging`, and `env-prod` exist while business-service and
-  infrastructure Application inventories are empty.
+  which `env-dev`, `env-staging`, and `env-prod` exist, the business-service
+  Application inventory is empty, and the infrastructure inventory is an exact
+  stage-specific allowlist: four retained controllers plus `infra-redis` before
+  replacement verification, then only the four controllers after retirement.
+- **Environment Redis instance**: One ephemeral, digest-pinned Redis Deployment
+  and Service inside a managed environment namespace, with a namespace-local
+  DNS endpoint and no cross-environment event or network path.
 
 ## Success Criteria *(mandatory)*
 
@@ -326,19 +377,28 @@ change isolation controls, and an unbound subject is denied everywhere.
 - **SC-008**: Verification fixtures are activated and removed by Git commit and
   ArgoCD reconciliation, final applications return to Synced/Healthy at the
   cleanup revision, and the existing local pilot contracts still pass.
-- **SC-009**: Before and throughout this feature, the shared cluster has exactly
-  three managed environment-policy Applications from this scope and zero
-  business-service or platform-add-on Applications activated by registration;
-  temporary feature-005 probes are the only workload exception.
+- **SC-009**: Throughout this feature, the shared cluster has exactly three
+  managed environment-policy Applications from this scope and zero
+  business-service Applications. Its explicit infrastructure inventory has the
+  four retained controllers plus `infra-redis` before replacement verification
+  and exactly the four controllers after retirement; the three environment-owned
+  Redis instances and temporary feature-005 probes are the only new workload
+  exceptions.
+- **SC-010**: Exactly three Redis Deployments and Services exist on the shared
+  cluster, one in each managed namespace; each returns `PONG`, all six directed
+  cross-environment Redis connection attempts fail, and a unique event published
+  to one instance is observed by zero subscribers connected to the other two.
 
 ## Assumptions
 
-- The constitution v1.2.0 amendment will be reviewed and merged before any
-  implementation or activation from this specification.
+- The constitution v1.2.0 amendment is reviewed, merged, and byte-synchronized
+  before implementation; its exact revisions and digest are recorded in the
+  acceptance checklist.
 - A separate cluster-registration change will provide one `eks-main` ArgoCD root
   that activates only the dev, staging, and prod environment-policy list against
-  `https://kubernetes.default.svc`; its business-service and infrastructure
-  activation lists remain empty. This specification does not create it.
+  `https://kubernetes.default.svc`; its business-service activation list remains
+  empty and its infrastructure list follows the staged five-then-four allowlist.
+  This specification does not perform the root bootstrap.
 - The shared cluster uses Linux EC2 worker nodes and a supported policy-enforcing
   CNI configuration. Repository inspection currently proves only that VPC CNI
   is declared; live policy enforcement remains an acceptance gate.
@@ -348,7 +408,8 @@ change isolation controls, and an unbound subject is denied everywhere.
   mappings remain outside this repository and must be completed before live RBAC
   acceptance.
 - Empty staging and prod namespaces may host only temporary verification
-  fixtures during this feature; that does not count as service activation.
+  fixtures and their environment-owned Redis instances during this feature;
+  neither counts as business-service activation.
 
 ## Out of Scope
 
@@ -356,8 +417,8 @@ change isolation controls, and an unbound subject is denied everywhere.
   access entries, or the VPC CNI add-on configuration.
 - Creating the `eks-main` registration, performing the audited ArgoCD bootstrap,
   or promoting application images.
-- Deploying platform add-ons or real business workloads into dev, staging, or
-  prod.
+- Deploying cluster-wide platform add-ons or real business workloads into dev,
+  staging, or prod; namespace-local Redis is the sole dependency exception.
 - Defining application-specific ingress, external API, telemetry, secret-store,
   or database allow rules before their owning features provide exact contracts.
 - Implementing Istio, mTLS through a service mesh, AKS DR, Velero, Karpenter,

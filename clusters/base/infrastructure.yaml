@@ -10,18 +10,14 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-    - git:
-        repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
-        revision: registration-revision # injected by registration
-        directories:
-          - path: infrastructure/*
-          - path: infrastructure/argo-rollouts
-            exclude: true # inactive until the canary capability is activated
-          - path: infrastructure/*/vendor
-            exclude: true
+    - list:
+        # Exact per-cluster values are injected by activation-infrastructure.yaml.
+        # Folder discovery is intentionally forbidden: adding a directory must
+        # never activate a controller or shared dependency implicitly.
+        elements: []
   template:
     metadata:
-      name: "infra-{{ .path.basename }}"
+      name: "infra-{{ .name }}"
       annotations:
         # Add-ons before business applications (apps run at wave 1). Ordering
         # between add-ons is declared inside each folder with sync-waves.
@@ -31,10 +27,10 @@ spec:
       source:
         repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
         targetRevision: registration-revision # injected by registration
-        path: "{{ .path.path }}"
+        path: "{{ .path }}"
       destination:
         server: https://kubernetes.default.svc
-        namespace: "{{ .path.basename }}"
+        namespace: "{{ .namespace }}"
       syncPolicy:
         automated:
           prune: true

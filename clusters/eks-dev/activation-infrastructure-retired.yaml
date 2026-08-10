@@ -1,0 +1,17 @@
+# Post-migration value. A reviewed retirement revision swaps the registration
+# to this exact list only after all three namespace Redis instances pass live.
+- op: replace
+  path: /spec/generators/0/list/elements
+  value:
+    - name: keda
+      path: infrastructure/keda
+      namespace: keda
+    - name: cert-manager
+      path: infrastructure/cert-manager
+      namespace: cert-manager
+    - name: external-secrets
+      path: infrastructure/external-secrets
+      namespace: external-secrets
+    - name: kyverno
+      path: infrastructure/kyverno
+      namespace: kyverno

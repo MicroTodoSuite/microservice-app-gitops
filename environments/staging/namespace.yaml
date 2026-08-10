@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: microtodo-staging
+  labels:
+    microtodosuite.io/environment: staging
+    microtodosuite.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"

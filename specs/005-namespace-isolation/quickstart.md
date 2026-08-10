@@ -14,8 +14,9 @@ Before any managed namespace activation, confirm all of the following:
 - the GitOps vendored constitution is byte-identical;
 - a separate reviewed registration provides `clusters/eks-main`, activates only
   the dev, staging, and prod environment-policy list against
-  `https://kubernetes.default.svc`, and yields zero business-service and zero
-  infrastructure/add-on Applications;
+  `https://kubernetes.default.svc`, yields zero business-service Applications,
+  and explicitly allowlists exactly the four approved controller Applications
+  plus `infra-redis` until the three replacement instances are verified;
 - the ops-owned EKS/VPC CNI configuration has network policy enabled
   declaratively;
 - every eligible Linux EC2 worker has a ready policy agent;
@@ -26,6 +27,11 @@ Before any managed namespace activation, confirm all of the following:
 If any item is missing, static design work may continue, but stop before live
 activation.
 
+The 2026-08-09 prerequisite run found the constitution authoritative but the
+live cluster still registered as `eks-dev`, without environment maintainer
+groups or a pre-existing dev business workload. Those remain live-activation
+blockers; they are not converted into passes by the static checks below.
+
 ## 2. Run static checks after implementation
 
 Render each managed environment without contacting a cluster:
@@ -34,6 +40,8 @@ Render each managed environment without contacting a cluster:
 kubectl kustomize environments/dev
 kubectl kustomize environments/staging
 kubectl kustomize environments/prod
+kubectl kustomize clusters/local-kind
+kubectl kustomize clusters/eks-dev
 ```
 
 Run the feature contract and existing local contracts:
@@ -51,9 +59,16 @@ jq empty specs/005-namespace-isolation/contracts/namespace-isolation-evidence.sc
 git diff --check
 ```
 
-Implementation must also run the selected pinned Kubernetes schema validator.
-`kubeconform` is not installed in the current shell, so a successful local render
-alone is not the schema-validation gate.
+Run the pinned schema chain with kubeconform v0.7.0 (the script rejects a
+different version) and Python jsonschema:
+
+```bash
+scripts/managed/validate-namespace-isolation.sh
+```
+
+The implementation run used the checksum-verified official Linux AMD64 v0.7.0
+release against Kubernetes 1.35.0. Missing CRD schemas are reported as skipped;
+all core resources must report zero invalid and zero errors.
 
 ## 3. Record the baseline
 
@@ -68,6 +83,7 @@ Run the planned observer with the exact managed-cluster context and full SHA:
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
   --context <eks-main-context> \
+  --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase baseline \
   --expected-revision <40-hex-git-sha>
 ```
@@ -79,8 +95,10 @@ identity, dev health, dev dependency, and capacity baseline gates all pass.
 ## 4. Reconcile the foundation revision
 
 The first implementation PR contains Namespace, ResourceQuota, LimitRange,
-Role/RoleBinding, DNS, same-environment, and evidenced dev allow rules. It does
-not activate default deny.
+Role/RoleBinding, DNS, same-environment, namespace-local Redis, and evidenced
+dev allow rules. It also changes infrastructure discovery to explicit
+registration values while preserving local `infra-redis`. It does not activate
+default deny or any business service.
 
 After review and merge, wait for ArgoCD to observe that exact SHA; the observer
 does not request a sync:
@@ -88,13 +106,15 @@ does not request a sync:
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
   --context <eks-main-context> \
+  --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase foundation \
   --expected-revision <foundation-commit-sha> \
-  --baseline <baseline-summary-json>
+  --previous-evidence <baseline-summary-json>
 ```
 
 Stop and revert the Git change if any environment application fails to converge
-or dev differs from baseline.
+or dev differs from baseline. Each environment Redis instance must be Ready and
+return `PONG` before proceeding.
 
 ## 5. Reconcile default deny
 
@@ -104,15 +124,33 @@ renders. After merge and convergence, run:
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
   --context <eks-main-context> \
+  --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase default-deny \
   --expected-revision <default-deny-commit-sha> \
-  --baseline <baseline-summary-json>
+  --previous-evidence <foundation-summary-json>
 ```
 
 The phase must prove real positive and negative new connections and unchanged
 dev health. A present `NetworkPolicy` object is not sufficient.
 
-## 6. Activate and observe verification fixtures
+## 6. Retire shared Redis
+
+After all three namespace-local instances pass, merge the reviewed registration
+value that removes only `infra-redis` from the shared cluster. Run:
+
+```bash
+scripts/managed/verify-namespace-isolation.sh \
+  --context <eks-main-context> \
+  --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
+  --phase redis-retired \
+  --expected-revision <redis-retirement-commit-sha> \
+  --previous-evidence <default-deny-summary-json>
+```
+
+The four controller Applications must remain Synced/Healthy, while the shared
+`infra-redis` Application and `redis` namespace are absent.
+
+## 7. Activate and observe verification fixtures
 
 A third reviewed PR references the opt-in fixture overlays and the deliberate
 quota violation. All fixtures are Deployments with an implementation-approved
@@ -121,16 +159,19 @@ immutable image. After ArgoCD reaches the fixture revision, run:
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
   --context <eks-main-context> \
+  --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase fixtures \
   --expected-revision <fixture-activation-commit-sha> \
-  --baseline <baseline-summary-json>
+  --previous-evidence <redis-retired-summary-json>
 ```
 
 Required outcomes are six denied cross-environment paths, three allowed local
-paths, three successful DNS checks, the expected quota event with no excess pod,
-an unaffected comparison environment, and the complete RBAC matrix.
+paths, three successful DNS checks, three Redis `PONG` responses, six denied
+cross-environment Redis paths, Pub/Sub events observed only in their source
+environment, the expected quota event with no excess pod, an unaffected
+comparison environment, and the complete RBAC matrix.
 
-## 7. Revert fixtures and finalize
+## 8. Revert fixtures and finalize
 
 Remove only the fixture activation through a reviewed Git revert:
 
@@ -143,10 +184,11 @@ After that revert is reviewed, merged, and reconciled, run the final phase:
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
   --context <eks-main-context> \
+  --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase final \
   --expected-revision <isolation-revision-sha> \
   --cleanup-revision <fixture-revert-commit-sha> \
-  --baseline <baseline-summary-json>
+  --previous-evidence <fixtures-summary-json>
 ```
 
 Final success requires no fixture workload, all environment applications at the
@@ -186,7 +228,10 @@ application health requests are allowed when the observer records them.
 ## Expected steady state
 
 After successful cleanup, the shared cluster contains the three managed
-namespaces and their steady-state isolation controls. It contains no feature-005
-probe or quota-violation workload. Existing dev workloads remain healthy;
-staging and prod contain no real service or add-on merely because their
-namespace policy exists.
+namespaces, their steady-state isolation controls, and one Redis instance per
+namespace. It contains no shared `infra-redis`, feature-005 probe, quota-
+violation workload, or business-service Application. The four pre-existing
+controller Applications remain healthy. Existing dev workloads remain healthy
+when such workloads exist as a separately activated continuity subject; staging
+and prod contain no real business service merely because their namespace policy
+exists.

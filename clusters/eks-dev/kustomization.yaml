@@ -22,6 +22,12 @@ patches:
       version: v1alpha1
       kind: ApplicationSet
       name: environments
+  - path: activation-infrastructure.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: infrastructure
 
 replacements:
   - source:
@@ -48,7 +54,6 @@ replacements:
           kind: ApplicationSet
           name: infrastructure
         fieldPaths:
-          - spec.generators.0.git.repoURL
           - spec.template.spec.source.repoURL
       - select:
           kind: ApplicationSet
@@ -75,7 +80,6 @@ replacements:
           kind: ApplicationSet
           name: infrastructure
         fieldPaths:
-          - spec.generators.0.git.revision
           - spec.template.spec.source.targetRevision
       - select:
           kind: ApplicationSet

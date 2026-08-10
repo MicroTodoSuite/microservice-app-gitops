@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: namespace-isolation-redis-subscriber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: namespace-isolation-redis-subscriber
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: namespace-isolation-redis-subscriber
+    spec:
+      serviceAccountName: namespace-isolation-probe
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis-subscriber
+          image: redis:7.4.9-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              while true; do
+                echo "subscriber source=$SOURCE_ENV started=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                redis-cli -h redis -p 6379 --csv SUBSCRIBE isolation-events || true
+                sleep 2
+              done
+          env:
+            - name: SOURCE_ENV
+              value: unset
+          readinessProbe:
+            exec:
+              command: [/bin/sh, -ec, "test -r /proc/1/status"]
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: [/bin/sh, -ec, "test -r /proc/1/status"]
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

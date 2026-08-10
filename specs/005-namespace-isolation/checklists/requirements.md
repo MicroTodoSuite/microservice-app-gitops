@@ -35,11 +35,11 @@
 
 ## Notes
 
-- Repository inspection found complete isolation policy only for
-  `microtodo-local`; managed dev, staging, and prod environment directories and
-  environment RBAC do not yet exist.
-- The sibling AWS foundation pins a supported VPC CNI version but does not show
-  `enableNetworkPolicy: "true"`; implementation must obtain live enforcement
-  evidence or stop before default deny.
-- Constitution v1.2.0 is currently a local, approved amendment proposal. It must
-  reach authoritative `main` before implementation begins.
+- Static implementation now supplies managed dev, staging, and prod environment
+  directories plus reusable RBAC, quota, network, and Redis policy; live
+  activation remains gated in the acceptance checklist.
+- The sibling AWS foundation pins a supported VPC CNI version but still does not
+  declare `enableNetworkPolicy: "true"`; implementation must obtain durable
+  configuration and live enforcement evidence or stop before default deny.
+- Constitution v1.2.0 is merged to authoritative `main` and its vendored copy is
+  byte-identical; the exact revisions and SHA-256 are recorded in acceptance.

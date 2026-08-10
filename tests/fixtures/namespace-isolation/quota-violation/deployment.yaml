@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: namespace-isolation-limit-violation
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+    app.kubernetes.io/component: namespace-isolation-fixture
+    microtodosuite.io/feature: namespace-isolation-005
+  annotations:
+    namespace-isolation.microtodosuite.io/expected-outcome: rejected-by-container-max-cpu
+    namespace-isolation.microtodosuite.io/comparison-environment: microtodo-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: namespace-isolation-limit-violation
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: namespace-isolation-limit-violation
+        app.kubernetes.io/part-of: microtodosuite
+        app.kubernetes.io/component: namespace-isolation-fixture
+        microtodosuite.io/feature: namespace-isolation-005
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: deliberate-limit-violation
+          image: redis:7.4.9-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+          command: [/bin/sh, -ec]
+          args: ["while true; do sleep 3600; done"]
+          readinessProbe:
+            exec:
+              command: [/bin/sh, -ec, "test -r /proc/1/status"]
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: [/bin/sh, -ec, "test -r /proc/1/status"]
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 600m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
