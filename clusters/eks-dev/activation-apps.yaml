@@ -1,0 +1,4 @@
+# Registration only: no business-service environment is activated.
+- op: replace
+  path: /spec/generators/0/matrix/generators/1/list/elements
+  value: []

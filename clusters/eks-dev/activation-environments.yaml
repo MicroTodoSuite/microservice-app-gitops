@@ -1,0 +1,4 @@
+# Registration only: no environment policy is activated.
+- op: replace
+  path: /spec/generators/0/list/elements
+  value: []

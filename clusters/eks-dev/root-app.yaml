@@ -1,0 +1,29 @@
+# App-of-Apps root for the AWS EKS dev cluster. It targets the in-cluster API,
+# matching the per-cluster ArgoCD topology used by local-kind. This registration
+# change does not apply the root; bootstrap remains a separate audited action.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+    targetRevision: main
+    path: clusters/eks-dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

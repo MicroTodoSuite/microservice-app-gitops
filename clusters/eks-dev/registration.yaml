@@ -1,0 +1,11 @@
+# Git-reviewed values for the AWS EKS dev cluster registration. The EKS
+# endpoint, certificate authority data, and OIDC provider ARN remain
+# Terraform-owned bootstrap inputs and are intentionally not duplicated here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-registration
+  namespace: argocd
+data:
+  repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+  revision: main
