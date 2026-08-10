@@ -232,14 +232,21 @@ but live activation waits for separately reviewed prerequisites:
 1. constitution v1.2.0 is merged in `microservice-app-docs`;
 2. the AWS foundation is reconciled from its current dedicated-dev/full-profile
    contract to the shared-cluster profile, including verified CNI enforcement;
-3. `clusters/eks-main` consumes the reusable registration wiring and activates
-   `dev`, `staging`, and `prod` against the in-cluster API; and
+3. `clusters/eks-main` consumes reusable registration wiring, activates only the
+   `dev`, `staging`, and `prod` environment-policy list against the in-cluster
+   API, and keeps business-service and infrastructure/add-on activation empty;
+   and
 4. approved AWS principals map to the stable Kubernetes groups.
 
 **Rationale**:
 
 - Current GitOps `main` contains only `clusters/local-kind`, although
   `clusters/README.md` names `eks-main` as the later economical registration.
+- `clusters/README.md` currently requires matching app/environment activation
+  lists, while `clusters/base/infrastructure.yaml` automatically discovers every
+  `infrastructure/*` root. Consuming that base unchanged would deploy services
+  and all current add-ons merely by registering the cluster, which violates this
+  feature's policy-only scope and the requested dev-first follow-on sequence.
 - The sibling ops branch currently publishes a dev-only handoff for
   `microtodosuite-dev` and `clusters/eks-dev`; that contract predates the adopted
   shared profile.
@@ -247,7 +254,13 @@ but live activation waits for separately reviewed prerequisites:
   infrastructure and namespace-isolation ownership and violate the requested
   scope.
 
-**Alternative rejected**: Silently treating the current dev foundation as the
-shared production cluster. Reuse may be economical, but renaming, capacity,
-identity, API exposure, CNI, and production suitability require an explicit
-review outside this feature.
+**Alternatives rejected**:
+
+- Silently treating the current dev foundation as the shared production
+  cluster. Reuse may be economical, but renaming, capacity, identity, API
+  exposure, CNI, and production suitability require an explicit review outside
+  this feature.
+- Reusing matching application/environment activation or automatic
+  infrastructure discovery for `eks-main`. Namespace policy must be activatable
+  without installing add-ons or real services; the registration feature must
+  provide that separation before this feature goes live.

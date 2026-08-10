@@ -12,8 +12,10 @@ Before any managed namespace activation, confirm all of the following:
 - `microservice-app-docs/main` contains constitution v1.2.0 and its approved
   cost-optimized profile adoption;
 - the GitOps vendored constitution is byte-identical;
-- a separate reviewed registration provides `clusters/eks-main` and activates
-  dev, staging, and prod against `https://kubernetes.default.svc`;
+- a separate reviewed registration provides `clusters/eks-main`, activates only
+  the dev, staging, and prod environment-policy list against
+  `https://kubernetes.default.svc`, and yields zero business-service and zero
+  infrastructure/add-on Applications;
 - the ops-owned EKS/VPC CNI configuration has network policy enabled
   declaratively;
 - every eligible Linux EC2 worker has a ready policy agent;
@@ -172,6 +174,7 @@ application health requests are allowed when the observer records them.
 | --- | --- |
 | Constitution v1.2.0 is not merged | Stop before implementation; do not treat the vendored draft as authority. |
 | `eks-main` registration or identity mapping is missing | Stop live work and complete the separately owned handoff. |
+| Registration would mirror environment activation into apps or auto-discover infrastructure | Stop before root activation; the registration feature must decouple those inventories first. |
 | VPC CNI agent/configuration is absent on any eligible node | Stop before default deny; fix through the ops-owned declarative path. |
 | Dev dependency inventory is incomplete | Do not guess an allow rule; gather owner evidence first. |
 | Proposed quota lacks rollout/system reserve | Reject the values and repeat capacity review. |

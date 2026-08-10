@@ -11,7 +11,8 @@
 - [ ] Constitution v1.2.0 is merged to `microservice-app-docs/main`
 - [ ] `.specify/memory/constitution.md` is byte-identical to the authoritative file
 - [ ] The shared-cluster ops handoff supersedes the former dedicated-dev/full-profile contract
-- [ ] `clusters/eks-main` is reviewed, reconciled, and activates exactly dev, staging, and prod
+- [ ] `clusters/eks-main` is reviewed, reconciled, and activates exactly the dev, staging, and prod environment-policy entries
+- [ ] Shared-cluster registration yields zero business-service and zero infrastructure/add-on Applications
 - [ ] VPC CNI network policy is enabled declaratively and proven on every eligible node
 - [ ] AWS principal-to-group mappings are approved and observed for all three environment groups
 - [ ] Existing dev workloads, dependencies, resources, and health are recorded in a passing baseline

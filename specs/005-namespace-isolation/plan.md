@@ -25,7 +25,10 @@ readiness loss or policy-attributable restarts.
 
 This plan does not provision or register EKS, configure VPC CNI, map AWS
 identities, install add-ons, or activate real services. Those are explicit
-prerequisites or later features.
+prerequisites or later features. The external registration must first decouple
+the current matching app/environment lists and automatic infrastructure
+discovery so this feature can activate namespace policy without activating
+services or add-ons.
 
 ## Technical Context
 
@@ -72,7 +75,8 @@ window lasts ten minutes after cleanup convergence
 no default deny before CNI/dependency/health gates; no invented quota values;
 no mutable fixture image; no broad cross-environment allowance; no wildcard or
 personal identity subject; no real staging/prod workload activation; preserve
-`environments/local` and existing pilot contracts
+`environments/local` and existing pilot contracts; environment-policy activation
+must produce zero business-service and zero infrastructure Applications
 
 **Scale/Scope**: Three namespaces, one reusable isolation base, three resource
 budgets, three maintainer bindings, six directed negative network paths, three
@@ -88,7 +92,7 @@ work below is reviewed. These are not tasks hidden inside this feature.
 | --- | --- | --- |
 | Constitution is not authoritative yet | v1.2.0 exists only in local docs commit `1c9f6e4` and this branch's vendored copy | Merge the approved docs amendment to `microservice-app-docs/main`, then merge the synchronized GitOps copy. |
 | Shared cluster contract is not reconciled | Ops branch `esteban/eks-dev-foundation` models one dedicated `microtodosuite-dev` cluster and `clusters/eks-dev` under the former full profile | Separate ops review decides safe reuse/migration to the shared profile and publishes the revised handoff. |
-| Shared GitOps registration is absent | `clusters/` contains only `local-kind`; docs name future `eks-main` | Separate GitOps registration creates and live-validates `clusters/eks-main` without changing this isolation contract. |
+| Shared GitOps registration is absent and current activation is unsafe for policy-only scope | `clusters/` contains only `local-kind`; `clusters/README.md` requires matching app/environment lists, and `clusters/base/infrastructure.yaml` auto-discovers all add-ons | Separate GitOps registration creates and live-validates `clusters/eks-main`, activates only the three environment-policy entries, and leaves business/infrastructure inventories empty without changing this isolation contract. |
 | NetworkPolicy enforcement is unproven | VPC CNI 1.23.0 is declared but `enableNetworkPolicy` is not configured in Terraform | Ops-owned change enables the feature declaratively; live gate proves every eligible node's agent and real positive/negative connections. |
 | Identity mapping is absent | GitOps has no managed-environment RoleBindings; ops access entries currently grant bootstrap cluster-admin only | Cluster-access handoff maps approved AWS principals to exact environment groups without broadening bootstrap access. |
 | Dev dependency/capacity baseline is absent | No `environments/dev` desired state or managed-cluster evidence exists in this checkout | Read-only baseline records live workloads, connections, requests/limits/use, rollout headroom, and health before values are approved. |
@@ -122,7 +126,9 @@ The research and contracts preserve the same gate. In particular, they do not
 smuggle VPC CNI configuration, EKS registration, IAM mapping, add-ons, or
 service deployment into namespace manifests. The ArgoCD controller's existing
 wildcard cluster role is disclosed as a platform-level risk outside the claim
-made by environment RoleBindings.
+made by environment RoleBindings. The registration prerequisite also prevents
+the current app-list lockstep and automatic add-on discovery from broadening the
+feature during activation.
 
 ## Project Structure
 
@@ -212,8 +218,9 @@ the final steady-state overlays. Managed-cluster observation lives outside
 Create failing static contract tests, the observer skeleton, and the acceptance
 checklist. Resolve the exact allowed workload resource/verb list, immutable
 probe image digest, schema validator, CNI observations, group mapping, dev
-dependency inventory, and capacity budget. No managed manifest activates while
-any required value is unknown.
+dependency inventory, capacity budget, and policy-only Application inventory.
+No managed manifest activates while any required value is unknown or while the
+registration would discover a business-service/infrastructure Application.
 
 ### Phase B: Foundation revision
 
