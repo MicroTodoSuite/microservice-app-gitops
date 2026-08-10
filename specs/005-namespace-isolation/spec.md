@@ -16,6 +16,11 @@
   reviewed `eks-main` registration and a policy-enforcing CNI are external
   prerequisites. This feature owns only in-cluster namespace isolation in the
   GitOps repository and MUST NOT edit Terraform.
+- Q: What may the prerequisite registration activate for this feature? → A:
+  Exactly the three environment-policy entries. Business-service activation
+  remains empty and infrastructure/add-on discovery remains disabled. The
+  current lockstep apps/environments wording and automatic infrastructure
+  discovery must be decoupled by the separate registration work first.
 - Q: Does this feature deploy platform add-ons or business services into all
   three environments? → A: No. It layers isolation around the existing dev
   workload and may use temporary, GitOps-managed verification fixtures. Real
@@ -167,6 +172,9 @@ change isolation controls, and an unbound subject is denied everywhere.
   must use an approved immutable image available before the deny stage.
 - ArgoCD reports Healthy at an older revision; acceptance waits for the exact
   reviewed revision in every environment application.
+- A new cluster registration reuses the current matching environment/app lists
+  or folder-wide infrastructure discovery and unintentionally installs services
+  or add-ons; the registration is rejected before namespace-policy activation.
 - Cleanup of verification fixtures would exceed quota or leave stale Jobs;
   cleanup remains a Git revert and must itself converge before final evidence.
 
@@ -255,6 +263,12 @@ change isolation controls, and an unbound subject is denied everywhere.
 - **FR-027**: This feature MUST NOT provision or register EKS, modify Terraform,
   install add-ons, deploy real services into staging or prod, change application
   source, add a service mesh, or claim multicluster or AKS disaster recovery.
+- **FR-028**: The external `eks-main` registration MUST be capable of activating
+  the three environment-policy Applications independently while producing zero
+  business-service Applications and zero platform-add-on Applications. The
+  current lockstep application/environment activation and automatic
+  infrastructure discovery MUST be resolved by the separate registration work,
+  not bypassed by this feature.
 
 ### Key Entities
 
@@ -276,6 +290,9 @@ change isolation controls, and an unbound subject is denied everywhere.
   ready replicas, restarts, resource use, and required connections.
 - **Isolation evidence run**: One immutable observation set tying a Git revision
   to all resource, network, RBAC, ArgoCD, and no-disruption outcomes.
+- **Policy-only registration state**: The external cluster-registration state in
+  which `env-dev`, `env-staging`, and `env-prod` exist while business-service and
+  infrastructure Application inventories are empty.
 
 ## Success Criteria *(mandatory)*
 
@@ -309,14 +326,19 @@ change isolation controls, and an unbound subject is denied everywhere.
 - **SC-008**: Verification fixtures are activated and removed by Git commit and
   ArgoCD reconciliation, final applications return to Synced/Healthy at the
   cleanup revision, and the existing local pilot contracts still pass.
+- **SC-009**: Before and throughout this feature, the shared cluster has exactly
+  three managed environment-policy Applications from this scope and zero
+  business-service or platform-add-on Applications activated by registration;
+  temporary feature-005 probes are the only workload exception.
 
 ## Assumptions
 
 - The constitution v1.2.0 amendment will be reviewed and merged before any
   implementation or activation from this specification.
 - A separate cluster-registration change will provide one `eks-main` ArgoCD root
-  that activates dev, staging, and prod against
-  `https://kubernetes.default.svc`; this specification does not create it.
+  that activates only the dev, staging, and prod environment-policy list against
+  `https://kubernetes.default.svc`; its business-service and infrastructure
+  activation lists remain empty. This specification does not create it.
 - The shared cluster uses Linux EC2 worker nodes and a supported policy-enforcing
   CNI configuration. Repository inspection currently proves only that VPC CNI
   is declared; live policy enforcement remains an acceptance gate.

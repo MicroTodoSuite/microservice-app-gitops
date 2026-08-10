@@ -11,6 +11,7 @@
     "expectedRevision",
     "cleanupRevision",
     "cluster",
+    "applicationInventory",
     "environments",
     "crossEnvironmentTests",
     "sameEnvironmentTests",
@@ -38,6 +39,29 @@
         "networkPolicyEnabled": { "const": true },
         "eligibleNodes": { "type": "integer", "minimum": 1 },
         "readyPolicyAgents": { "type": "integer", "minimum": 1 },
+        "result": { "const": "PASS" }
+      }
+    },
+    "applicationInventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environmentApplications", "registrationBusinessApplications", "registrationInfrastructureApplications", "result"],
+      "properties": {
+        "environmentApplications": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "enum": ["env-dev", "env-staging", "env-prod"] }
+        },
+        "registrationBusinessApplications": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "registrationInfrastructureApplications": {
+          "type": "array",
+          "maxItems": 0
+        },
         "result": { "const": "PASS" }
       }
     },
@@ -145,6 +169,7 @@
           "type": "array",
           "contains": { "const": "ResourceQuota" },
           "allOf": [
+            { "contains": { "const": "Namespace" } },
             { "contains": { "const": "LimitRange" } },
             { "contains": { "const": "NetworkPolicy" } },
             { "contains": { "const": "Role" } },

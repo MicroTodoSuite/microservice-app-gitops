@@ -50,7 +50,7 @@ including Kubernetes `apply`, `create`, `patch`, `replace`, `scale`, `rollout`,
 
 | Phase | Required result |
 | --- | --- |
-| `baseline` | Constitution/registration/CNI/identity prerequisites plus dev application, readiness, restart, health, resource, and connection baseline. |
+| `baseline` | Constitution/registration/CNI/identity prerequisites, exactly three environment-policy and zero business/infrastructure Applications, plus dev readiness, restart, health, resource, and connection baseline. |
 | `foundation` | All three environment foundations at the expected revision; default deny absent; dev matches baseline. |
 | `default-deny` | Default deny present/enforced; required dev paths pass; dev matches baseline. |
 | `fixtures` | Six denied cross-environment paths, three allowed local paths, three DNS successes, expected quota violation, RBAC matrix, and unaffected comparison environment. |

@@ -22,6 +22,7 @@
 - [x] All six directed cross-environment paths and the 3-by-3 RBAC matrix are covered
 - [x] Edge cases include CNI enforcement, rollout headroom, DNS, stale connections, and Deployment quota behavior
 - [x] Cluster registration, CNI configuration, and identity mapping prerequisites are separated from GitOps ownership
+- [x] Policy-only environment activation is separated from business-service and infrastructure/add-on activation
 - [x] Scope excludes add-ons, real workload activation, Terraform, service code, mesh, and DR
 
 ## Feature Readiness

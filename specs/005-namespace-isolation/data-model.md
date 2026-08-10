@@ -7,7 +7,11 @@ Kubernetes desired state and immutable acceptance evidence.
 
 ```text
 SharedClusterRegistration (external prerequisite)
-└── activates 3 EnvironmentNamespaces
+├── activates 3 EnvironmentNamespaces
+├── activates 0 BusinessApplications
+└── activates 0 InfrastructureApplications
+
+EnvironmentNamespaces
     ├── consumes 1 ManagedIsolationBase
     ├── owns 1 ResourceBudget
     ├── owns 1 EnvironmentAccessBinding
@@ -20,6 +24,22 @@ CniEnforcementGate (external capability, live evidence)
 DevContinuityBaseline
 └── compared with staged and final DevContinuitySamples
 ```
+
+## SharedClusterRegistration (External Prerequisite)
+
+| Field | Required value | Rule |
+| --- | --- | --- |
+| `name` | `eks-main` | One shared economical-profile cluster registration. |
+| `server` | `https://kubernetes.default.svc` | ArgoCD reconciles its own cluster. |
+| `environmentActivation` | `[dev, staging, prod]` | Produces exactly the three environment-policy Applications. |
+| `businessApplicationActivation` | `[]` | Real service activation is later dev-first work. |
+| `infrastructureActivation` | `[]` | Add-on activation is later work. |
+| `repositoryRevision` | reviewed immutable Git identity | No live parameter override. |
+
+The current shared base does not yet expose this independent activation state:
+app/environment lists are documented as matching, and infrastructure is
+folder-discovered automatically. The separate registration work must close that
+gap before this entity can satisfy the contract.
 
 ## ManagedIsolationBase
 
@@ -176,6 +196,7 @@ platform principals and are reported separately in evidence.
 | `expectedRevision` | full Git SHA | Revision containing active isolation and fixtures. |
 | `cleanupRevision` | full Git SHA | Revision after fixture revert and final convergence. |
 | `cluster` | CNI gate summary | Identifies cluster without storing credentials. |
+| `applicationInventory` | categorized arrays | Exactly three environment-policy, zero registration-generated business-service, and zero registration-generated infrastructure Applications. |
 | `environments` | array | Exactly dev, staging, and prod live observations. |
 | `crossEnvironmentTests` | array | Exactly six unique directed denied pairs. |
 | `sameEnvironmentTests` | array | Exactly three allowed pairs. |
