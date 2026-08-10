@@ -17,6 +17,8 @@ spec:
           - path: infrastructure/*
           - path: infrastructure/argo-rollouts
             exclude: true # inactive until the canary capability is activated
+          - path: infrastructure/sonarqube
+            exclude: true # inactive until a cluster opts in (remove to deploy)
           - path: infrastructure/*/vendor
             exclude: true
   template:

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sonarqube
+  labels:
+    app.kubernetes.io/part-of: microtodosuite-platform
+    app.kubernetes.io/component: code-quality
