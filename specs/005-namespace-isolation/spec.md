@@ -12,10 +12,12 @@
 
 ### Session 2026-08-09
 
-- Q: Does this feature provision or register the shared EKS cluster? → A: No. A
-  reviewed `eks-main` registration and a policy-enforcing CNI are external
-  prerequisites. This feature owns only in-cluster namespace isolation in the
-  GitOps repository and MUST NOT edit Terraform.
+- Q: Does this feature provision or register the shared EKS cluster? → A: No.
+  The operator explicitly adopts the existing `microtodosuite-dev` EKS cluster
+  and its live `clusters/eks-dev` root as the shared cluster for dev, staging,
+  and prod. Their legacy names remain unchanged during this feature to avoid a
+  control-plane replacement or a separate root-path migration. This feature
+  owns only in-cluster namespace isolation and MUST NOT edit Terraform.
 - Q: What may the prerequisite registration activate for this feature? → A:
   Exactly the three environment-policy entries. Business-service activation
   remains empty. The four already-running controller Applications
@@ -38,9 +40,11 @@
   default deny. A failed gate blocks progression and is corrected by Git revert.
 - Q: What identities receive environment access? → A: Stable, environment-
   specific Kubernetes groups are bound in GitOps. Mapping AWS principals to
-  those groups belongs to the cluster-access handoff; reusable manifests MUST
-  NOT contain personal IAM ARNs or grant one environment's group another
-  environment's permissions.
+  those groups is explicitly deferred. Reusable manifests MUST NOT contain
+  personal IAM ARNs or grant one environment's group another environment's
+  permissions. The same AWS principal MUST NOT be mapped to all three groups as
+  a shortcut; live RBAC acceptance remains incomplete until distinct approved
+  mappings exist.
 - Q: Does Redis remain one shared infrastructure instance? → A: No. The shared
   EKS cluster uses one environment-owned Redis instance inside each of
   `microtodo-dev`, `microtodo-staging`, and `microtodo-prod`. The managed
@@ -288,7 +292,7 @@ change isolation controls, and an unbound subject is denied everywhere.
   dev, staging, or prod, change application source code, add a service mesh, or
   claim multicluster or AKS disaster recovery. The three namespace-local Redis
   instances are the only runtime dependency introduced by this feature.
-- **FR-028**: The external `eks-main` registration MUST be capable of activating
+- **FR-028**: The existing `clusters/eks-dev` shared registration MUST activate
   the three environment-policy Applications independently while producing zero
   business-service Applications. During foundation and default-deny rollout,
   its infrastructure inventory MUST be an exact allowlist containing
@@ -394,11 +398,11 @@ change isolation controls, and an unbound subject is denied everywhere.
 - The constitution v1.2.0 amendment is reviewed, merged, and byte-synchronized
   before implementation; its exact revisions and digest are recorded in the
   acceptance checklist.
-- A separate cluster-registration change will provide one `eks-main` ArgoCD root
-  that activates only the dev, staging, and prod environment-policy list against
+- The existing `clusters/eks-dev` ArgoCD root is the shared registration. It
+  activates only the dev, staging, and prod environment-policy list against
   `https://kubernetes.default.svc`; its business-service activation list remains
   empty and its infrastructure list follows the staged five-then-four allowlist.
-  This specification does not perform the root bootstrap.
+  This specification does not perform root bootstrap or cluster renaming.
 - The shared cluster uses Linux EC2 worker nodes and a supported policy-enforcing
   CNI configuration. Repository inspection currently proves only that VPC CNI
   is declared; live policy enforcement remains an acceptance gate.
@@ -415,8 +419,8 @@ change isolation controls, and an unbound subject is denied everywhere.
 
 - Provisioning, resizing, renaming, or destroying EKS, VPCs, nodes, ECR, IAM,
   access entries, or the VPC CNI add-on configuration.
-- Creating the `eks-main` registration, performing the audited ArgoCD bootstrap,
-  or promoting application images.
+- Replacing or renaming the existing shared registration, performing the audited
+  ArgoCD bootstrap, or promoting application images.
 - Deploying cluster-wide platform add-ons or real business workloads into dev,
   staging, or prod; namespace-local Redis is the sole dependency exception.
 - Defining application-specific ingress, external API, telemetry, secret-store,

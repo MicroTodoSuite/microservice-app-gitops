@@ -1,4 +1,10 @@
-# Registration only: no environment policy is activated.
+# Shared-cluster foundation: activate only environment policy Applications.
 - op: replace
   path: /spec/generators/0/list/elements
-  value: []
+  value:
+    - env: dev
+      server: https://kubernetes.default.svc
+    - env: staging
+      server: https://kubernetes.default.svc
+    - env: prod
+      server: https://kubernetes.default.svc

@@ -14,9 +14,12 @@ dependency allowances, a custom workload Role, an environment-specific group
 RoleBinding, and one digest-pinned Redis instance owned by that namespace. The
 existing local pilot remains unchanged.
 
-Activation is intentionally staged across reviewed Git revisions. First prove
-the authoritative constitution, shared `eks-main` registration, VPC CNI policy
-enforcement, identity mapping, dev dependencies, dev health, and capacity.
+Activation is intentionally staged across reviewed Git revisions. The existing
+`microtodosuite-dev` cluster and `clusters/eks-dev` root are explicitly adopted
+as the shared target without renaming either identity. First prove the
+authoritative constitution, VPC CNI policy enforcement, dependency inputs, and
+capacity. Identity mapping and the absent dev business-workload baseline remain
+open acceptance gaps; they do not authorize a shared ARN or business activation.
 Reconcile namespace foundations and required allow rules before adding default
 deny. Refactor infrastructure discovery into an explicit per-cluster allowlist,
 retain the four running controller add-ons, and remove only the shared
@@ -31,8 +34,8 @@ This plan does not provision or register EKS, configure VPC CNI, map AWS
 identities, install new controller add-ons, or activate real services. Those are
 explicit prerequisites or later features. This feature does own the reusable
 infrastructure-activation refactor needed to replace folder-wide discovery with
-an exact allowlist; the external `eks-main` handoff still owns the shared-cluster
-identity and root registration.
+an exact allowlist; the existing root Application continues to own the shared
+cluster registration.
 
 ## Technical Context
 
@@ -96,16 +99,16 @@ authorization matrix, and one existing dev workload set
 
 ## Prerequisite Gap Register
 
-Static implementation may proceed, but live activation and acceptance are
-**BLOCKED** until the owning work below is reviewed. These are not tasks hidden
-inside this feature.
+Foundation activation may proceed under the recorded operator decisions, but
+final acceptance remains **BLOCKED** wherever the evidence below is absent.
+These gaps are not converted into passes by namespace creation.
 
 | Gap | Current evidence | Required handoff |
 | --- | --- | --- |
-| Shared cluster contract is not reconciled | Live AWS and Kubernetes evidence on 2026-08-09 shows one cluster named and tagged `microtodosuite-dev`, while the ops handoff and GitOps root remain `eks-dev` rather than `eks-main` | Separate ops review explicitly accepts reuse/migration to the shared profile and publishes the revised handoff. |
-| Shared GitOps registration is not policy-only | Live ArgoCD at revision `24c5c1a9f7b8c870dd0f5b1a11ce89326157c713` has zero environment/business Applications but auto-discovers `infra-keda`, `infra-cert-manager`, `infra-external-secrets`, `infra-kyverno`, and shared `infra-redis` | This feature replaces folder discovery with explicit per-cluster infrastructure values and removes only `infra-redis`; the external handoff supplies the reviewed `eks-main` root. |
-| NetworkPolicy configuration is live but not declarative | Both `aws-node` pods are 2/2 Ready and include `aws-eks-nodeagent` with `NETWORK_POLICY_ENFORCING_MODE=standard`, but Terraform's `aws_eks_addon.vpc_cni` has no `configuration_values` and AWS `DescribeAddon` returns none | Ops-owned Terraform change records `enableNetworkPolicy=true`; live positive/negative probes still gate default deny. |
-| Identity mapping is absent | Live access entries contain only the EKS service role, node role, and Terraform cluster-admin role; none maps the three maintainer groups | Cluster-access handoff maps approved AWS principals to exact environment groups without broadening bootstrap access. |
+| Shared cluster identity is legacy-named | AWS exposes only `microtodosuite-dev` and live ArgoCD targets `clusters/eks-dev` | Operator decision adopts both as the shared target. Preserve them during activation; a physical rename would be a replacement and a root-path rename requires a separate staged migration. |
+| Shared GitOps registration is not yet policy-active | Live ArgoCD at revision `10d59e50591e66fa8e54f21814a1be29da6d7979` has zero environment/business Applications and the exact five-entry infrastructure allowlist | The foundation PR activates exactly `dev`, `staging`, and `prod`, keeps apps empty, and retains the reviewed infrastructure inventory. |
+| NetworkPolicy enforcement must be carried into live tests | AWS `DescribeAddon` reports VPC CNI `v1.23.0-eksbuild.1`, `ACTIVE`, with `enableNetworkPolicy=true`; live `aws-node` uses `NETWORK_POLICY_ENFORCING_MODE=standard` | Record per-node agent readiness now and still require positive/negative connection probes before accepting default deny. |
+| Identity mapping is deferred | Live access entries contain only the EKS service role, node role, and Terraform cluster-admin role; none maps the three maintainer groups | Keep stable RoleBinding groups inert until separately approved principals map to exact groups; never map the same Terraform role to all three. |
 | Dev continuity subject is absent | Live ArgoCD has no business-service Application and the cluster has no `microtodo-dev` namespace, so the requested pre-existing dev workload baseline cannot yet be observed | Service activation remains forbidden here; acceptance must stay blocked unless a separately activated dev workload becomes an observable continuity subject. |
 
 Verified authoritative evidence: remote `microservice-app-docs/main` and the
@@ -114,8 +117,9 @@ local docs checkout both resolve to
 constitution files are byte-identical with SHA-256
 `14545ede9ee8d39b340b955e454c4500d3cdb30b108d74b3c1180534b6dbf3a4`.
 
-Static artifact work may proceed while gaps are open. No task may mark a live
-criterion complete from repository inference.
+Foundation namespace activation may proceed while the explicitly deferred RBAC
+and absent-business-baseline gaps stay open. No task may mark a live criterion
+complete from repository inference.
 
 ## Constitution Check
 
@@ -254,8 +258,10 @@ No managed manifest activates while any required value is unknown or while the
 registration would discover an unapproved business or infrastructure
 Application.
 
-Static work may continue while the shared-cluster, identity, and dev-continuity
-handoffs remain open; no live activation may cross those gates.
+The recorded operator decision resolves shared-cluster selection by reusing the
+current cluster. Identity and dev-business continuity remain explicit acceptance
+gaps, while the policy-only foundation may activate without granting maintainer
+access or deploying a business service.
 
 ### Phase B: Foundation revision
 
@@ -266,8 +272,8 @@ default-deny file may exist for review but is not referenced by the base
 Kustomization in this revision. Refactor infrastructure activation to an exact
 registration-owned list while preserving the local pilot's five-item list and
 the managed cluster's four controller items. Merge and wait for `env-dev`,
-`env-staging`, and `env-prod` to converge through the separately completed
-`eks-main` registration. Require all three Redis instances Ready and returning
+`env-staging`, and `env-prod` to converge through the existing shared
+`clusters/eks-dev` registration. Require all three Redis instances Ready and returning
 `PONG`, then compare dev with baseline.
 
 ### Phase C: Default-deny revision
