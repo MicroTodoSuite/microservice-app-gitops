@@ -174,8 +174,9 @@ for environment in "${environments[@]}"; do
     "$environment render must contain exactly one Redis Service"
   require_render_text "$render" "namespace: ${namespaces[$environment]}" \
     "$environment resources are not namespace-scoped correctly"
-  require_render_text "$render" 'name: default-deny' \
-    "$environment render lacks default deny"
+  if rg -q 'name: default-deny' "$render"; then
+    fail "$environment foundation activation includes default deny"
+  fi
   require_render_text "$render" 'name: redis' \
     "$environment render lacks namespace-local Redis"
   check_rendered_images "$render"
@@ -209,8 +210,24 @@ require_file clusters/eks-dev/activation-infrastructure.yaml
 require_file clusters/eks-dev/activation-infrastructure-retired.yaml
 require_text clusters/eks-dev/activation-apps.yaml 'value: \[\]' \
   "managed business-service activation is not empty"
-require_text clusters/eks-dev/activation-environments.yaml 'value: \[\]' \
-  "unreviewed managed environment activation is not empty"
+if [[ "$(rg -c '^    - env:' \
+    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 3 ]]; then
+  fail "managed environment activation contains an extra or missing element"
+fi
+if [[ "$(rg -c '^    - env: (dev|staging|prod)$' \
+    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 3 ]]; then
+  fail "managed environment activation must list exactly dev, staging, and prod"
+fi
+if [[ "$(rg -c '^      server: https://kubernetes.default.svc$' \
+    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 3 ]]; then
+  fail "every managed environment must target the in-cluster API server"
+fi
+reject_text clusters/eks-dev/activation-environments.yaml \
+  'env: production|env: local' \
+  "managed environment activation contains an unsupported environment"
+reject_text environments/base/kustomization.yaml \
+  'networkpolicy-default-deny.yaml' \
+  "foundation revision activates default deny"
 if rg -n 'tests/fixtures/namespace-isolation' \
     "$ROOT/environments"/{base,dev,staging,prod}; then
   fail "verification fixtures are activated by steady-state environment desired state"

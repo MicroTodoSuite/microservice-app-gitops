@@ -9,26 +9,30 @@
 because the specification explicitly rejects manifest-only acceptance.
 
 **Organization**: Tasks are grouped by user story. Static implementation may
-proceed after T001; T002-T007 remain mandatory gates for live activation. A
-checked box always cites repository or live evidence.
+proceed after T001. The recorded operator decision allows policy-only foundation
+activation while T004 and T005 remain explicit acceptance gaps; it does not
+authorize maintainer access or business workloads. A checked box always cites
+repository or live evidence.
 
 ## Phase 1: Authoritative and External Gates
 
 **Purpose**: Prove that implementation is allowed and that the separately owned
-cluster capabilities exist. T001 gates static implementation. A failed T002-T007
-stops live activation but does not prevent test-first static desired-state work.
+cluster capabilities exist. Registration, CNI, capacity, and immutable inputs
+gate foundation activation. Identity and business-workload continuity remain
+required for their own final acceptance claims.
 
 - [X] T001 Confirm `microservice-app-docs/main` contains the approved constitution v1.2.0 amendment, compare it byte-for-byte with `.specify/memory/constitution.md`, and record both revisions in `specs/005-namespace-isolation/checklists/acceptance.md` — Evidence: docs remote/local `615241ddf0280279d24c8df5faf5295bfed70ce0`; identical SHA-256 `14545ede9ee8d39b340b955e454c4500d3cdb30b108d74b3c1180534b6dbf3a4`
-- [ ] T002 Confirm the separately reviewed shared-cluster handoff and `clusters/eks-main` registration exist, verify their rendered/live foundation state activates only the `dev|staging|prod` environment-policy list against `https://kubernetes.default.svc`, produces zero business-service Applications, and explicitly allowlists exactly `infra-keda|infra-cert-manager|infra-external-secrets|infra-kyverno|infra-redis`, then record the owning revisions in `specs/005-namespace-isolation/checklists/acceptance.md`
-- [ ] T003 Record read-only live evidence that the supported Amazon VPC CNI network-policy configuration and policy agent are enabled and ready on every eligible Linux EC2 node; stop if any node fails and update `specs/005-namespace-isolation/checklists/acceptance.md`
+- [ ] T002 Confirm the existing `microtodosuite-dev` cluster and `clusters/eks-dev` registration are reviewed as the shared target, verify their rendered/live foundation state activates only the `dev|staging|prod` environment-policy list against `https://kubernetes.default.svc`, produces zero business-service Applications, and explicitly allowlists exactly `infra-keda|infra-cert-manager|infra-external-secrets|infra-kyverno|infra-redis`, then record the owning revisions in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T003 Record read-only live evidence that the supported Amazon VPC CNI network-policy configuration and policy agent are enabled and ready on every eligible Linux EC2 node; stop if any node fails and update `specs/005-namespace-isolation/checklists/acceptance.md` — Evidence: on 2026-08-09 AWS reported VPC CNI `v1.23.0-eksbuild.1` `ACTIVE` with `enableNetworkPolicy=true`; `aws-node` desired/current/ready/available/updated was `2/2/2/2/2`, and both Linux-node pods had Ready `aws-node` and `aws-eks-nodeagent` containers with zero restarts
 - [ ] T004 Record the approved AWS-principal-to-group mappings for `microtodosuite:dev-maintainers`, `microtodosuite:staging-maintainers`, and `microtodosuite:prod-maintainers`, proving no principal receives an unintended environment group, in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T005 Capture the exact dev ArgoCD revision, applications, ready replicas, restart counts, health responses, requests/limits/use, and required connections without mutation; preserve raw observations under `.local/evidence/namespace-isolation/` and summarize them in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [X] T006 Derive and review the policy-only ResourceQuota/LimitRange budgets from the observed 3860m CPU/14,549,840Ki memory allocatable envelope, 1226m/796Mi declared platform requests, three Redis instances, verification capacity, and disruption reserve; record exact quantities and the no-business-activation boundary in `specs/005-namespace-isolation/checklists/acceptance.md` — Evidence: exact budgets, 1550m/2048Mi aggregate request ceilings, inputs, reserve, and activation boundary are recorded in `research.md`, `docs/namespace-isolation.md`, and the checked acceptance item
 - [ ] T007 Resolve every required dev network allowance plus immutable Redis/probe image digests and the namespace-local Redis endpoint contract; reject unknown endpoints, ports, selectors, mutable tags, or business-service activation and record the approved inputs in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: Constitution is authoritative. Shared registration, durable CNI
-configuration/enforcement, identity, dev continuity, capacity, dependency, and
-immutable-image gates must all be evidenced before live activation.
+configuration/enforcement, capacity, dependency, and immutable-image gates must
+be evidenced before foundation activation. Deferred identity and unavailable
+dev-business continuity evidence stay open and constrain the final claims.
 
 ---
 
@@ -58,15 +62,15 @@ adds zero attributable restarts, and keeps every health/dependency check.
 
 ### Tests for User Story 1
 
-- [X] T013 [US1] Extend `tests/contract/namespace-isolation.sh` to require a common managed base while explicitly rejecting default deny from the Stage-1 render fixture — Evidence: all three foundation fixtures render the quota/RBAC/Redis/allow-rule base with zero `default-deny`, while steady-state renders require it
+- [X] T013 [US1] Extend `tests/contract/namespace-isolation.sh` to require a common managed base while explicitly rejecting default deny from the Stage-1 render — Evidence: all three active foundation renders and fixtures contain the quota/RBAC/Redis/allow-rule base with zero `default-deny`; the deny manifest remains prepared for Stage 2
 - [X] T014 [P] [US1] Add expected foundation-phase evidence and dev baseline comparison cases to `scripts/managed/lib/namespace-isolation.sh` — Evidence: `default_deny_count`, `redis_instances_ready`, `snapshot_dev_workloads`, and `compare_dev_baseline` are wired to the foundation gate
 
 ### Implementation for User Story 1
 
 - [X] T015 [US1] Add the common LimitRange, DNS allowance, same-namespace allowance, explicit custom workload Role, and digest-pinned Redis ServiceAccount/Deployment/Service/policy—without default-deny activation—in `environments/base/kustomization.yaml`, `environments/base/limitrange.yaml`, `environments/base/networkpolicy-allow-dns.yaml`, `environments/base/networkpolicy-allow-intra-namespace.yaml`, `environments/base/networkpolicy-allow-redis.yaml`, `environments/base/redis-serviceaccount.yaml`, `environments/base/redis-deployment.yaml`, `environments/base/redis-service.yaml`, and `environments/base/role.yaml` — Evidence: every named resource renders/schema-validates in each namespace, and the foundation fixtures prove the complete base minus only the separately staged default-deny resource
-- [X] T016 [P] [US1] Add `microtodo-dev`, its 400m/1200m CPU, 512Mi/1536Mi memory, 12-pod policy-only ResourceQuota, exact dev maintainer RoleBinding, and only approved egress rules in `environments/dev/namespace.yaml`, `environments/dev/resourcequota.yaml`, `environments/dev/rolebinding.yaml`, `environments/dev/networkpolicy-allow-required-egress.yaml`, and `environments/dev/kustomization.yaml` — Evidence: render contains 13 valid resources and the feature contract passes every exact value/selector assertion
-- [X] T017 [P] [US1] Add `microtodo-staging`, its 500m/1500m CPU, 640Mi/2Gi memory, 14-pod policy-only ResourceQuota, exact staging maintainer RoleBinding, and shared-base reference in `environments/staging/namespace.yaml`, `environments/staging/resourcequota.yaml`, `environments/staging/rolebinding.yaml`, and `environments/staging/kustomization.yaml` — Evidence: render contains 12 valid resources and the feature contract passes every exact value/group assertion
-- [X] T018 [P] [US1] Add `microtodo-prod`, its 650m/2 CPU, 896Mi/3Gi memory, 18-pod policy-only ResourceQuota, exact prod maintainer RoleBinding, and shared-base reference in `environments/prod/namespace.yaml`, `environments/prod/resourcequota.yaml`, `environments/prod/rolebinding.yaml`, and `environments/prod/kustomization.yaml` — Evidence: render contains 12 valid resources and the feature contract passes every exact value/group assertion
+- [X] T016 [P] [US1] Add `microtodo-dev`, its 400m/1200m CPU, 512Mi/1536Mi memory, 12-pod policy-only ResourceQuota, exact dev maintainer RoleBinding, and only approved egress rules in `environments/dev/namespace.yaml`, `environments/dev/resourcequota.yaml`, `environments/dev/rolebinding.yaml`, `environments/dev/networkpolicy-allow-required-egress.yaml`, and `environments/dev/kustomization.yaml` — Evidence: the Stage-1 render contains 12 schema-valid resources and the feature contract passes every exact value/selector assertion
+- [X] T017 [P] [US1] Add `microtodo-staging`, its 500m/1500m CPU, 640Mi/2Gi memory, 14-pod policy-only ResourceQuota, exact staging maintainer RoleBinding, and shared-base reference in `environments/staging/namespace.yaml`, `environments/staging/resourcequota.yaml`, `environments/staging/rolebinding.yaml`, and `environments/staging/kustomization.yaml` — Evidence: the Stage-1 render contains 11 schema-valid resources and the feature contract passes every exact value/group assertion
+- [X] T018 [P] [US1] Add `microtodo-prod`, its 650m/2 CPU, 896Mi/3Gi memory, 18-pod policy-only ResourceQuota, exact prod maintainer RoleBinding, and shared-base reference in `environments/prod/namespace.yaml`, `environments/prod/resourcequota.yaml`, `environments/prod/rolebinding.yaml`, and `environments/prod/kustomization.yaml` — Evidence: the Stage-1 render contains 11 schema-valid resources and the feature contract passes every exact value/group assertion
 - [X] T019 [US1] Replace folder-wide infrastructure discovery with exact registration values in `clusters/base/infrastructure.yaml`, `clusters/local-kind/activation-infrastructure.yaml`, `clusters/eks-dev/activation-infrastructure.yaml`, and both registration Kustomizations; set managed todos-api/log-message-processor overlays to `REDIS_HOST=redis`; make the Stage-1 render/schema contract pass while proving `environments/local` and local Redis behavior are unchanged in `tests/contract/namespace-isolation.sh` — Evidence: both registrations render, explicit five/four lists pass, six managed overlays render `REDIS_HOST=redis`, local renders retain the FQDN, and `git diff --quiet HEAD -- environments/local` passes
 - [ ] T020 [US1] Reconcile the reviewed foundation revision through the normal PR/merge path, without manually syncing ArgoCD, and record exact `env-dev|env-staging|env-prod` revision/sync/health, three Redis `PONG` results, zero business Applications, and the exact infrastructure inventory under `.local/evidence/namespace-isolation/`
 - [ ] T021 [US1] Run the observer's `foundation` phase against the recorded baseline, retain failures, and check the foundation/dev-continuity items only when `specs/005-namespace-isolation/checklists/acceptance.md` has live evidence
@@ -87,15 +91,15 @@ each namespace.
 
 ### Tests for User Story 2
 
-- [X] T022 [US2] Change `tests/contract/namespace-isolation.sh` from the Stage-1 expectation to require one all-pod ingress/egress default deny in every managed render, exact DNS/same-environment/Redis rules, namespace-local Redis endpoints, and zero broad cross-environment allowance — Evidence: final render assertions and rejection scans pass for dev, staging, and prod while foundation fixtures remain deny-free
+- [ ] T022 [US2] Change `tests/contract/namespace-isolation.sh` from the Stage-1 expectation to require one all-pod ingress/egress default deny in every managed render, exact DNS/same-environment/Redis rules, namespace-local Redis endpoints, and zero broad cross-environment allowance — Pending: the foundation contract intentionally rejects active default deny
 - [X] T023 [P] [US2] Add table-driven checks for six unique denied directed pod pairs, six denied directed Redis pairs, three allowed same-environment pairs, three DNS and Redis successes, three Pub/Sub source-isolation results, fresh connection timestamps, and CNI-agent completeness in `scripts/managed/lib/namespace-isolation.sh` — Evidence: exact unique-pair/source counters, 90-second freshness gate, source-only Pub/Sub parser, unexpected-allow rejection, and per-node policy-agent gate are wired into the fixtures phase
 
 ### Implementation for User Story 2
 
-- [X] T024 [US2] Add the common ingress-and-egress deny-all policy and reference it only in the Stage-2 revision through `environments/base/networkpolicy-default-deny.yaml` and `environments/base/kustomization.yaml` — Evidence: steady-state base includes one all-pod ingress/egress deny and the three foundation render fixtures delete only that resource
+- [ ] T024 [US2] Add the common ingress-and-egress deny-all policy and reference it only in the Stage-2 revision through `environments/base/networkpolicy-default-deny.yaml` and `environments/base/kustomization.yaml` — Partial evidence: the reviewed deny manifest exists, but the Stage-1 Kustomization intentionally does not reference it
 - [X] T025 [P] [US2] Add digest-pinned Deployment-owned probe server/client, Redis connection/PubSub clients, and ClusterIP Service resources in `tests/fixtures/namespace-isolation/base/` — Evidence: five-resource base renders with three probed Deployments, one Service, one ServiceAccount, immutable images, and Kyverno-compatible health probes
 - [X] T026 [P] [US2] Add exact namespace/name/config overlays for dev, staging, and prod probes in `tests/fixtures/namespace-isolation/overlays/dev/kustomization.yaml`, `tests/fixtures/namespace-isolation/overlays/staging/kustomization.yaml`, and `tests/fixtures/namespace-isolation/overlays/prod/kustomization.yaml` — Evidence: all three overlays render with exact local and two foreign probe/Redis endpoints
-- [X] T027 [US2] Make the final network/Redis static contract pass, schema-validate all steady-state and fixture renders, and prove Redis/probe images use approved immutable digests in `tests/contract/namespace-isolation.sh` — Evidence: feature contract passes and kubeconform v0.7.0 reports five valid resources and zero errors for each probe overlay
+- [ ] T027 [US2] Make the final network/Redis static contract pass, schema-validate all steady-state and fixture renders, and prove Redis/probe images use approved immutable digests in `tests/contract/namespace-isolation.sh` — Partial evidence: immutable fixture checks exist; final default-deny render checks resume in Stage 2
 - [ ] T028 [US2] Reconcile the reviewed default-deny revision through the normal PR/merge path only after the foundation checkpoint passes, then wait for all three environment Applications at the exact SHA
 - [ ] T029 [US2] Run the observer's `default-deny` phase, require real allowed/denied enforcement plus unchanged dev continuity, and revert the Stage-2 Git revision if any gate fails
 - [ ] T030 [US2] Reconcile the reviewed managed infrastructure value that removes only `infra-redis`, run the observer's `redis-retired` phase, retain four healthy controller Applications and three healthy environment Redis instances, and revert the retirement revision if any gate fails
@@ -170,7 +174,7 @@ state.
 - [ ] T045 Remove only fixture activation with a reviewed `git revert`, wait for all three environment Applications to become Synced/Healthy at the cleanup SHA, and prove no probe or violation workload remains
 - [ ] T046 Run the observer's `final` phase through the ten-minute continuity window, validate final evidence, and check acceptance items only when backed by the exact cleanup revision in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [X] T047 Reconcile exact implemented paths, approved quota rationale, per-environment Redis migration, infrastructure allowlists, dependency allowances, identity groups, failure handling, and evidence location into `docs/namespace-isolation.md` and `specs/005-namespace-isolation/quickstart.md` — Evidence: runbook and quickstart contain the exact paths, staged five-to-four Redis migration, quantities, groups, gates, rollback, and ignored evidence location
-- [X] T048 Re-run cross-artifact requirement/task traceability for FR-001 through FR-033 and SC-001 through SC-010, verify no unchecked prerequisite is reported as a pass, and record the final feature status in `specs/005-namespace-isolation/checklists/acceptance.md` — Evidence: final read-only analysis found 43/43 requirements covered by 48 unique sequential tasks, zero unresolved placeholder/critical contradiction, 30 evidenced implementation tasks, and 18 explicitly open external/live tasks; acceptance remains blocked rather than PASS
+- [ ] T048 Re-run cross-artifact requirement/task traceability for FR-001 through FR-033 and SC-001 through SC-010, verify no unchecked prerequisite is reported as a pass, and record the final feature status in `specs/005-namespace-isolation/checklists/acceptance.md` — Pending: the shared-cluster selection and staged task state changed for the foundation activation
 
 ---
 
@@ -179,9 +183,10 @@ state.
 ### Phase Dependencies
 
 - **Authoritative/External Gates (Phase 1)**: T001 blocks static implementation;
-  T002-T007 block live activation. Current evidence satisfies only T001.
+  T002, T003, T006, and T007 gate policy-only foundation activation. T004 and
+  T005 remain required for RBAC and dev-business continuity acceptance.
 - **Test/Observer Foundations (Phase 2)**: Begins after T001 and blocks managed
-  manifest work; T002-T007 still block every live phase.
+  manifest work; later live claims retain their task-specific external gates.
 - **US1 Foundation (Phase 3)**: Static work may complete before external gates;
   live reconciliation blocks default deny and all live negative tests.
 - **US2 Network (Phase 4)**: Depends on a passing US1 live checkpoint and blocks
@@ -215,8 +220,8 @@ US2 default deny + network fixtures ----+
   its complete six-direction outcome is collected in the correlated run.
 - US3 and US4 have independently inspectable outcomes within the same fixture
   evidence revision and do not depend on each other's implementation.
-- No story can bypass T002-T007 for live work by treating a manifest, branch, or
-  local commit as live prerequisite evidence.
+- No story may treat a manifest, branch, or local commit as live evidence.
+  Explicitly deferred T004/T005 remain unchecked and constrain acceptance.
 
 ### Parallel Opportunities
 
@@ -235,7 +240,8 @@ US2 default deny + network fixtures ----+
    gates are tracked explicitly.
 2. Deliver the namespace/Redis foundation and explicit infrastructure
    activation values without default deny.
-3. Close T002-T007 before any live reconciliation.
+3. Close the foundation gates, while retaining deferred identity and unavailable
+   dev-business continuity as explicit acceptance gaps.
 4. Reconcile the foundation and validate dev plus three Redis instances live.
 5. Deliver default deny, validate real CNI enforcement, and retire shared Redis.
 6. Complete network/resource/RBAC/Redis fixtures and observers.
@@ -249,8 +255,8 @@ US2 default deny + network fixtures ----+
 - This task list does not authorize a push, PR, merge, AWS change, ArgoCD sync,
   or cluster mutation. Those actions still require the normal human review and
   repository permissions at execution time.
-- If external prerequisites remain missing, keep this feature status blocked;
-  do not add ops or cluster-registration implementation to these tasks.
+- If final-acceptance prerequisites remain missing, keep the feature status
+  incomplete; do not add ops implementation to these tasks.
 - Empty staging/prod namespaces and temporary probes are not real workload
   activation.
 - ResourceQuota reduces namespace blast radius but does not create dedicated

@@ -12,7 +12,7 @@ Before any managed namespace activation, confirm all of the following:
 - `microservice-app-docs/main` contains constitution v1.2.0 and its approved
   cost-optimized profile adoption;
 - the GitOps vendored constitution is byte-identical;
-- a separate reviewed registration provides `clusters/eks-main`, activates only
+- the existing `clusters/eks-dev` registration is reviewed as the shared target and activates only
   the dev, staging, and prod environment-policy list against
   `https://kubernetes.default.svc`, yields zero business-service Applications,
   and explicitly allowlists exactly the four approved controller Applications
@@ -20,17 +20,20 @@ Before any managed namespace activation, confirm all of the following:
 - the ops-owned EKS/VPC CNI configuration has network policy enabled
   declaratively;
 - every eligible Linux EC2 worker has a ready policy agent;
-- approved AWS principals map to the exact environment groups;
-- existing dev workloads are healthy; and
+- approved AWS principals map to the exact environment groups before RBAC is
+  accepted (this mapping is explicitly deferred during namespace foundation);
+- any existing dev workloads are healthy; and
 - the checkout is clean and on a short-lived implementation branch.
 
-If any item is missing, static design work may continue, but stop before live
-activation.
+If registration, CNI, capacity, or immutable inputs are missing, stop before
+live activation. Deferred identity mapping remains an explicit acceptance gap;
+it does not justify mapping one principal to every environment group.
 
-The 2026-08-09 prerequisite run found the constitution authoritative but the
-live cluster still registered as `eks-dev`, without environment maintainer
-groups or a pre-existing dev business workload. Those remain live-activation
-blockers; they are not converted into passes by the static checks below.
+The 2026-08-09 operator decision adopts the live `microtodosuite-dev` cluster
+and `clusters/eks-dev` root as shared without renaming them. The cluster has no
+environment maintainer mappings or pre-existing dev business workload, so RBAC
+and dev-workload continuity acceptance remain open while the namespace
+foundation proceeds.
 
 ## 2. Run static checks after implementation
 
@@ -82,7 +85,7 @@ Run the planned observer with the exact managed-cluster context and full SHA:
 
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
-  --context <eks-main-context> \
+  --context <shared-eks-context> \
   --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase baseline \
   --expected-revision <40-hex-git-sha>
@@ -105,7 +108,7 @@ does not request a sync:
 
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
-  --context <eks-main-context> \
+  --context <shared-eks-context> \
   --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase foundation \
   --expected-revision <foundation-commit-sha> \
@@ -123,7 +126,7 @@ renders. After merge and convergence, run:
 
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
-  --context <eks-main-context> \
+  --context <shared-eks-context> \
   --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase default-deny \
   --expected-revision <default-deny-commit-sha> \
@@ -140,7 +143,7 @@ value that removes only `infra-redis` from the shared cluster. Run:
 
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
-  --context <eks-main-context> \
+  --context <shared-eks-context> \
   --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase redis-retired \
   --expected-revision <redis-retirement-commit-sha> \
@@ -158,7 +161,7 @@ immutable image. After ArgoCD reaches the fixture revision, run:
 
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
-  --context <eks-main-context> \
+  --context <shared-eks-context> \
   --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase fixtures \
   --expected-revision <fixture-activation-commit-sha> \
@@ -183,7 +186,7 @@ After that revert is reviewed, merged, and reconciled, run the final phase:
 
 ```bash
 scripts/managed/verify-namespace-isolation.sh \
-  --context <eks-main-context> \
+  --context <shared-eks-context> \
   --expected-cluster-id <reviewed-kubeconfig-cluster-id> \
   --phase final \
   --expected-revision <isolation-revision-sha> \
@@ -215,7 +218,8 @@ application health requests are allowed when the observer records them.
 | Observation | Required response |
 | --- | --- |
 | Constitution v1.2.0 is not merged | Stop before implementation; do not treat the vendored draft as authority. |
-| `eks-main` registration or identity mapping is missing | Stop live work and complete the separately owned handoff. |
+| Shared registration is not exact | Stop before activation and correct it through a reviewed Git change. |
+| Identity mapping is missing | Keep RBAC acceptance open; do not map one principal to all three groups. |
 | Registration would mirror environment activation into apps or auto-discover infrastructure | Stop before root activation; the registration feature must decouple those inventories first. |
 | VPC CNI agent/configuration is absent on any eligible node | Stop before default deny; fix through the ops-owned declarative path. |
 | Dev dependency inventory is incomplete | Do not guess an allow rule; gather owner evidence first. |

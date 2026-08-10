@@ -11,8 +11,8 @@ the cluster or authorize Terraform, AWS, ArgoCD UI, or direct Kubernetes changes
 | Concern | Owner | This feature's behavior |
 | --- | --- | --- |
 | VPC, EKS, nodes, VPC CNI add-on, IAM, ECR | `microservice-app-ops` / Terraform | Read-only prerequisite evidence; no edits. |
-| ArgoCD bootstrap and `eks-main` identity | Separate GitOps registration work | Required before live activation; no bootstrap or cluster creation here. |
-| Infrastructure ApplicationSet activation values | This GitOps feature | Replace folder discovery with an explicit per-cluster list; retain four controllers and exclude shared Redis on EKS. |
+| ArgoCD bootstrap and shared identity | Existing `clusters/eks-dev` registration | Reuse the live root and physical cluster without renaming or bootstrap changes. |
+| Infrastructure ApplicationSet activation values | This GitOps feature | Use an exact per-cluster list; retain four controllers plus shared Redis through replacement verification, then remove only shared Redis. |
 | Namespace, quota, limits, network policy, namespace RBAC | This GitOps feature | Declarative paths below. |
 | Environment Redis | This GitOps feature | One immutable, ephemeral instance in each managed namespace. |
 | AWS principal-to-Kubernetes-group mapping | Cluster-access handoff | Required live evidence; no personal ARN in environment manifests. |
@@ -59,7 +59,7 @@ a later rollout revision than the prerequisite allow rules. No environment may
 replace the common default deny, LimitRange, same-namespace allowance, DNS
 allowance, or Role with a divergent copy.
 
-Each environment render MUST contain exactly:
+Each final steady-state environment render MUST contain exactly:
 
 - one Namespace with the exact mapping below;
 - one ResourceQuota with evidence-approved CPU, memory, and pod bounds;
@@ -81,14 +81,12 @@ Each environment render MUST contain exactly:
 | `prod` | `microtodo-prod` | `env-prod` | `microtodosuite:prod-maintainers` |
 
 The Application names and namespace derivation come from the existing
-`clusters/base/environments.yaml` ApplicationSet. A registration MUST activate
-all three with `server: https://kubernetes.default.svc`, keep the business-
-The infrastructure ApplicationSet consumes an explicit list containing only
-`keda`, `cert-manager`, `external-secrets`, and `kyverno` for the shared
-cluster. Current matching app/environment activation and automatic
-`infrastructure/*` discovery do not satisfy this policy-only state. This
-feature changes the reusable activation mechanism but does not bootstrap or
-rename the external cluster registration.
+`clusters/base/environments.yaml` ApplicationSet. The `clusters/eks-dev`
+registration MUST activate all three with
+`server: https://kubernetes.default.svc`, keep business-service activation
+empty, and retain the exact five-entry foundation infrastructure list until
+environment Redis is verified. The later retirement revision removes only
+shared Redis. This feature does not bootstrap or rename the cluster.
 
 ## Static Invariants
 
@@ -125,17 +123,20 @@ rename the external cluster registration.
 Required evidence:
 
 - authoritative constitution is v1.2.0;
-- `eks-main` registration is reviewed and reconciled in policy-only state, with
+- the existing `clusters/eks-dev` registration is reviewed as the shared target, with
   three environment Applications, no business Applications, and the exact four
   retained controller Applications plus the existing `infra-redis`;
 - CNI enforcement gate passes on every eligible node;
-- identity group mapping is confirmed;
+- identity group mapping is confirmed before RBAC acceptance; the foundation
+  may leave the stable groups unmapped under the recorded deferral;
 - dev Applications are current and healthy;
 - current dev requests, limits, ready replicas, restarts, health paths, and
   required network connections are recorded; and
 - proposed quota values leave documented rollout and platform reserve.
 
-Any failure blocks Stage 1.
+Any CNI, registration, capacity, or immutable-input failure blocks Stage 1.
+Deferred identity mapping blocks only the RBAC acceptance claim and MUST NOT be
+worked around by mapping one principal to every environment.
 
 ### Stage 1: foundation and allow rules
 

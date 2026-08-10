@@ -6,10 +6,10 @@ Kubernetes desired state and immutable acceptance evidence.
 ## Relationship Overview
 
 ```text
-SharedClusterRegistration (external prerequisite)
+SharedClusterRegistration (existing live root)
 ├── activates 3 EnvironmentNamespaces
 ├── activates 0 BusinessApplications
-└── retains 4 ControllerInfrastructureApplications
+└── retains 4 ControllerInfrastructureApplications + shared Redis until retirement
 
 EnvironmentNamespaces
     ├── consumes 1 ManagedIsolationBase
@@ -26,21 +26,21 @@ DevContinuityBaseline
 └── compared with staged and final DevContinuitySamples
 ```
 
-## SharedClusterRegistration (External Prerequisite)
+## SharedClusterRegistration
 
 | Field | Required value | Rule |
 | --- | --- | --- |
-| `name` | `eks-main` | One shared economical-profile cluster registration. |
+| `name` | `clusters/eks-dev` | Legacy-named live registration adopted as the one shared economical-profile target. |
+| `physicalClusterName` | `microtodosuite-dev` | Retained during activation; changing it would replace the EKS cluster. |
 | `server` | `https://kubernetes.default.svc` | ArgoCD reconciles its own cluster. |
 | `environmentActivation` | `[dev, staging, prod]` | Produces exactly the three environment-policy Applications. |
 | `businessApplicationActivation` | `[]` | Real service activation is later dev-first work. |
-| `infrastructureActivation` | `[keda, cert-manager, external-secrets, kyverno]` | Exact retained controller list; no folder discovery and no Redis. |
+| `infrastructureActivation` | foundation: `[keda, cert-manager, external-secrets, kyverno, redis]`; retired: four controllers | Exact stage-specific list; no folder discovery. |
 | `repositoryRevision` | reviewed immutable Git identity | No live parameter override. |
 
-The current shared base does not yet expose this independent activation state:
-app/environment lists are documented as matching, and infrastructure is
-folder-discovered automatically. The separate registration work must close that
-gap before this entity can satisfy the contract.
+The shared base exposes independent activation lists. The managed registration
+activates environment policy without activating business applications and uses
+an exact infrastructure list rather than folder discovery.
 
 ## ManagedIsolationBase
 

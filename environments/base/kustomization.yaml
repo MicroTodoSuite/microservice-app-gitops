@@ -10,7 +10,6 @@ labels:
 
 resources:
   - limitrange.yaml
-  - networkpolicy-default-deny.yaml
   - networkpolicy-allow-dns.yaml
   - networkpolicy-allow-intra-namespace.yaml
   - networkpolicy-allow-redis.yaml

@@ -33,11 +33,11 @@ endpoint namespace-local.
 
 ## Desired state
 
-Every managed environment renders the following common resources from
-`environments/base`:
+Every managed environment's final steady state renders the following common
+resources from `environments/base`:
 
 - one bounded Container LimitRange;
-- ingress-and-egress default deny;
+- ingress-and-egress default deny, added only in the Stage-2 revision;
 - DNS allowance limited to kube-system CoreDNS on TCP/UDP 53;
 - same-namespace ingress and egress;
 - Redis ingress limited to same-namespace pods on TCP 6379;
@@ -81,9 +81,9 @@ continuity guarantee.
 
 The retirement file is not selected by the registration until the replacement
 gate passes. This prevents a merge that removes the only live Redis before all
-three environment instances are Ready and return `PONG`. The reviewed shared
-`clusters/eks-main` registration remains an external prerequisite and must use
-the same value contract.
+three environment instances are Ready and return `PONG`. The existing
+`clusters/eks-dev` registration is the reviewed shared-cluster path for this
+rollout; its legacy name is retained to preserve the live ArgoCD root.
 
 ## Mandatory activation sequence
 
@@ -93,19 +93,24 @@ Before any environment Application is activated, record all of these with exact
 revisions and raw evidence:
 
 1. constitution v1.2.0 is authoritative and byte-synchronized;
-2. the shared-cluster handoff and `clusters/eks-main` registration are reviewed;
+2. reuse of the existing `microtodosuite-dev` cluster and `clusters/eks-dev`
+   registration as the shared-cluster target is reviewed;
 3. the managed registration activates exactly three environment-policy entries,
    zero business-service entries, and the explicit five-entry foundation
    infrastructure list;
 4. network policy is enabled in the ops-owned VPC CNI configuration and every
    eligible Linux EC2 node has a Ready policy agent;
 5. approved AWS principals map to exactly one of the three maintainer groups;
-6. existing dev workloads have a non-empty baseline covering revision, ready
+6. any existing dev workloads have a baseline covering revision, ready
    replicas, restart counts, health, resources, and required connections; and
 7. capacity and every required dev egress destination are approved.
 
-A missing item blocks cluster reconciliation. It does not block local rendering,
-schema checks, or observer development.
+The operator decision for the foundation revision defers item 5 because no
+environment maintainer access is being granted yet; it remains a blocking RBAC
+acceptance item. The live cluster currently has no managed dev business service,
+so item 6 is recorded as unavailable rather than inferred. Neither exception
+authorizes business-service activation or permits one AWS principal to be mapped
+to all three groups.
 
 ### 1. Foundation revision
 
@@ -115,10 +120,10 @@ Wait for all three environment Applications at the exact revision. Require one
 Ready Redis replica and `PONG` in each namespace, zero business Applications,
 the five-entry infrastructure inventory, and an unchanged dev baseline.
 
-The repository's final steady-state base includes default deny. The foundation
-must therefore be an earlier reviewed Git revision whose diff has not yet added
-`networkpolicy-default-deny.yaml` to the base Kustomization. Do not collapse the
-foundation and deny changes into one revision.
+The repository contains the prepared default-deny manifest, but the foundation
+Kustomization does not reference it. The later reviewed Stage-2 revision adds
+that single reference. Do not collapse the foundation and deny changes into one
+revision.
 
 ### 2. Default-deny revision
 

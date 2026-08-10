@@ -236,18 +236,19 @@ and writes untracked evidence under `.local/evidence/namespace-isolation/`.
 - A script that edits Kustomizations or commits automatically: humans must review
   the exact activation and cleanup changes; the verifier remains observational.
 
-## Decision 7: Keep cluster identity and CNI ownership outside this feature
+## Decision 7: Reuse the current cluster identity and keep CNI ownership outside this feature
 
-**Decision**: This feature can merge static policy and verification contracts,
-but live activation waits for separately reviewed prerequisites:
+**Decision**: The operator adopts the existing `microtodosuite-dev` EKS cluster
+and `clusters/eks-dev` GitOps root as the shared target. Activation does not
+rename either identity. The foundation revision requires:
 
-1. the AWS foundation is reconciled from its current dedicated-dev/full-profile
-   contract to the shared-cluster profile, including verified CNI enforcement;
-2. `clusters/eks-main` consumes reusable registration wiring, activates only the
+1. verified live VPC CNI enforcement on every eligible node;
+2. `clusters/eks-dev` consumes reusable registration wiring, activates only the
    `dev`, `staging`, and `prod` environment-policy list against the in-cluster
    API, keeps business-service activation empty, and starts with the exact four
    controller Applications plus the existing `infra-redis`; and
-3. approved AWS principals map to the stable Kubernetes groups.
+3. stable Kubernetes groups remain in desired state while AWS mappings stay
+   deferred and therefore outside the live RBAC acceptance claim.
 
 This feature owns the reusable infrastructure ApplicationSet refactor from
 folder discovery to explicit list values and supplies values that keep
@@ -259,28 +260,26 @@ the EKS cluster, alter Terraform/access entries, or perform root bootstrap.
 **Rationale**:
 
 - Current live GitOps revision
-  `24c5c1a9f7b8c870dd0f5b1a11ce89326157c713` uses `clusters/eks-dev`, not
-  `eks-main`, and its root auto-created all five infrastructure Applications.
+  `10d59e50591e66fa8e54f21814a1be29da6d7979` uses `clusters/eks-dev` and its
+  root retains the exact five reviewed infrastructure Applications.
 - `clusters/README.md` currently requires matching app/environment activation
   lists, while `clusters/base/infrastructure.yaml` automatically discovers every
   `infrastructure/*` root. Consuming that base unchanged would deploy services
   and all current add-ons merely by registering the cluster, which violates this
   feature's policy-only scope and the requested dev-first follow-on sequence.
-- The sibling ops branch currently publishes a dev-only handoff for
-  `microtodosuite-dev` and `clusters/eks-dev`; that contract predates the adopted
-  shared profile.
+- EKS has no in-place cluster-name update. Treating the legacy name as a logical
+  scope would force an unnecessary replacement, while moving the GitOps path
+  would require a separately staged root Application migration.
 - Changing Terraform or EKS access entries would mix ownership and violate the
   requested scope. Refactoring reusable GitOps activation values is necessary
   to remove only shared Redis without pruning healthy controllers.
 
 **Alternatives rejected**:
 
-- Silently treating the current dev foundation as the shared production
-  cluster. Reuse may be economical, but renaming, capacity, identity, API
-  exposure, CNI, and production suitability require an explicit review outside
-  this feature.
+- Mapping the Terraform role into all three maintainer groups. It would make the
+  three RoleBindings operationally equivalent and invalidate access isolation.
 - Reusing matching application/environment activation or automatic
-  infrastructure discovery for `eks-main`. Namespace policy must be activatable
+  infrastructure discovery. Namespace policy must be activatable
   without installing new add-ons or real services.
 
 ## Decision 8: Run one Redis instance per managed namespace

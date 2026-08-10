@@ -28,9 +28,11 @@ one-time bootstrap of that cluster's root Application.
 
 ## Economical version (active)
 
-One shared cluster (`eks-main` after its separate handoff) runs one ArgoCD
-instance and hosts multiple environments as namespaces. Its app activation
-stays empty for feature 005 while its environment activation carries this list:
+The existing AWS cluster named `microtodosuite-dev` and its legacy
+`clusters/eks-dev` registration are adopted as the one shared cluster. The
+physical name and GitOps path remain unchanged so the live root Application is
+not replaced or orphaned. Its app activation stays empty for feature 005 while
+its environment activation carries this list:
 
 ```yaml
 - env: dev
@@ -46,10 +48,10 @@ The shared templates derive `microtodo-dev`, `microtodo-staging`, and
 
 ## Full version (prepared, not active)
 
-Environments become separate clusters. Future sibling registrations such as
-`eks-dev`, `eks-staging`, `eks-prod`, and `aks-dr` each consume `../base`, run
-their own ArgoCD, and activate only the environment that cluster owns. For
-example, `clusters/eks-dev` injects this value into both activation patches:
+Environments become separate clusters. Future dedicated registrations consume
+`../base`, run their own ArgoCD, and activate only the environment that cluster
+owns. A future dedicated-dev registration would inject this value into both
+activation patches:
 
 ```yaml
 - env: dev
@@ -77,6 +79,7 @@ continue pulling and reconciling the reviewed Git revision even while
 
 Each sibling registration consumes `../base`, patches the three independent
 activation lists, and replaces only the repository URL and revision fields from
-its ConfigMap. `clusters/eks-dev` remains a registration-only foundation until
-the separate shared-cluster handoff is reviewed; feature 005 does not create
-`clusters/eks-main` or bootstrap its root Application.
+its ConfigMap. `clusters/eks-dev` is the active shared-cluster registration; its
+name is historical and does not limit it to the dev namespace. Renaming the AWS
+cluster or moving the root Application path is a separate replacement/migration
+operation, not part of environment activation.

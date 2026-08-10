@@ -1,10 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Value-only registration of the AWS EKS dev cluster. The patch and replacement
-# wiring intentionally matches clusters/local-kind: this sibling consumes the
-# shared mechanism (../base) and contributes only repository, revision, and
-# activation values. Both activation lists remain empty for registration only.
+# Value-only registration of the existing AWS EKS cluster, now adopted as the
+# shared economical-profile cluster. The physical cluster name and this legacy
+# directory remain unchanged to preserve the live ArgoCD root path. Business
+# application activation remains empty; only environment policy is activated.
 resources:
   - ../base
   - registration.yaml
