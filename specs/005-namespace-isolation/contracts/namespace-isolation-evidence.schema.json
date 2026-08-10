@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://microtodosuite.example/specs/005-namespace-isolation/contracts/namespace-isolation-evidence.schema.json",
+  "title": "MicroTodoSuite Namespace Isolation Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "feature",
+    "constitutionVersion",
+    "expectedRevision",
+    "cleanupRevision",
+    "cluster",
+    "environments",
+    "crossEnvironmentTests",
+    "sameEnvironmentTests",
+    "dnsTests",
+    "resourceViolation",
+    "rbacChecks",
+    "devContinuity",
+    "commandAudit",
+    "result"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "feature": { "const": "005-namespace-isolation" },
+    "constitutionVersion": { "const": "1.2.0" },
+    "expectedRevision": { "$ref": "#/$defs/gitSha" },
+    "cleanupRevision": { "$ref": "#/$defs/gitSha" },
+    "cluster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "provider", "cniVersion", "networkPolicyEnabled", "eligibleNodes", "readyPolicyAgents", "result"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "provider": { "const": "amazon-vpc-cni" },
+        "cniVersion": { "type": "string", "minLength": 1 },
+        "networkPolicyEnabled": { "const": true },
+        "eligibleNodes": { "type": "integer", "minimum": 1 },
+        "readyPolicyAgents": { "type": "integer", "minimum": 1 },
+        "result": { "const": "PASS" }
+      }
+    },
+    "environments": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/environment" }
+    },
+    "crossEnvironmentTests": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/deniedConnection" }
+    },
+    "sameEnvironmentTests": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/allowedConnection" }
+    },
+    "dnsTests": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/passByEnvironment" }
+    },
+    "resourceViolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment", "bound", "expectedPods", "realizedPods", "eventReason", "comparisonEnvironment", "comparisonReadyReplicaLoss", "comparisonRestartDelta", "result"],
+      "properties": {
+        "environment": { "$ref": "#/$defs/environmentName" },
+        "bound": { "enum": ["requests.cpu", "limits.cpu", "requests.memory", "limits.memory", "pods", "containerMaxCpu", "containerMaxMemory"] },
+        "expectedPods": { "type": "integer", "minimum": 1 },
+        "realizedPods": { "type": "integer", "minimum": 0 },
+        "eventReason": { "type": "string", "minLength": 1 },
+        "comparisonEnvironment": { "$ref": "#/$defs/environmentName" },
+        "comparisonReadyReplicaLoss": { "const": 0 },
+        "comparisonRestartDelta": { "const": 0 },
+        "result": { "const": "PASS" }
+      }
+    },
+    "rbacChecks": {
+      "type": "array",
+      "minItems": 22,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subject", "namespace", "verb", "resource", "expected", "observed", "result"],
+        "properties": {
+          "subject": { "type": "string", "minLength": 1 },
+          "namespace": { "$ref": "#/$defs/namespaceName" },
+          "verb": { "type": "string", "minLength": 1 },
+          "resource": { "type": "string", "minLength": 1 },
+          "expected": { "enum": ["allow", "deny"] },
+          "observed": { "enum": ["allow", "deny"] },
+          "result": { "const": "PASS" }
+        }
+      }
+    },
+    "devContinuity": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/continuitySample" }
+    },
+    "commandAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mutatingCommands", "result"],
+      "properties": {
+        "mutatingCommands": { "const": 0 },
+        "result": { "const": "PASS" }
+      }
+    },
+    "result": { "const": "PASS" }
+  },
+  "$defs": {
+    "gitSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "environmentName": {
+      "enum": ["dev", "staging", "prod"]
+    },
+    "namespaceName": {
+      "enum": ["microtodo-dev", "microtodo-staging", "microtodo-prod"]
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment", "namespace", "application", "revision", "sync", "health", "requiredResources", "result"],
+      "properties": {
+        "environment": { "$ref": "#/$defs/environmentName" },
+        "namespace": { "$ref": "#/$defs/namespaceName" },
+        "application": { "enum": ["env-dev", "env-staging", "env-prod"] },
+        "revision": { "$ref": "#/$defs/gitSha" },
+        "sync": { "const": "Synced" },
+        "health": { "const": "Healthy" },
+        "requiredResources": {
+          "type": "array",
+          "contains": { "const": "ResourceQuota" },
+          "allOf": [
+            { "contains": { "const": "LimitRange" } },
+            { "contains": { "const": "NetworkPolicy" } },
+            { "contains": { "const": "Role" } },
+            { "contains": { "const": "RoleBinding" } }
+          ]
+        },
+        "result": { "const": "PASS" }
+      }
+    },
+    "connectionBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "destination", "protocol", "port", "observed", "result"],
+      "properties": {
+        "source": { "$ref": "#/$defs/environmentName" },
+        "destination": { "$ref": "#/$defs/environmentName" },
+        "protocol": { "const": "TCP" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "observed": { "enum": ["allowed", "denied"] },
+        "result": { "const": "PASS" }
+      }
+    },
+    "deniedConnection": {
+      "allOf": [
+        { "$ref": "#/$defs/connectionBase" },
+        { "properties": { "observed": { "const": "denied" } } }
+      ]
+    },
+    "allowedConnection": {
+      "allOf": [
+        { "$ref": "#/$defs/connectionBase" },
+        { "properties": { "observed": { "const": "allowed" } } }
+      ]
+    },
+    "passByEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment", "result"],
+      "properties": {
+        "environment": { "$ref": "#/$defs/environmentName" },
+        "result": { "const": "PASS" }
+      }
+    },
+    "continuitySample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "observedAt", "revision", "readyReplicaLoss", "restartDelta", "health", "result"],
+      "properties": {
+        "phase": { "enum": ["baseline", "foundation", "default-deny", "fixtures", "final"] },
+        "observedAt": { "type": "string", "format": "date-time" },
+        "revision": { "$ref": "#/$defs/gitSha" },
+        "readyReplicaLoss": { "const": 0 },
+        "restartDelta": { "const": 0 },
+        "health": { "const": "PASS" },
+        "result": { "const": "PASS" }
+      }
+    }
+  }
+}
