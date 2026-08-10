@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Self-hosted SonarQube (code-quality gate for BOTH profiles, research D6).
+# INACTIVE: current cluster activation lists omit infrastructure/sonarqube, so
+# no cluster deploys it until the intended tooling/management registration adds
+# an exact allowlist entry. See README.md.
+#
+# TODO(platform) before activation:
+#   1. Pin `sonarqube` and `postgres` images by digest (offline render cannot
+#      resolve them here) — mirror the digest pins in keda/kyverno kustomizations.
+#   2. Add exposure (Ingress + TLS) so cloud CI runners can reach it, or use a
+#      self-hosted runner; then set org vars SONAR_HOST_URL + secret SONAR_TOKEN.
+#   3. Confirm vm.max_map_count handling (privileged init vs node sysctl).
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - db-secret.yaml
+  - postgres.yaml
+  - sonarqube.yaml

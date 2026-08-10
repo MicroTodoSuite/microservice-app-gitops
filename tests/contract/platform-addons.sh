@@ -93,16 +93,16 @@ declare -A VENDOR_FILES=(
   [kyverno]="install.yaml"
 )
 
-active_addon_names=()
+infrastructure_root_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
-  active_addon_names+=("$(basename "$(dirname "$addon_root")")")
+  infrastructure_root_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#active_addon_names[@]}" == "5" ]] \
-  || fail "expected exactly five active infrastructure roots, found ${#active_addon_names[@]}"
+[[ "${#infrastructure_root_names[@]}" == "6" ]] \
+  || fail "expected exactly six infrastructure roots, found ${#infrastructure_root_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
-  [[ " ${active_addon_names[*]} " == *" $addon "* ]] \
-    || fail "active infrastructure root is missing: $addon"
+  [[ " ${infrastructure_root_names[*]} " == *" $addon "* ]] \
+    || fail "infrastructure root is missing: $addon"
   require_file "infrastructure/$addon/kustomization.yaml"
   vendor_dir="infrastructure/$addon/vendor/${VERSIONS[$addon]}"
   require_file "$vendor_dir/${VENDOR_FILES[$addon]}"
@@ -116,8 +116,10 @@ for addon in keda cert-manager external-secrets kyverno; do
   check_rendered_images "$render"
 done
 
-[[ " ${active_addon_names[*]} " == *" redis "* ]] \
-  || fail "active infrastructure root is missing: redis"
+[[ " ${infrastructure_root_names[*]} " == *" redis "* ]] \
+  || fail "infrastructure root is missing: redis"
+[[ " ${infrastructure_root_names[*]} " == *" sonarqube "* ]] \
+  || fail "infrastructure root is missing: sonarqube"
 require_file "infrastructure/redis/kustomization.yaml"
 render_kustomize "$ROOT/infrastructure/redis" >"$TMP_DIR/redis.yaml" \
   || fail "Kustomize render failed for redis"
@@ -252,6 +254,13 @@ reject_text infrastructure/cert-manager/capability-check.yaml \
 
 reject_text clusters/local-kind/activation-infrastructure.yaml \
   'argo-rollouts' "inactive Argo Rollouts placeholder is explicitly activated"
+for registration in \
+  clusters/local-kind/activation-infrastructure.yaml \
+  clusters/eks-dev/activation-infrastructure.yaml \
+  clusters/eks-dev/activation-infrastructure-retired.yaml; do
+  reject_text "$registration" 'sonarqube' \
+    "inactive SonarQube capability is explicitly activated"
+done
 
 render_kustomize "$ROOT/clusters/local-kind" >"$TMP_DIR/local-registration.yaml" \
   || fail "local cluster registration does not render"

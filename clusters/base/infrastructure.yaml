@@ -1,6 +1,5 @@
-# Platform add-on ApplicationSet: one Application per active infrastructure/
-# Kustomize root. Vendor descendants and inactive capability placeholders are
-# excluded explicitly.
+# Platform add-on ApplicationSet: one Application per explicitly activated
+# infrastructure Kustomize root. Inactive capabilities remain unregistered.
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
