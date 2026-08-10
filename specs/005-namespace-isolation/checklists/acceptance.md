@@ -10,12 +10,12 @@
 
 - [x] Constitution v1.2.0 is merged to `microservice-app-docs/main` — Evidence: remote and local `main` both resolved to `615241ddf0280279d24c8df5faf5295bfed70ce0` on 2026-08-09.
 - [x] `.specify/memory/constitution.md` is byte-identical to the authoritative file — Evidence: `cmp` passed and both files had SHA-256 `14545ede9ee8d39b340b955e454c4500d3cdb30b108d74b3c1180534b6dbf3a4`.
-- [ ] The existing `microtodosuite-dev` cluster and `clusters/eks-dev` root are reviewed as the shared-cluster target without replacement — Partial evidence: the operator explicitly selected this reuse on 2026-08-09 and the decision is encoded in this activation branch; completion requires the reviewed merge.
-- [ ] The shared `clusters/eks-dev` registration is reconciled and activates exactly dev, staging, and prod environment-policy entries — Pre-merge evidence: the rendered branch contains exactly the three `{env, server}` objects targeting `https://kubernetes.default.svc`; live ArgoCD at `10d59e50591e66fa8e54f21814a1be29da6d7979` still has an empty environment list, so this remains unchecked until reconciliation.
+- [x] The existing `microtodosuite-dev` cluster and `clusters/eks-dev` root are reviewed as the shared-cluster target without replacement — Evidence: PR #6 encoded the operator decision, passed `validate-gitops`, was approved by `Tiago0507` at head `178725603e3bd294c552c7fb9d4067e6f30c4ed3`, and merged normally as `a06852d7960ef6a194f41f48d4ecbc860e182be3` on 2026-08-10; neither the EKS identity nor ArgoCD root path changed.
+- [x] The shared `clusters/eks-dev` registration is reconciled and activates exactly dev, staging, and prod environment-policy entries — Evidence: `.local/evidence/namespace-isolation/20260810T042953Z-foundation-observation-a06852d/raw/applications.json` records exactly `env-dev`, `env-staging`, and `env-prod`, each `Synced/Healthy` at merge SHA `a06852d7960ef6a194f41f48d4ecbc860e182be3`; the same artifact contains zero business Applications.
 - [x] Shared-cluster foundation registration yields zero business-service Applications and explicitly allowlists exactly four retained controller Applications plus `infra-redis` — Evidence: on 2026-08-09 the live Application inventory at `10d59e50591e66fa8e54f21814a1be29da6d7979` contained zero business Applications and exactly `infra-keda`, `infra-cert-manager`, `infra-external-secrets`, `infra-kyverno`, and `infra-redis`, all `Synced/Healthy`; PR #5 replaced folder discovery with the exact registration list.
 - [x] VPC CNI network policy is enabled declaratively and proven on every eligible node — Evidence: on 2026-08-09 AWS `DescribeAddon` reported VPC CNI `v1.23.0-eksbuild.1` `ACTIVE` with `configurationValues.enableNetworkPolicy=true`; the `aws-node` DaemonSet reported desired/current/ready/available/updated `2/2/2/2/2`, and both eligible Linux nodes had Ready `aws-node` and `aws-eks-nodeagent` containers with zero restarts and enforcing mode `standard`.
 - [ ] AWS principal-to-group mappings are approved and observed for all three environment groups — Deferred evidence: live EKS access entries contain no `microtodosuite:*maintainers` group. The operator deferred mapping; the supplied Terraform role is intentionally not mapped to all three because that would erase the access boundary.
-- [ ] Existing dev workloads, dependencies, resources, and health are recorded in a passing baseline — Unavailable evidence: live ArgoCD at `10d59e50591e66fa8e54f21814a1be29da6d7979` has zero business Applications and none of the three managed namespaces exists before activation. Platform continuity can be measured, but an absent dev business workload cannot be claimed as preserved.
+- [ ] Existing dev workloads, dependencies, resources, and health are recorded in a passing baseline — Unavailable evidence: the read-only observer at `.local/evidence/namespace-isolation/20260810T042953Z-foundation-observation-a06852d/summary.json` exited 8 with `no existing dev business workload is available for continuity baseline`. The live inventory has zero business Applications; platform and Redis continuity do not manufacture the missing business baseline.
 
 ## Static Desired-State Evidence
 
@@ -40,15 +40,15 @@
 
 ## Staged Live Evidence
 
-- [ ] Foundation revision converges in all three environment Applications before default deny
-- [ ] Dev loses zero ready replicas and adds zero attributable restarts after foundation convergence
-- [ ] Required dev connections and health checks pass after foundation convergence
+- [x] Foundation revision converges in all three environment Applications before default deny — Evidence: `raw/applications.json` in the `20260810T042953Z-foundation-observation-a06852d` evidence run records all three `env-*` Applications `Synced/Healthy` at `a06852d7960ef6a194f41f48d4ecbc860e182be3`; the three namespace/resource artifacts record Active namespaces, exact quotas and LimitRanges, and zero `default-deny` policies.
+- [ ] Dev loses zero ready replicas and adds zero attributable restarts after foundation convergence — Unavailable evidence: no dev business Deployment existed before or after the foundation; the observer retained this as a failed continuity gate rather than treating an empty set as success.
+- [ ] Required dev connections and health checks pass after foundation convergence — Partial evidence: each environment Redis is healthy, but there is no active dev business service or owner-provided endpoint/connection baseline to test.
 - [ ] Default-deny revision converges at the exact reviewed SHA
 - [ ] Dev loses zero ready replicas and adds zero attributable restarts after default deny
 - [ ] Six unique directed cross-environment TCP attempts are denied
 - [ ] Three same-environment TCP attempts are allowed
 - [ ] DNS succeeds in dev, staging, and prod
-- [ ] Redis is Ready and returns `PONG` in dev, staging, and prod
+- [x] Redis is Ready and returns `PONG` in dev, staging, and prod — Evidence: the same evidence directory records `PONG` in `raw/dev-redis-ping.txt`, `raw/staging-redis-ping.txt`, and `raw/prod-redis-ping.txt`; live Deployments were `1/1` available and all three pods were Ready with zero restarts using the reviewed digest.
 - [ ] Six unique directed cross-environment Redis attempts are denied
 - [ ] A unique Redis Pub/Sub event is observed only in its source environment
 - [ ] Shared `infra-redis` and namespace `redis` are removed while all four retained controllers remain healthy
@@ -67,14 +67,17 @@
 - [ ] Dev remains ready, restart-stable, connected, and healthy for ten minutes after cleanup
 - [ ] `summary.json` validates against the evidence schema — Static-only evidence: the cumulative evidence contract validates a synthetic complete shape; no live fixture/cleanup summary exists.
 - [ ] Raw observations support every summarized result
-- [ ] Command audit contains zero direct managed-state mutations — Partial evidence: the identity-bound prerequisite run recorded 33 read-only commands and `mutatingCommands: 0`; the final six-phase audit does not exist yet.
+- [ ] Command audit contains zero direct managed-state mutations — Partial evidence: the exact-revision foundation observation recorded 33 commands and zero entries with `mutating=true`; `summary.json` reports `commandAudit.mutatingCommands: 0` and `PASS`, but the final six-phase audit does not exist yet.
 - [ ] Final result is `PASS` only after every item above is evidenced
 
 ## Current Status
 
-**STAGE-1 ACTIVATION PREPARED; LIVE RECONCILIATION PENDING.** The existing cluster
-is the selected shared target, the CNI and exact platform inventory are proven
-live, and the branch activates only the three environment-policy Applications.
-Business applications and fixtures remain inactive. IAM group mappings and a
-dev business-workload continuity subject remain explicitly unavailable, so RBAC
-and full final acceptance stay open; repository inference does not satisfy them.
+**STAGE-1 FOUNDATION LIVE; LATER STAGES NOT AUTHORIZED BY CURRENT EVIDENCE.** PR
+#6 reconciled the three Active namespaces, exact budgets and limits, scoped RBAC
+objects, allow policies, and three healthy Redis instances through ArgoCD at
+`a06852d7960ef6a194f41f48d4ecbc860e182be3`. Business applications and fixtures
+remain inactive, all five platform Applications remain healthy, and the command
+audit contains zero mutations. The observer correctly remains `FAIL` because no
+pre-existing dev business workload can satisfy the continuity baseline. IAM
+group mappings are also deferred. Default deny, shared-Redis retirement,
+fixtures, live network/resource/RBAC tests, and final acceptance remain open.
