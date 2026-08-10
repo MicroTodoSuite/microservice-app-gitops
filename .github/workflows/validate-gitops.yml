@@ -1,0 +1,77 @@
+name: validate-gitops
+
+# Renders and schema-validates every environment, and enforces the GitOps
+# hygiene rules, WITHOUT any cluster credentials or deployment. Closes the
+# task-3 validation gap and guards service onboarding (spec 003, research D15).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  render-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kustomize + kubeconform
+        run: |
+          set -euo pipefail
+          curl -sSfL https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh | bash
+          sudo mv kustomize /usr/local/bin/
+          KUBECONFORM_VERSION=v0.6.7
+          curl -sSfL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
+            | tar -xz kubeconform
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Render + schema-validate every kustomization
+        run: |
+          set -euo pipefail
+          # Every directory that has a kustomization.yaml is a render target.
+          fail=0
+          while IFS= read -r kdir; do
+            echo "::group::render $kdir"
+            if kustomize build "$kdir" \
+                | kubeconform -strict -ignore-missing-schemas -summary; then
+              echo "OK: $kdir"
+            else
+              echo "::error::render/validate failed for $kdir"; fail=1
+            fi
+            echo "::endgroup::"
+          done < <(find apps clusters environments bootstrap infrastructure \
+                     -name kustomization.yaml -not -path '*/components/*' -printf '%h\n' \
+                   | sort -u)
+          # components/ are Kustomize Components (not standalone-buildable) and
+          # are exercised through the overlays/topology that include them.
+          exit $fail
+
+      - name: Reject committed secret material
+        run: |
+          set -euo pipefail
+          # No secret VALUE may be committed. ESO references (name/key only) and
+          # go-template placeholders are allowed; a literal assignment is not.
+          if grep -rniE \
+               'JWT_SECRET:[[:space:]]*["'\'']?[A-Za-z0-9]{6,}' \
+               apps environments clusters \
+             | grep -viE '\{\{|secretKeyRef|key:|name:'; then
+            echo "::error::a committed secret value was found"; exit 1
+          fi
+          if grep -rniE 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY' apps environments clusters; then
+            echo "::error::a committed private key was found"; exit 1
+          fi
+          echo "OK: no committed secret material"
+
+      - name: Reject mutable image references
+        run: |
+          set -euo pipefail
+          # Images must be pinned by digest (newName + digest), never by tag or
+          # newTag. The all-zero digest is an allowed DISABLED placeholder.
+          if grep -rnE '^\s*newTag:' apps; then
+            echo "::error::newTag is forbidden; pin images by digest"; exit 1
+          fi
+          echo "OK: no tag-based image references"
