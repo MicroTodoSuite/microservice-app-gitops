@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: microtodo-prod
+resources:
+  - ../../base
+patches:
+  - target: {kind: Deployment, name: namespace-isolation-probe-client}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: namespace-isolation-probe-client}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: probe-client
+                env:
+                  - {name: SOURCE_ENV, value: prod}
+                  - {name: FOREIGN_PROBE_A, value: namespace-isolation-probe-server.microtodo-dev.svc.cluster.local}
+                  - {name: FOREIGN_PROBE_B, value: namespace-isolation-probe-server.microtodo-staging.svc.cluster.local}
+                  - {name: FOREIGN_REDIS_A, value: redis.microtodo-dev.svc.cluster.local}
+                  - {name: FOREIGN_REDIS_B, value: redis.microtodo-staging.svc.cluster.local}
+  - target: {kind: Deployment, name: namespace-isolation-redis-subscriber}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: namespace-isolation-redis-subscriber}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: redis-subscriber
+                env:
+                  - {name: SOURCE_ENV, value: prod}

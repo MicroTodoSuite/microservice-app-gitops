@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microtodosuite
+      microtodosuite.io/isolation-scope: environment
+    includeSelectors: false
+    includeTemplates: false
+
+resources:
+  - limitrange.yaml
+  - networkpolicy-default-deny.yaml
+  - networkpolicy-allow-dns.yaml
+  - networkpolicy-allow-intra-namespace.yaml
+  - networkpolicy-allow-redis.yaml
+  - redis-serviceaccount.yaml
+  - redis-deployment.yaml
+  - redis-service.yaml
+  - role.yaml

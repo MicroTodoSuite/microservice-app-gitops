@@ -16,6 +16,7 @@
     "crossEnvironmentTests",
     "sameEnvironmentTests",
     "dnsTests",
+    "redisIsolation",
     "resourceViolation",
     "rbacChecks",
     "devContinuity",
@@ -23,7 +24,7 @@
     "result"
   ],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "const": "1.1.0" },
     "feature": { "const": "005-namespace-isolation" },
     "constitutionVersion": { "const": "1.2.0" },
     "expectedRevision": { "$ref": "#/$defs/gitSha" },
@@ -60,7 +61,17 @@
         },
         "registrationInfrastructureApplications": {
           "type": "array",
-          "maxItems": 0
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "infra-keda",
+              "infra-cert-manager",
+              "infra-external-secrets",
+              "infra-kyverno"
+            ]
+          }
         },
         "result": { "const": "PASS" }
       }
@@ -92,6 +103,37 @@
       "maxItems": 3,
       "uniqueItems": true,
       "items": { "$ref": "#/$defs/passByEnvironment" }
+    },
+    "redisIsolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instances", "crossEnvironmentTests", "pubSubTests", "sharedApplicationPresent", "sharedNamespacePresent", "result"],
+      "properties": {
+        "instances": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/redisInstance" }
+        },
+        "crossEnvironmentTests": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/deniedConnection" }
+        },
+        "pubSubTests": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pubSubTest" }
+        },
+        "sharedApplicationPresent": { "const": false },
+        "sharedNamespacePresent": { "const": false },
+        "result": { "const": "PASS" }
+      }
     },
     "resourceViolation": {
       "type": "object",
@@ -129,7 +171,7 @@
     },
     "devContinuity": {
       "type": "array",
-      "minItems": 5,
+      "minItems": 6,
       "items": { "$ref": "#/$defs/continuitySample" }
     },
     "commandAudit": {
@@ -173,7 +215,9 @@
             { "contains": { "const": "LimitRange" } },
             { "contains": { "const": "NetworkPolicy" } },
             { "contains": { "const": "Role" } },
-            { "contains": { "const": "RoleBinding" } }
+            { "contains": { "const": "RoleBinding" } },
+            { "contains": { "const": "RedisDeployment" } },
+            { "contains": { "const": "RedisService" } }
           ]
         },
         "result": { "const": "PASS" }
@@ -213,12 +257,43 @@
         "result": { "const": "PASS" }
       }
     },
+    "redisInstance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment", "namespace", "deployment", "service", "readyReplicas", "ping", "result"],
+      "properties": {
+        "environment": { "$ref": "#/$defs/environmentName" },
+        "namespace": { "$ref": "#/$defs/namespaceName" },
+        "deployment": { "const": "redis" },
+        "service": { "const": "redis" },
+        "readyReplicas": { "const": 1 },
+        "ping": { "const": "PONG" },
+        "result": { "const": "PASS" }
+      }
+    },
+    "pubSubTest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "eventId", "observedIn", "result"],
+      "properties": {
+        "source": { "$ref": "#/$defs/environmentName" },
+        "eventId": { "type": "string", "minLength": 1 },
+        "observedIn": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/environmentName" }
+        },
+        "result": { "const": "PASS" }
+      }
+    },
     "continuitySample": {
       "type": "object",
       "additionalProperties": false,
       "required": ["phase", "observedAt", "revision", "readyReplicaLoss", "restartDelta", "health", "result"],
       "properties": {
-        "phase": { "enum": ["baseline", "foundation", "default-deny", "fixtures", "final"] },
+        "phase": { "enum": ["baseline", "foundation", "default-deny", "redis-retired", "fixtures", "final"] },
         "observedAt": { "type": "string", "format": "date-time" },
         "revision": { "$ref": "#/$defs/gitSha" },
         "readyReplicaLoss": { "const": 0 },

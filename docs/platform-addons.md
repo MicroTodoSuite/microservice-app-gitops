@@ -24,10 +24,11 @@ Kustomize transformations beside it express repository-owned changes.
 
 ## Registration and reconciliation
 
-`clusters/base/infrastructure.yaml` discovers each direct Kustomize root under
-`infrastructure/` and creates an Application named `infra-<folder>`. Vendor
-subdirectories and the inactive `argo-rollouts` placeholder are explicitly
-excluded. Each generated Application:
+`clusters/base/infrastructure.yaml` starts with an empty list. Each cluster's
+`activation-infrastructure.yaml` injects the exact reviewed Kustomize roots and
+creates an Application named `infra-<name>` for each entry. Adding a directory
+under `infrastructure/` therefore cannot activate it implicitly. Each generated
+Application:
 
 - reads the repository URL and revision injected by the cluster registration;
 - deploys to the in-cluster Kubernetes API and its dedicated namespace;
@@ -74,7 +75,8 @@ A new cluster registration is a sibling of `clusters/local-kind` and consumes
 
 1. Add its `cluster-registration` ConfigMap with the reachable Git source and
    reviewed revision.
-2. Add activation patches listing the environments hosted by that cluster.
+2. Add activation patches listing the environments and infrastructure roots
+   hosted by that cluster.
 3. Add any destination-owned store, issuer, identity, or registry binding as a
    registration/environment resource; do not edit an `infrastructure/` root.
 4. Create the root Application once through that cluster's audited bootstrap
@@ -82,9 +84,11 @@ A new cluster registration is a sibling of `clusters/local-kind` and consumes
 5. Verify the generated infrastructure Applications and capabilities before
    activating business services.
 
-The shared ApplicationSet then discovers the same five paths and installs the
-same pinned controllers and Redis dependency. Moving from one registered environment to the next is
-a values-and-activation change, not a new platform layout.
+The shared ApplicationSet then installs only those reviewed entries. The local
+registration currently activates the four pinned controllers and Redis;
+optional roots such as SonarQube remain inert until a registration explicitly
+allowlists them. Moving from one registered environment to the next is a
+values-and-activation change, not a new platform layout.
 
 ## Validation
 
@@ -95,9 +99,9 @@ Static validation is cluster-free:
 ```
 
 It verifies retained checksums, complete controller inventory, immutable image
-references, exact cluster-scoped permissions, five-root discovery,
-provider-neutral first-party resources, Kyverno enforcement, and all Kustomize
-renders.
+references, exact cluster-scoped permissions, six declared infrastructure
+roots, explicit activation lists with no folder discovery, provider-neutral
+first-party resources, Kyverno enforcement, and all Kustomize renders.
 
 The composite live verifier is read-only and retains raw evidence under
 `.local/evidence/platform-addons/<timestamp>/`:

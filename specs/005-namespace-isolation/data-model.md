@@ -9,12 +9,13 @@ Kubernetes desired state and immutable acceptance evidence.
 SharedClusterRegistration (external prerequisite)
 ├── activates 3 EnvironmentNamespaces
 ├── activates 0 BusinessApplications
-└── activates 0 InfrastructureApplications
+└── retains 4 ControllerInfrastructureApplications
 
 EnvironmentNamespaces
     ├── consumes 1 ManagedIsolationBase
     ├── owns 1 ResourceBudget
     ├── owns 1 EnvironmentAccessBinding
+    ├── owns 1 EnvironmentRedisInstance
     ├── owns 0..N ExactNetworkAllowances
     └── produces observations in 1 IsolationEvidenceRun
 
@@ -33,7 +34,7 @@ DevContinuityBaseline
 | `server` | `https://kubernetes.default.svc` | ArgoCD reconciles its own cluster. |
 | `environmentActivation` | `[dev, staging, prod]` | Produces exactly the three environment-policy Applications. |
 | `businessApplicationActivation` | `[]` | Real service activation is later dev-first work. |
-| `infrastructureActivation` | `[]` | Add-on activation is later work. |
+| `infrastructureActivation` | `[keda, cert-manager, external-secrets, kyverno]` | Exact retained controller list; no folder discovery and no Redis. |
 | `repositoryRevision` | reviewed immutable Git identity | No live parameter override. |
 
 The current shared base does not yet expose this independent activation state:
@@ -52,6 +53,7 @@ Reusable Kustomize desired state consumed by all managed environments.
 | `dnsAllowance` | reference | Allows only required TCP/UDP DNS traffic to the cluster DNS namespace/selector contract. |
 | `sameEnvironmentAllowance` | reference | Selects pods only inside the current namespace; never another environment. |
 | `workloadRole` | reference | Custom namespaced role with explicit API groups, resources, and verbs. |
+| `redisResources` | reference set | One immutable Deployment, ServiceAccount, Service, and policy contract rendered into the consuming namespace. |
 | `namespace` | absent | The base does not own a concrete namespace name. |
 | `quotaValues` | absent | Numeric budgets belong to environment overlays. |
 | `subjects` | absent | Identity groups belong to environment overlays. |
@@ -62,8 +64,10 @@ Reusable Kustomize desired state consumed by all managed environments.
   environment overlay.
 - No resource contains `microtodo-dev`, `microtodo-staging`, or
   `microtodo-prod` as a behavioral fork.
-- The base contains no cloud account, IAM ARN, registry endpoint, image tag, or
-  secret value.
+- The base contains no cloud account, IAM ARN, registry endpoint, mutable image
+  reference, or secret value.
+- The Redis image is selected by immutable digest and never points to the
+  legacy shared `redis` namespace.
 
 ## EnvironmentNamespace
 
@@ -76,6 +80,7 @@ Reusable Kustomize desired state consumed by all managed environments.
 | `maintainerGroup` | `microtodosuite:dev-maintainers` | `microtodosuite:staging-maintainers` | `microtodosuite:prod-maintainers` | One distinct group per namespace. |
 | `resourceBudget` | reference | reference | reference | Exact evidence-derived values. |
 | `networkAllowances` | list | list | list | Empty except for approved exact dependencies. |
+| `redisInstance` | `redis.microtodo-dev.svc` | `redis.microtodo-staging.svc` | `redis.microtodo-prod.svc` | Exactly one namespace-local instance. |
 | `applicationName` | `env-dev` | `env-staging` | `env-prod` | Derived by the current ApplicationSet. |
 
 ### Validation Rules
@@ -109,6 +114,31 @@ Reusable Kustomize desired state consumed by all managed environments.
   do not exceed the approved capacity envelope used for activation.
 - Quota totals are documented as admission ceilings, not dedicated reservation.
 - A value change requires a new capacity baseline and reviewed Git change.
+
+## EnvironmentRedisInstance
+
+| Field | Type | Validation |
+| --- | --- | --- |
+| `environment` | environment name | Matches the owning namespace. |
+| `namespace` | namespace name | One of the three managed namespaces; never `redis`. |
+| `deployment` | `redis` | Exactly one replica with Recreate strategy. |
+| `service` | `redis:6379/TCP` | Namespace-local ClusterIP; service and container ports match. |
+| `image` | immutable image reference | Redis 7.4.9 selected by digest. |
+| `resources` | request/limit set | 25m/32Mi requests and 250m/128Mi limits, included in the environment quota. |
+| `storage` | `emptyDir` | Explicitly ephemeral; no durability claim. |
+| `clients` | pod selector set | todos-api and log-message-processor in the same namespace. |
+| `health` | observation | Deployment Available and `PING` returns `PONG`. |
+| `eventIsolation` | observation matrix | A unique event is observed only by the subscriber connected to the same instance. |
+
+### Invariants
+
+- Exactly three managed Redis Deployments and Services exist, one per
+  environment namespace.
+- The shared EKS cluster has no `infra-redis` Application and no `redis`
+  namespace after migration.
+- Managed todos-api and log-message-processor overlays use `REDIS_HOST=redis`;
+  the inactive application list remains empty in this feature.
+- The local pilot's Redis path and endpoint remain byte-unchanged.
 
 ## ExactNetworkAllowance
 
@@ -196,8 +226,9 @@ platform principals and are reported separately in evidence.
 | `expectedRevision` | full Git SHA | Revision containing active isolation and fixtures. |
 | `cleanupRevision` | full Git SHA | Revision after fixture revert and final convergence. |
 | `cluster` | CNI gate summary | Identifies cluster without storing credentials. |
-| `applicationInventory` | categorized arrays | Exactly three environment-policy, zero registration-generated business-service, and zero registration-generated infrastructure Applications. |
+| `applicationInventory` | categorized arrays | Exactly three environment-policy, zero business-service, exactly four retained controller infrastructure Applications, and no `infra-redis`. |
 | `environments` | array | Exactly dev, staging, and prod live observations. |
+| `redisIsolation` | object | Three Ready/PONG instances, six denied directed cross-environment Redis paths, and Pub/Sub separation. |
 | `crossEnvironmentTests` | array | Exactly six unique directed denied pairs. |
 | `sameEnvironmentTests` | array | Exactly three allowed pairs. |
 | `dnsTests` | array | Exactly three successful checks. |
@@ -214,6 +245,7 @@ PLANNED
   -> BLOCKED_PREREQUISITE (constitution, registration, CNI, identity, or baseline missing)
   -> FOUNDATION_RECONCILED
   -> DEFAULT_DENY_RECONCILED
+  -> SHARED_REDIS_RETIRED
   -> FIXTURES_RECONCILED
   -> TESTED
   -> CLEANUP_RECONCILED

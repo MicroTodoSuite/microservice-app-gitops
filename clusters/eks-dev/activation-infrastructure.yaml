@@ -1,0 +1,20 @@
+- op: replace
+  path: /spec/generators/0/list/elements
+  value:
+    - name: keda
+      path: infrastructure/keda
+      namespace: keda
+    - name: cert-manager
+      path: infrastructure/cert-manager
+      namespace: cert-manager
+    - name: external-secrets
+      path: infrastructure/external-secrets
+      namespace: external-secrets
+    - name: kyverno
+      path: infrastructure/kyverno
+      namespace: kyverno
+    # Foundation value only. Remove this element in the reviewed retirement
+    # revision after all three environment-owned instances return PONG.
+    - name: redis
+      path: infrastructure/redis
+      namespace: redis

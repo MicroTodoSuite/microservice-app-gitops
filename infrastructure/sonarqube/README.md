@@ -18,11 +18,10 @@ contract — the reusable `ci.yml` always targets it via `SONAR_HOST_URL`.
 
 - **Owner**: platform (ArgoCD-managed add-on), consistent with constitution
   principle 11 — same ownership as Istio/KEDA/Kyverno.
-- **Status**: manifests present but **INACTIVE**. `clusters/base/infrastructure.yaml`
-  explicitly excludes `infrastructure/sonarqube` (like `argo-rollouts`), so no
-  cluster deploys it until that exclude is removed on the intended
-  tooling/management cluster. The CI quality gate also stays visibly skipped
-  until `sonar-host-url` is set.
+- **Status**: manifests present but **INACTIVE**. The shared infrastructure
+  ApplicationSet has an empty activation default, and current cluster
+  registrations omit `infrastructure/sonarqube`. The CI quality gate also stays
+  visibly skipped until `sonar-host-url` is set.
 
 ## What's in this folder
 
@@ -36,8 +35,8 @@ contract — the reusable `ci.yml` always targets it via `SONAR_HOST_URL`.
 
 ## How to activate (on a tooling/management cluster)
 
-1. Remove the `infrastructure/sonarqube` exclude in
-   `clusters/base/infrastructure.yaml` **only** for that cluster's registration.
+1. Add an exact `sonarqube` entry to the intended tooling/management cluster's
+   `activation-infrastructure.yaml`; do not change the shared empty default.
 2. Complete the `kustomization.yaml` TODOs (digests, exposure).
 3. Create a SonarQube token and set org var `SONAR_HOST_URL` + secret
    `SONAR_TOKEN`; the CI quality gate then activates for every service.

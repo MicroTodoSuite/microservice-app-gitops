@@ -2,9 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Self-hosted SonarQube (code-quality gate for BOTH profiles, research D6).
-# INACTIVE: clusters/base/infrastructure.yaml explicitly excludes
-# infrastructure/sonarqube, so no cluster deploys it until that exclude is
-# removed on the intended (tooling/management) cluster. See README.md.
+# INACTIVE: current cluster activation lists omit infrastructure/sonarqube, so
+# no cluster deploys it until the intended tooling/management registration adds
+# an exact allowlist entry. See README.md.
 #
 # TODO(platform) before activation:
 #   1. Pin `sonarqube` and `postgres` images by digest (offline render cannot

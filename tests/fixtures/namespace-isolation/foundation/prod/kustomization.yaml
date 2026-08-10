@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../environments/prod
+patches:
+  - target: {group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: default-deny}
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: {name: default-deny}

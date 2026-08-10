@@ -54,11 +54,12 @@ Deployment-owned pods and new TCP connections.
 ## Decision 2: Reuse one managed isolation base and three value-owning overlays
 
 **Decision**: Add a reusable `environments/base` Kustomize root for common
-LimitRange, default-deny, DNS, same-namespace network, and workload-maintainer
-Role behavior. `environments/dev`, `environments/staging`, and
-`environments/prod` each own their Namespace, ResourceQuota, RoleBinding, and
-any exact environment-specific allow policy. The current `environments/local`
-root remains independent and unchanged.
+LimitRange, default-deny, DNS, same-namespace network, workload-maintainer Role,
+and digest-pinned Redis behavior. `environments/dev`, `environments/staging`,
+and `environments/prod` each own their Namespace, ResourceQuota, RoleBinding,
+and any exact environment-specific allow policy. Each environment Application
+instantiates the common Redis resources in its own namespace. The current
+`environments/local` root remains independent and unchanged.
 
 **Rationale**:
 
@@ -121,6 +122,17 @@ workload capacity, and a disruption reserve before approving numeric quota
 values. Each environment then receives aggregate CPU and memory requests and
 limits plus a pod-count ceiling. A common LimitRange supplies bounded container
 defaults and maxima.
+
+The 2026-08-09 read-only baseline found two `m7i-flex.large` nodes with a
+combined 3860m allocatable CPU, 14,549,840 Ki allocatable memory, and 58 pod
+slots. The 28 current pods declare 1226m CPU and 796 Mi memory requests. Metrics
+Server is absent, so actual use is explicitly unavailable. For the policy-only
+scope, initial request ceilings are 400m/512Mi for dev, 500m/640Mi for staging,
+and 650m/896Mi for prod. Their 1550m CPU and 2048Mi memory totals, plus 50m/64Mi
+for replacing one Redis with three, leave 1034m CPU and more than 10 Gi memory
+outside environment request ceilings. These values cover Redis and verification
+fixtures only; business-service activation must produce a new baseline and
+quota review.
 
 **Rationale**:
 
@@ -224,24 +236,31 @@ and writes untracked evidence under `.local/evidence/namespace-isolation/`.
 - A script that edits Kustomizations or commits automatically: humans must review
   the exact activation and cleanup changes; the verifier remains observational.
 
-## Decision 7: Keep cluster registration and CNI configuration outside this feature
+## Decision 7: Keep cluster identity and CNI ownership outside this feature
 
 **Decision**: This feature can merge static policy and verification contracts,
 but live activation waits for separately reviewed prerequisites:
 
-1. constitution v1.2.0 is merged in `microservice-app-docs`;
-2. the AWS foundation is reconciled from its current dedicated-dev/full-profile
+1. the AWS foundation is reconciled from its current dedicated-dev/full-profile
    contract to the shared-cluster profile, including verified CNI enforcement;
-3. `clusters/eks-main` consumes reusable registration wiring, activates only the
+2. `clusters/eks-main` consumes reusable registration wiring, activates only the
    `dev`, `staging`, and `prod` environment-policy list against the in-cluster
-   API, and keeps business-service and infrastructure/add-on activation empty;
-   and
-4. approved AWS principals map to the stable Kubernetes groups.
+   API, keeps business-service activation empty, and starts with the exact four
+   controller Applications plus the existing `infra-redis`; and
+3. approved AWS principals map to the stable Kubernetes groups.
+
+This feature owns the reusable infrastructure ApplicationSet refactor from
+folder discovery to explicit list values and supplies values that keep
+`infra-keda`, `infra-cert-manager`, `infra-external-secrets`, and
+`infra-kyverno`, retain `infra-redis` through replacement verification, and
+remove only `infra-redis` in the later retirement revision. It does not create
+the EKS cluster, alter Terraform/access entries, or perform root bootstrap.
 
 **Rationale**:
 
-- Current GitOps `main` contains only `clusters/local-kind`, although
-  `clusters/README.md` names `eks-main` as the later economical registration.
+- Current live GitOps revision
+  `24c5c1a9f7b8c870dd0f5b1a11ce89326157c713` uses `clusters/eks-dev`, not
+  `eks-main`, and its root auto-created all five infrastructure Applications.
 - `clusters/README.md` currently requires matching app/environment activation
   lists, while `clusters/base/infrastructure.yaml` automatically discovers every
   `infrastructure/*` root. Consuming that base unchanged would deploy services
@@ -250,9 +269,9 @@ but live activation waits for separately reviewed prerequisites:
 - The sibling ops branch currently publishes a dev-only handoff for
   `microtodosuite-dev` and `clusters/eks-dev`; that contract predates the adopted
   shared profile.
-- Changing Terraform, EKS access entries, or the cluster registration would mix
-  infrastructure and namespace-isolation ownership and violate the requested
-  scope.
+- Changing Terraform or EKS access entries would mix ownership and violate the
+  requested scope. Refactoring reusable GitOps activation values is necessary
+  to remove only shared Redis without pruning healthy controllers.
 
 **Alternatives rejected**:
 
@@ -262,5 +281,34 @@ but live activation waits for separately reviewed prerequisites:
   this feature.
 - Reusing matching application/environment activation or automatic
   infrastructure discovery for `eks-main`. Namespace policy must be activatable
-  without installing add-ons or real services; the registration feature must
-  provide that separation before this feature goes live.
+  without installing new add-ons or real services.
+
+## Decision 8: Run one Redis instance per managed namespace
+
+**Decision**: Render the same immutable Redis 7.4.9 image and hardened ephemeral
+Deployment/Service contract once inside each managed namespace. Managed
+todos-api and log-message-processor overlays use the namespace-local `redis`
+service name. The local pilot retains its current
+`redis.redis.svc.cluster.local` endpoint and `infra-redis` Application.
+
+**Rationale**:
+
+- todos-api publishes and log-message-processor consumes the same Redis Pub/Sub
+  channel. One shared Redis would make an environment's events visible to
+  consumers in the other environments even if their application deployments
+  were otherwise isolated.
+- Namespace-local service discovery and NetworkPolicy create both a routing and
+  enforcement boundary.
+- Reusing the existing digest, probes, security context, and non-durable
+  contract avoids introducing a new image or a false persistence claim.
+- Keeping local unchanged preserves its already-validated pilot while the
+  managed registration removes only its own `infra-redis`.
+
+**Alternatives rejected**:
+
+- One shared Redis with channel-name prefixes: application code does not enforce
+  those prefixes, and a naming convention is not an isolation control.
+- Separate logical Redis databases: Pub/Sub is not isolated by Redis database
+  number and clients can still observe the shared server.
+- Deploying three Redis instances in one `redis` namespace: that retains a
+  cross-namespace dependency and weakens both DNS and policy ownership.

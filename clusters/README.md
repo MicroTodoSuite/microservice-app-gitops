@@ -11,7 +11,15 @@ The registration seam is intentionally small:
   `revision` values;
 - `activation-apps.yaml` and `activation-environments.yaml` inject matching
   `{ env, server }` lists; and
+- `activation-infrastructure.yaml` injects an exact reviewed
+  `{ name, path, namespace }` list; and
 - the shared templates derive the namespace as `microtodo-{{ .env }}`.
+
+Infrastructure is never activated by folder discovery. The local registration
+explicitly retains its five validated entries, including local Redis. A managed
+registration retains that five-entry list during environment-Redis migration
+and switches to the reviewed four-controller list only after replacement
+readiness and protocol checks pass.
 
 Because every reconciler targets its own cluster, every activation uses
 `server: https://kubernetes.default.svc`. A raw EKS or AKS API endpoint and
@@ -20,9 +28,9 @@ one-time bootstrap of that cluster's root Application.
 
 ## Economical version (active)
 
-One cluster (`local-kind`, later `eks-main`) runs one ArgoCD instance and hosts
-multiple environments as namespaces. Its two activation patches carry the same
-list:
+One shared cluster (`eks-main` after its separate handoff) runs one ArgoCD
+instance and hosts multiple environments as namespaces. Its app activation
+stays empty for feature 005 while its environment activation carries this list:
 
 ```yaml
 - env: dev
@@ -67,9 +75,8 @@ continue pulling and reconciling the reviewed Git revision even while
 
 ## Current registration wiring
 
-`clusters/local-kind/kustomization.yaml` currently owns the concrete
-repo/revision replacement targets in addition to consuming `../base`. Before a
-new sibling can be literally value-only, that replacement map must be promoted
-to shared registration wiring or reused without divergence. This is a
-mechanical GitOps refactor; it does not change the per-cluster ArgoCD topology,
-the in-cluster destination, or the Terraform handoff values.
+Each sibling registration consumes `../base`, patches the three independent
+activation lists, and replaces only the repository URL and revision fields from
+its ConfigMap. `clusters/eks-dev` remains a registration-only foundation until
+the separate shared-cluster handoff is reviewed; feature 005 does not create
+`clusters/eks-main` or bootstrap its root Application.

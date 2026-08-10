@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: namespace-isolation-probe-server
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: namespace-isolation-probe-server
+  ports:
+    - name: probe
+      protocol: TCP
+      port: 6380
+      targetPort: probe
