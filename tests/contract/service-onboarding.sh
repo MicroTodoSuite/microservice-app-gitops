@@ -198,9 +198,10 @@ new_desired_state=(
   "$ROOT/scripts/pilot/verify-services.sh"
 )
 if rg -n -i \
+    --glob '!**/overlays/{dev,staging,prod}/**' \
     'amazonaws|azure|azurecr|workload\.identity|(^|[^[:alnum:]_])(aws|eks|aks|ecr)([^[:alnum:]_]|$)' \
     "${new_desired_state[@]}"; then
-  fail "new service foundation contains a cloud-provider dependency"
+  fail "environment-neutral service foundation contains a cloud-provider dependency"
 fi
 
 # Shared-EKS delivery must be progressive, while the reusable/local registration
@@ -231,8 +232,18 @@ done
 require_text clusters/eks-dev/rolling-sync-apps.yaml \
   'path: /spec/template/spec/syncPolicy/automated' \
   "EKS RollingSync patch does not remove generated Application autosync"
-require_text clusters/eks-dev/activation-apps.yaml 'value: \[\]' \
-  "business activation must remain empty until all prerequisites pass"
+if [[ "$(rg -c '^    - env: (dev|staging|prod)$' \
+    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 3 ]]; then
+  fail "business activation must list exactly dev, staging, and prod"
+fi
+if [[ "$(find "$ROOT/apps" -mindepth 1 -maxdepth 1 -type d | wc -l)" != 5 ]]; then
+  fail "business service discovery must contain exactly five services"
+fi
+reject_text clusters/eks-dev/activation-apps.yaml \
+  'env: local|env: production' \
+  "business activation contains an unsupported environment"
+require_text clusters/local-kind/activation-apps.yaml 'value: \[\]' \
+  "managed activation unexpectedly changed the local pilot registration"
 
 # Every production overlay must select the economical topology and opt into a
 # replica-based, metric-gated Rollout without duplicating its pod template.

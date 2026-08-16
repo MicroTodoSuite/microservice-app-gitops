@@ -26,5 +26,5 @@ patches:
                   limits: {cpu: 250m, memory: 256Mi}
 images:
   - name: todos-api
-    newName: REGISTRY_PLACEHOLDER/todos-api
-    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+    newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
+    digest: sha256:80367c2b7bcd15f12a5308e2af06b449178a1c91aea095d137b963dcf10d6627

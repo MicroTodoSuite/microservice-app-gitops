@@ -103,6 +103,7 @@ spec:
           required: true
           mutateDigest: true
           verifyDigest: true
+          useCache: true
           imageRegistryCredentials:
             providers:
               - amazon
@@ -118,6 +119,7 @@ spec:
                       githubWorkflowRef: refs/heads/main
                     rekor:
                       url: https://rekor.sigstore.dev
+                  signatureAlgorithm: sha256
                 - keyless:
                     subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
                     issuer: https://token.actions.githubusercontent.com
@@ -127,6 +129,7 @@ spec:
                       githubWorkflowRef: refs/heads/main
                     rekor:
                       url: https://rekor.sigstore.dev
+                  signatureAlgorithm: sha256
                 - keyless:
                     subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
                     issuer: https://token.actions.githubusercontent.com
@@ -136,6 +139,7 @@ spec:
                       githubWorkflowRef: refs/heads/main
                     rekor:
                       url: https://rekor.sigstore.dev
+                  signatureAlgorithm: sha256
                 - keyless:
                     subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
                     issuer: https://token.actions.githubusercontent.com
@@ -145,6 +149,7 @@ spec:
                       githubWorkflowRef: refs/heads/main
                     rekor:
                       url: https://rekor.sigstore.dev
+                  signatureAlgorithm: sha256
                 - keyless:
                     subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
                     issuer: https://token.actions.githubusercontent.com
@@ -154,3 +159,4 @@ spec:
                       githubWorkflowRef: refs/heads/main
                     rekor:
                       url: https://rekor.sigstore.dev
+                  signatureAlgorithm: sha256
