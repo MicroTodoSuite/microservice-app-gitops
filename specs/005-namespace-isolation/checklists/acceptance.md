@@ -47,6 +47,7 @@
 - [x] GitOps prerequisites render and validate while business activation remains empty — Evidence: on 2026-08-16, `scripts/managed/validate-namespace-isolation.sh` ran with checksum-verified kubeconform v0.7.0 and Kubernetes schema 1.35.0 across both cluster registrations, all three managed environments, all fixtures, all infrastructure roots, and all twenty service overlays. Every provided schema reported zero invalid and zero errors; CRDs without configured schemas were explicitly skipped. The static contracts additionally prove `clusters/eks-dev/activation-apps.yaml` is still `value: []`.
 - [x] The consolidated credential-free pre-deployment validation is green — Evidence: on 2026-08-16 all four GitOps contracts, Bash syntax checks, Argo Rollouts vendor checksum, every Kustomize/kubeconform render, evidence-schema validation, Terraform format/root validation/eight module tests/one root test/shell contract, organization workflow contract, and all five service test/audit/build/Trivy/SBOM pipelines passed. The authoritative GitHub runs and exact candidate heads are cited above; no check is presented as AWS apply or live workload evidence.
 - [x] GitOps release prerequisites are reviewed, merged, and reconciled before business activation — Evidence: [GitOps PR #9](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/9) was approved by `Tiago0507` at exact head `4730563c41befb44d7489de34faa7bbe83548f22`, passed `render-and-validate`, and merged as `d9e61330d8ae2a44936b7b7dfb233ddb61165a92`. The live prerequisite observer at `.local/evidence/namespace-isolation/20260816T214000Z-prerequisites-d9e6133/summary.json` returned `PASS` with zero business Applications, RollingSync enabled in order dev/staging/prod with `maxUpdate: 1`, five controller Applications, Ready Argo Rollouts, three Ready ExternalSecrets, the exact three quotas, three Ready/PONG Redis instances, no shared Redis Application/namespace, zero direct mutations, and zero Secret-value reads.
+- [ ] Three destination JWT secrets are non-empty and mutually distinct and all six cross-environment source reads are denied — Partial evidence: the prerequisite observer proves all three environment-specific ExternalSecrets are Ready through their own IRSA paths. A value-redacted AWS comparison proves the three 64-character source values are non-empty and have three distinct SHA-256 digests; `.local/evidence/namespace-isolation/20260816T215300Z-secret-sources/source-secret-hashes.json` has SHA-256 `05a79b066dfbd2773c2fc8ae8555268ab98f9ef705637d56312342f8a11b964e`. Destination hashes and six live cross-role denial attempts remain required; no plaintext value was printed or persisted.
 
 ## Static Desired-State Evidence
 
@@ -85,10 +86,10 @@
 - [x] Shared `infra-redis` and namespace `redis` are removed while all five retained controllers remain healthy — Evidence: `.local/evidence/namespace-isolation/20260816T214000Z-prerequisites-d9e6133/summary.json` records exactly `infra-argo-rollouts`, `infra-cert-manager`, `infra-external-secrets`, `infra-keda`, and `infra-kyverno`, with `sharedApplicationPresent: false`, `sharedNamespacePresent: false`, three Ready Redis instances, and three PONG passes.
 - [ ] Deliberate over-budget Deployment cannot realize its excess pod and records the expected event
 - [ ] Comparison-environment workload remains ready, restart-stable, and healthy during the violation
-- [ ] RBAC matrix contains exactly three own-environment workload allows and six cross-environment denies
-- [ ] All maintainer groups are denied isolation-control changes
-- [ ] Unbound subject is denied in every managed namespace
-- [ ] ArgoCD platform principal retains its required reconciliation capability
+- [x] RBAC matrix contains exactly three own-environment workload allows and six cross-environment denies — Evidence: `.local/evidence/namespace-isolation/20260816T215500Z-rbac-matrix/rbac-matrix.json` contains 28/28 passing live authorization checks, including exactly three own-environment Deployment allows and six directed cross-environment denials; its SHA-256 is `95076d11f5399c040604b628ca361261a89b2956babeec85a586894501ef7e25`.
+- [x] All maintainer groups are denied isolation-control changes — Evidence: the same live matrix contains all 15 expected denials for patching ResourceQuotas, LimitRanges, NetworkPolicies, Roles, and RoleBindings in each group's own namespace.
+- [x] Unbound subject is denied in every managed namespace — Evidence: the same live matrix records three of three Deployment-patch denials for `namespace-isolation-unbound`.
+- [x] ArgoCD platform principal retains its required reconciliation capability — Evidence: the same live matrix records `allow` for `system:serviceaccount:argocd:argocd-application-controller` reading NetworkPolicies in `microtodo-dev`; the command audit reports zero managed-state mutations and zero Secret reads.
 
 ## Cleanup and Final Evidence
 
@@ -110,6 +111,7 @@ Argo Rollouts, signature enforcement, and five retained platform controllers.
 The five exact signed digests are published and independently verified. The live
 prerequisite observer passes with zero business Applications; the single
 fifteen-Application activation revision is now statically green but is not yet
-merged or live. AWS maintainer-principal mappings, service continuity, canary,
-network/Redis fixture, resource-violation, RBAC, and final cleanup evidence remain
-unchecked until observed.
+merged or live. Kubernetes RBAC has 28/28 passing live checks, while AWS
+maintainer-principal mappings remain intentionally deferred. Service continuity,
+canary, network/Redis fixture, resource-violation, and final cleanup evidence
+remain unchecked until observed.

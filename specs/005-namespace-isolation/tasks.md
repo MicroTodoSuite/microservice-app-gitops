@@ -213,7 +213,7 @@ an unbound subject is denied everywhere.
 
 - [X] T083 [US4] Expand static Role/RoleBinding matrix coverage for all three groups, every namespace, protected isolation kinds, platform access, and an unbound subject in `tests/contract/namespace-isolation.sh`
 - [X] T084 [US4] Extend read-only authorization-review collection and explicit principal-mapping status in `scripts/managed/lib/namespace-isolation.sh`
-- [ ] T085 [US4] Execute the complete Kubernetes group matrix live, cite results, and leave AWS-principal mapping acceptance unchecked in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T085 [US4] Execute the complete Kubernetes group matrix live, cite results, and leave AWS-principal mapping acceptance unchecked in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: Kubernetes RBAC is proved; deferred AWS identity mapping remains
 an explicit acceptance blocker rather than a shared-role workaround.
