@@ -12,9 +12,8 @@ namespace: microtodo-prod
 resources:
   - ../../topology
 
-replicas:
-  - name: auth-api
-    count: 3
+components:
+  - ../../components/strategy-canary
 
 patches:
   - target:
@@ -26,6 +25,7 @@ patches:
       metadata:
         name: auth-api
       spec:
+        replicas: 0
         template:
           spec:
             containers:
@@ -37,12 +37,6 @@ patches:
                   limits:
                     cpu: 250m
                     memory: 256Mi
-
-# Deployment strategy: production will swap the rolling Deployment for the
-# canary Rollout Component once the argo-rollouts controller is installed.
-# Kept off so an inactive scaffold never references an absent CRD controller.
-# components:
-#   - ../../components/strategy-canary
 
 images:
   - name: auth-api

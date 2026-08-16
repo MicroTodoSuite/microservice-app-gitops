@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - vendor/v1.9.1/install.yaml
+  - cluster-analysis-template.yaml
+
+images:
+  - name: quay.io/argoproj/argo-rollouts
+    newName: quay.io/argoproj/argo-rollouts
+    digest: sha256:15c0d41f2c69a382d4399bcb28ed4f03ee9f58b56cfc9e6cd55bcbf0f311c06d

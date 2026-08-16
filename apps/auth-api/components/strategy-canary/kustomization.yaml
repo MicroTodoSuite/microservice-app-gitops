@@ -1,16 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
-# Canary deployment strategy (spec 001, US3) for prod.
-#
-# This is a reusable, OPT-IN module. It is not referenced by any overlay by
-# default: prod stays a rolling Deployment until the Argo Rollouts controller
-# exists in the cluster (FR-007). To activate, install infrastructure/argo-rollouts
-# and uncomment the component line in overlays/prod/kustomization.yaml.
-#
-# The Rollout reuses the base Deployment's pod template via workloadRef, so the
-# pod spec is never duplicated (FR-006). Economical canary is replica-based
-# (no mesh); the full version adds Istio traffic routing on top of these steps.
 resources:
+  - canary-service.yaml
   - rollout.yaml
-  - analysistemplate.yaml

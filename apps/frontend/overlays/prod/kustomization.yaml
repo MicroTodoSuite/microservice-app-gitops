@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: microtodo-prod
 resources: [../../topology]
-replicas: [{name: frontend, count: 2}]
+components: [../../components/strategy-canary]
 patches:
   - target: {kind: Deployment, name: frontend}
     patch: |-
@@ -10,6 +10,7 @@ patches:
       kind: Deployment
       metadata: {name: frontend}
       spec:
+        replicas: 0
         template:
           spec:
             containers:

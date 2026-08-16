@@ -48,40 +48,40 @@ truthful CI, and GitOps release controls while business activation remains empty
 
 ### Terraform tests first
 
-- [ ] T010 [P] Add failing assertions for five additive neutral repositories and preservation of five legacy repositories in `../microservice-app-ops/aws/modules/environment-foundation/tests/ecr_irsa.tftest.hcl`
-- [ ] T011 [P] Add failing assertions for three write-only-generated secrets and exact-subject JWT reader roles in `../microservice-app-ops/aws/modules/environment-foundation/tests/managed_secrets.tftest.hcl`
-- [ ] T012 [P] Add failing assertions for GitHub OIDC main-branch trust and neutral-repository-only publisher permissions in `../microservice-app-ops/aws/modules/environment-foundation/tests/github_oidc.tftest.hcl`
-- [ ] T013 [P] Add failing assertions for Kyverno admission-controller IRSA and read-only neutral-ECR access in `../microservice-app-ops/aws/modules/environment-foundation/tests/kyverno_irsa.tftest.hcl`
-- [ ] T014 Extend shell contract checks for no static secret, no destructive ECR replacement, exact role subjects, and non-secret outputs in `../microservice-app-ops/tests/contract/aws-dev-foundation.sh`
+- [X] T010 [P] Add failing assertions for five additive neutral repositories and preservation of five legacy repositories in `../microservice-app-ops/aws/modules/environment-foundation/tests/ecr_irsa.tftest.hcl`
+- [X] T011 [P] Add failing assertions for three write-only-generated secrets and exact-subject JWT reader roles in `../microservice-app-ops/aws/modules/environment-foundation/tests/managed_secrets.tftest.hcl`
+- [X] T012 [P] Add failing assertions for GitHub OIDC main-branch trust and neutral-repository-only publisher permissions in `../microservice-app-ops/aws/modules/environment-foundation/tests/github_oidc.tftest.hcl`
+- [X] T013 [P] Add failing assertions for Kyverno admission-controller IRSA and read-only neutral-ECR access in `../microservice-app-ops/aws/modules/environment-foundation/tests/kyverno-irsa.tftest.hcl`
+- [X] T014 Extend shell contract checks for no static secret, no destructive ECR replacement, exact role subjects, and non-secret outputs in `../microservice-app-ops/tests/contract/aws-dev-foundation.sh`
 
 ### Terraform implementation
 
-- [ ] T015 Implement five immutable, encrypted, scan-on-push neutral repositories and lifecycle policies without changing `aws_ecr_repository.services` in `../microservice-app-ops/aws/modules/environment-foundation/ecr.tf`
-- [ ] T016 Implement three protected Secrets Manager entries, ephemeral AWS random passwords, write-only versions, exact OIDC trust subjects, and exact read policies in `../microservice-app-ops/aws/modules/environment-foundation/managed-secrets.tf`
-- [ ] T017 Implement the GitHub Actions OIDC provider, five-repository `main` trust conditions, and least-privilege ECR publisher/signature permissions in `../microservice-app-ops/aws/modules/environment-foundation/github-oidc.tf`
-- [ ] T018 Implement the Kyverno admission-controller IRSA role with neutral-ECR read-only verification permissions in `../microservice-app-ops/aws/modules/environment-foundation/kyverno-irsa.tf`
-- [ ] T019 Add typed feature inputs and validation for shared environments, service repositories, GitHub subjects, and secret version rotation in `../microservice-app-ops/aws/modules/environment-foundation/variables.tf`
-- [ ] T020 Expose only neutral repository URLs, secret names/ARNs, and IRSA role ARNs in `../microservice-app-ops/aws/modules/environment-foundation/outputs.tf`
-- [ ] T021 Wire new module inputs/outputs through `../microservice-app-ops/aws/environments/dev/foundation/main.tf`, `variables.tf`, `outputs.tf`, and `dev.tfvars.example`
+- [X] T015 Implement five immutable, encrypted, scan-on-push neutral repositories and lifecycle policies without changing `aws_ecr_repository.services` in `../microservice-app-ops/aws/modules/environment-foundation/ecr.tf`
+- [X] T016 Implement three protected Secrets Manager entries, local ephemeral random passwords, write-only versions, exact OIDC trust subjects, and exact read policies in `../microservice-app-ops/aws/modules/environment-foundation/managed-secrets.tf`
+- [X] T017 Implement the GitHub Actions OIDC provider, five-repository `main` trust conditions, and least-privilege ECR publisher/signature permissions in `../microservice-app-ops/aws/modules/environment-foundation/github-oidc.tf`
+- [X] T018 Implement the Kyverno admission-controller IRSA role with neutral-ECR read-only verification permissions in `../microservice-app-ops/aws/modules/environment-foundation/kyverno-irsa.tf`
+- [X] T019 Add typed feature inputs and validation for shared environments, service repositories, GitHub subjects, and secret version rotation in `../microservice-app-ops/aws/modules/environment-foundation/variables.tf`
+- [X] T020 Expose only neutral repository URLs, secret names/ARNs, and IRSA role ARNs in `../microservice-app-ops/aws/modules/environment-foundation/outputs.tf`
+- [X] T021 Wire new module inputs/outputs through `../microservice-app-ops/aws/environments/dev/foundation/main.tf`, `variables.tf`, `outputs.tf`, and `dev.tfvars.example`
 - [ ] T022 Run format, validate, module tests, contract tests, and a refresh-backed plan through `microtodosuite-terraform-dev`; require only expected additions and cite the plan in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T023 Commit, push, and open the short-lived ops PR; after required review/checks, merge it and apply the exact reviewed saved plan through the intended Terraform role, recording caller, plan digest, apply result, and non-secret outputs in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ### Shared workflow safety
 
-- [ ] T024 Add reusable-workflow tests or static assertions proving PR runs cannot publish and push/sign depend on test, Trivy, and SBOM success in `../.github/tests/ci-contract.sh`
-- [ ] T025 Refactor the reusable pipeline into test -> one local build -> Trivy -> one SBOM -> AWS OIDC -> ECR push -> digest resolution -> Cosign sign in `../.github/.github/workflows/ci.yml`
-- [ ] T026 Add explicit service test/source-audit inputs, immutable commit-derived ECR handles, neutral repository input validation, and reviewed-main publication conditions in `../.github/.github/workflows/ci.yml`
-- [ ] T027 Run shared workflow contract validation, commit, push, open the organization workflow PR, obtain required review/checks, merge it, and record its immutable merge SHA in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T024 Add reusable-workflow tests or static assertions proving PR runs cannot publish and push/sign depend on test, Trivy, and SBOM success in `../.github/tests/ci-contract.sh`
+- [X] T025 Refactor the reusable pipeline into test -> one local build -> Trivy -> one SBOM -> AWS OIDC -> ECR push -> digest resolution -> Cosign sign in `../.github/.github/workflows/ci.yml`
+- [X] T026 Add explicit service test/source-audit inputs, immutable commit-derived ECR handles, neutral repository input validation, and reviewed-main publication conditions in `../.github/.github/workflows/ci.yml`
+- [X] T027 Run shared workflow contract validation, commit, push, open the organization workflow PR, obtain required review/checks, merge it, and record its immutable merge SHA in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ### GitOps prerequisite tests first
 
-- [ ] T028 Add failing contracts for progressive-sync enablement, EKS-only three-step RollingSync, `maxUpdate: 1`, and an empty activation list in `tests/contract/service-onboarding.sh`
-- [ ] T029 [P] Add failing add-on contracts for vendored Argo Rollouts 1.9.1, checksum, digest pin, namespace, controller health resources, and exact final infrastructure allowlist in `tests/contract/platform-addons.sh`
-- [ ] T030 [P] Add failing contracts for three namespaced ESO paths, exact IRSA annotations, no secret values, and no ClusterSecretStore in `tests/contract/namespace-isolation.sh`
-- [ ] T031 [P] Add failing contracts for five economical topology selections and five production Rollout/canary-Service/analysis renders in `tests/contract/service-onboarding.sh`
-- [ ] T032 [P] Add failing contracts for the approved quota table and steady-plus-largest-surge arithmetic in `tests/contract/namespace-isolation.sh`
-- [ ] T033 [P] Add failing Kyverno signature-policy contracts for neutral ECR, GitHub issuer/subjects, enforced failure action, and no broad bypass in `tests/contract/platform-addons.sh`
-- [ ] T034 Confirm T028-T033 fail for the intended missing capabilities while all pre-existing local-kind pilot contracts still pass; record results in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T028 Add failing contracts for progressive-sync enablement, EKS-only three-step RollingSync, `maxUpdate: 1`, and an empty activation list in `tests/contract/service-onboarding.sh`
+- [X] T029 [P] Add failing add-on contracts for vendored Argo Rollouts 1.9.1, checksum, digest pin, namespace, controller health resources, and exact final infrastructure allowlist in `tests/contract/platform-addons.sh`
+- [X] T030 [P] Add failing contracts for three namespaced ESO paths, exact IRSA annotations, no secret values, and no ClusterSecretStore in `tests/contract/namespace-isolation.sh`
+- [X] T031 [P] Add failing contracts for five economical topology selections and five production Rollout/canary-Service/analysis renders in `tests/contract/service-onboarding.sh`
+- [X] T032 [P] Add failing contracts for the approved quota table and steady-plus-largest-surge arithmetic in `tests/contract/namespace-isolation.sh`
+- [X] T033 [P] Add failing Kyverno signature-policy contracts for neutral ECR, GitHub issuer/subjects, enforced failure action, and no broad bypass in `tests/contract/platform-addons.sh`
+- [X] T034 Confirm T028-T033 fail for the intended missing capabilities while all pre-existing local-kind pilot contracts still pass; record results in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: AWS prerequisites and truthful reusable CI exist; GitOps release
 control tests fail only for capabilities not yet implemented; business activation
@@ -101,37 +101,37 @@ staging, then prod with identical digests.
 
 ### Service fixes and tests
 
-- [ ] T035 [P] [US5] Add reproducible `go.mod`/`go.sum`, focused auth/user-service tests, patched Go toolchain/modules, and a non-root reproducible image build in `../microservice-app-auth-api/go.mod`, `go.sum`, `main_test.go`, `user_test.go`, and `Dockerfile`
-- [ ] T036 [P] [US5] Remove unused vulnerable production packages, update compatible Express/JWT/Redis dependencies, and add route/JWT/Redis regression tests in `../microservice-app-todos-api/package.json`, `package-lock.json`, and `test/`
-- [ ] T037 [P] [US5] Add an explicit Maven test/security update path while preserving the H2/API contract in `../microservice-app-users-api/pom.xml` and `src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java`
-- [ ] T038 [P] [US5] Run lint/unit/source-lock audit, update vulnerable production dependencies without changing routes, and retain bundle dependency evidence in `../microservice-app-frontend/package.json`, `package-lock.json`, and `test/unit/`
-- [ ] T039 [P] [US5] Pin Python dependencies and add mock-based Redis/message/Zipkin/metrics tests without changing event behavior in `../microservice-app-log-message-processor/requirements.txt` and `tests/test_main.py`
-- [ ] T040 [US5] Pin the immutable shared workflow SHA and exact test/audit/repository inputs in all five `../microservice-app-*/.github/workflows/ci.yml` callers
-- [ ] T041 [US5] Run every service's local workflow-equivalent tests, dependency audit, Docker build, Trivy scan, and SBOM generation; record exact commands/results in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T035 [P] [US5] Add reproducible `go.mod`/`go.sum`, focused auth/user-service tests, patched Go toolchain/modules, and a non-root reproducible image build in `../microservice-app-auth-api/go.mod`, `go.sum`, `main_test.go`, `user_test.go`, and `Dockerfile`
+- [X] T036 [P] [US5] Remove unused vulnerable production packages, update compatible Express/JWT/Redis dependencies, and add route/JWT/Redis regression tests in `../microservice-app-todos-api/package.json`, `package-lock.json`, and `test/`
+- [X] T037 [P] [US5] Add an explicit Maven test/security update path while preserving the H2/API contract in `../microservice-app-users-api/pom.xml` and `src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java`
+- [X] T038 [P] [US5] Run lint/unit/source-lock audit, update vulnerable production dependencies without changing routes, and retain bundle dependency evidence in `../microservice-app-frontend/package.json`, `package-lock.json`, and `test/unit/`
+- [X] T039 [P] [US5] Pin Python dependencies and add mock-based Redis/message/Zipkin/metrics tests without changing event behavior in `../microservice-app-log-message-processor/requirements.txt` and `tests/test_main.py`
+- [X] T040 [US5] Pin the immutable shared workflow SHA and exact test/audit/repository inputs in all five `../microservice-app-*/.github/workflows/ci.yml` callers
+- [X] T041 [US5] Run every service's local workflow-equivalent tests, dependency audit, Docker build, Trivy scan, and SBOM generation; record exact commands/results in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T042 [US5] Open five short-lived service PRs, obtain required review and green checks including the applicable Sonar/quality decision, merge only green descendants, and record PRs/merge SHAs in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T043 [US5] Observe five reviewed `main` publication runs and record tests, Trivy, SBOM, repository digest, keyless signature identity, and no publication from PR/failing baseline in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ### GitOps prerequisite implementation
 
-- [ ] T044 [US5] Patch `argocd-cmd-params-cm` and force a self-managed ApplicationSet-controller restart through a checksum annotation in `bootstrap/argocd/kustomization.yaml`
-- [ ] T045 [US5] Vendor official Argo Rollouts 1.9.1, record upstream checksum, pin controller digest, and declare its namespace/root in `infrastructure/argo-rollouts/vendor/v1.9.1/`, `namespace.yaml`, and `kustomization.yaml`
-- [ ] T046 [US5] Add the bounded shared Job metric and canary health contract in `infrastructure/argo-rollouts/cluster-analysis-template.yaml`
-- [ ] T047 [US5] Annotate the Kyverno admission-controller ServiceAccount for its verifier IRSA and add enforcing approved-keyless-signature verification in `infrastructure/kyverno/kustomization.yaml` and `policies.yaml`
-- [ ] T048 [US5] Add reusable ESO ServiceAccount, SecretStore, and ExternalSecret resources in `environments/base/external-secrets-serviceaccount.yaml`, `secretstore.yaml`, `external-secret.yaml`, and `kustomization.yaml`
-- [ ] T049 [P] [US5] Inject exact dev JWT role ARN/source key values in `environments/dev/kustomization.yaml`
-- [ ] T050 [P] [US5] Inject exact staging JWT role ARN/source key values in `environments/staging/kustomization.yaml`
-- [ ] T051 [P] [US5] Inject exact prod JWT role ARN/source key values in `environments/prod/kustomization.yaml`
-- [ ] T052 [P] [US5] Replace dev ResourceQuota hard values with the approved table in `environments/dev/resourcequota.yaml`
-- [ ] T053 [P] [US5] Replace staging ResourceQuota hard values with the approved table in `environments/staging/resourcequota.yaml`
-- [ ] T054 [P] [US5] Replace prod ResourceQuota hard values with the approved table in `environments/prod/resourcequota.yaml`
-- [ ] T055 [P] [US5] Switch auth-api managed topology to economical and replace its inactive canary seam with workloadRef, canary Service, and analysis in `apps/auth-api/topology/kustomization.yaml` and `apps/auth-api/components/strategy-canary/`
-- [ ] T056 [P] [US5] Add the economical production canary component for todos-api in `apps/todos-api/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
-- [ ] T057 [P] [US5] Add the economical production canary component for users-api in `apps/users-api/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
-- [ ] T058 [P] [US5] Add the economical production canary component for frontend in `apps/frontend/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
-- [ ] T059 [P] [US5] Add the economical production canary component for log-message-processor in `apps/log-message-processor/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
-- [ ] T060 [US5] Add environment labels to the reusable app template and the EKS-only dev -> staging -> prod RollingSync strategy with `maxUpdate: 1` in `clusters/base/apps.yaml`, `clusters/eks-dev/rolling-sync-apps.yaml`, and `clusters/eks-dev/kustomization.yaml`
-- [ ] T061 [US5] Replace shared Redis with explicit Argo Rollouts in `clusters/eks-dev/activation-infrastructure.yaml` while keeping `clusters/local-kind/activation-infrastructure.yaml` unchanged
-- [ ] T062 [US5] Render/schema-validate all fifteen overlays, all three environment roots, Argo CD bootstrap, Argo Rollouts, and Kyverno; run every contract test and prove `clusters/eks-dev/activation-apps.yaml` remains empty
+- [X] T044 [US5] Patch `argocd-cmd-params-cm` and force a self-managed ApplicationSet-controller restart through a pod-template revision annotation in `bootstrap/argocd/kustomization.yaml`
+- [X] T045 [US5] Vendor official Argo Rollouts 1.9.1, record upstream checksum, pin controller digest, and declare its namespace/root in `infrastructure/argo-rollouts/vendor/v1.9.1/`, `namespace.yaml`, and `kustomization.yaml`
+- [X] T046 [US5] Add the bounded shared Job metric and canary health contract in `infrastructure/argo-rollouts/cluster-analysis-template.yaml`
+- [X] T047 [US5] Annotate the Kyverno admission-controller ServiceAccount for its verifier IRSA and add enforcing approved-keyless-signature verification in `infrastructure/kyverno/kustomization.yaml` and `policies.yaml`
+- [X] T048 [US5] Add reusable ESO ServiceAccount, SecretStore, and ExternalSecret resources in `environments/base/external-secrets-serviceaccount.yaml`, `secretstore.yaml`, `external-secret.yaml`, and `kustomization.yaml`
+- [X] T049 [P] [US5] Inject exact dev JWT role ARN/source key values in `environments/dev/kustomization.yaml`
+- [X] T050 [P] [US5] Inject exact staging JWT role ARN/source key values in `environments/staging/kustomization.yaml`
+- [X] T051 [P] [US5] Inject exact prod JWT role ARN/source key values in `environments/prod/kustomization.yaml`
+- [X] T052 [P] [US5] Replace dev ResourceQuota hard values with the approved table in `environments/dev/resourcequota.yaml`
+- [X] T053 [P] [US5] Replace staging ResourceQuota hard values with the approved table in `environments/staging/resourcequota.yaml`
+- [X] T054 [P] [US5] Replace prod ResourceQuota hard values with the approved table in `environments/prod/resourcequota.yaml`
+- [X] T055 [P] [US5] Switch auth-api managed topology to economical and replace its inactive canary seam with workloadRef, canary Service, and analysis in `apps/auth-api/topology/kustomization.yaml` and `apps/auth-api/components/strategy-canary/`
+- [X] T056 [P] [US5] Add the economical production canary component for todos-api in `apps/todos-api/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
+- [X] T057 [P] [US5] Add the economical production canary component for users-api in `apps/users-api/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
+- [X] T058 [P] [US5] Add the economical production canary component for frontend in `apps/frontend/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
+- [X] T059 [P] [US5] Add the economical production canary component for log-message-processor in `apps/log-message-processor/topology/kustomization.yaml`, `components/strategy-canary/`, and `overlays/prod/kustomization.yaml`
+- [X] T060 [US5] Add environment labels to the reusable app template and the EKS-only dev -> staging -> prod RollingSync strategy with `maxUpdate: 1` in `clusters/base/apps.yaml`, `clusters/eks-dev/rolling-sync-apps.yaml`, and `clusters/eks-dev/kustomization.yaml`
+- [X] T061 [US5] Replace shared Redis with explicit Argo Rollouts in `clusters/eks-dev/activation-infrastructure.yaml` while keeping `clusters/local-kind/activation-infrastructure.yaml` unchanged
+- [X] T062 [US5] Render/schema-validate all fifteen overlays, all three environment roots, Argo CD bootstrap, Argo Rollouts, and Kyverno; run every contract test and prove `clusters/eks-dev/activation-apps.yaml` remains empty
 - [ ] T063 [US5] Commit, push, open, review, and merge the GitOps prerequisite PR; wait for Argo CD and cite the exact revision, restarted progressive-sync controller, Rollouts CRDs/controller, five infrastructure Applications, three Ready ESO paths, new quotas, three Redis instances, and zero business Applications in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T064 [US5] Prove all three JWT destinations are non-empty and mutually distinct without printing values, and prove all six cross-environment source-secret reads are denied; cite redacted evidence in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T065 [US5] Prove Kyverno admits each approved signed neutral-ECR digest and rejects the GitOps-owned unsigned/wrong-identity fixture, then remove the fixture by Git revert and cite evidence in `specs/005-namespace-isolation/checklists/acceptance.md`
@@ -225,8 +225,8 @@ an explicit acceptance blocker rather than a shared-role workaround.
 **Purpose**: Return fixtures to zero, validate every artifact, and publish an
 accurate final report.
 
-- [ ] T086 [P] Update managed-cluster operator documentation, stage order, rollback rules, data-loss limits, and no-direct-mutation examples in `docs/namespace-isolation.md`
-- [ ] T087 [P] Update add-on and service-onboarding documentation for Argo Rollouts, neutral ECR, ESO, and RollingSync in `clusters/README.md` and `infrastructure/argo-rollouts/README.md`
+- [X] T086 [P] Update managed-cluster operator documentation, stage order, rollback rules, data-loss limits, and no-direct-mutation examples in `docs/namespace-isolation.md`
+- [X] T087 [P] Update add-on and service-onboarding documentation for Argo Rollouts, neutral ECR, ESO, and RollingSync in `clusters/README.md` and `infrastructure/argo-rollouts/README.md`
 - [ ] T088 Run all GitOps contract tests, Kustomize renders, schema validation, local pilot contracts, Terraform tests, five service tests/builds, and shared workflow contract checks; cite the consolidated result in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T089 Verify all temporary canary/isolation/quota/signature fixtures are absent after Git revert and all twenty-three final Argo CD Applications (root, Argo CD, five infrastructure, three environment, fifteen business) are Synced/Healthy at expected revisions
 - [ ] T090 Run the final observer phase and validate `summary.json` against `contracts/namespace-isolation-evidence.schema.json`; preserve raw evidence under `.local/evidence/namespace-isolation/`

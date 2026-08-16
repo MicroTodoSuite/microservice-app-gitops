@@ -10,3 +10,31 @@ namespace: argocd
 resources:
   - namespace.yaml
   - vendor/v3.5.0/install.yaml
+
+patches:
+  - target:
+      version: v1
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cmd-params-cm
+      data:
+        applicationsetcontroller.enable.progressive.syncs: "true"
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: argocd-applicationset-controller
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: argocd-applicationset-controller
+      spec:
+        template:
+          metadata:
+            annotations:
+              microtodosuite.io/progressive-syncs-revision: "v1"

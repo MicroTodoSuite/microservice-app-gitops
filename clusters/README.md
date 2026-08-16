@@ -16,10 +16,10 @@ The registration seam is intentionally small:
 - the shared templates derive the namespace as `microtodo-{{ .env }}`.
 
 Infrastructure is never activated by folder discovery. The local registration
-explicitly retains its five validated entries, including local Redis. A managed
-registration retains that five-entry list during environment-Redis migration
-and switches to the reviewed four-controller list only after replacement
-readiness and protocol checks pass.
+explicitly retains its validated entries, including local Redis. The managed
+registration declares exactly KEDA, cert-manager, External Secrets Operator,
+Kyverno, and Argo Rollouts. Namespace-local Redis belongs to each environment
+Application; the former shared Redis Application is not retained.
 
 Because every reconciler targets its own cluster, every activation uses
 `server: https://kubernetes.default.svc`. A raw EKS or AKS API endpoint and
@@ -31,8 +31,7 @@ one-time bootstrap of that cluster's root Application.
 The existing AWS cluster named `microtodosuite-dev` and its legacy
 `clusters/eks-dev` registration are adopted as the one shared cluster. The
 physical name and GitOps path remain unchanged so the live root Application is
-not replaced or orphaned. Its app activation stays empty for feature 005 while
-its environment activation carries this list:
+not replaced or orphaned. Environment policy remains active for this list:
 
 ```yaml
 - env: dev
@@ -44,7 +43,10 @@ its environment activation carries this list:
 ```
 
 The shared templates derive `microtodo-dev`, `microtodo-staging`, and
-`microtodo-prod`; namespace is not a registration input.
+`microtodo-prod`; namespace is not a registration input. Business activation
+remains empty until all release prerequisites pass. The final activation uses
+the same three elements and the EKS-only RollingSync strategy serializes all
+five Applications in dev, then staging, then prod.
 
 ## Full version (prepared, not active)
 
@@ -79,7 +81,9 @@ continue pulling and reconciling the reviewed Git revision even while
 
 Each sibling registration consumes `../base`, patches the three independent
 activation lists, and replaces only the repository URL and revision fields from
-its ConfigMap. `clusters/eks-dev` is the active shared-cluster registration; its
-name is historical and does not limit it to the dev namespace. Renaming the AWS
-cluster or moving the root Application path is a separate replacement/migration
-operation, not part of environment activation.
+its ConfigMap. `clusters/eks-dev` additionally patches the business
+ApplicationSet with the environment label and `dev -> staging -> prod`
+RollingSync strategy. `clusters/eks-dev` is the active shared-cluster
+registration; its name is historical and does not limit it to the dev
+namespace. Renaming the AWS cluster or moving the root Application path is a
+separate replacement/migration operation, not part of environment activation.

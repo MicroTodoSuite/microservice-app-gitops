@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata: {name: frontend}
+spec:
+  replicas: 2
+  progressDeadlineSeconds: 300
+  revisionHistoryLimit: 3
+  workloadRef: {apiVersion: apps/v1, kind: Deployment, name: frontend, scaleDown: onsuccess}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: microtodosuite
+      app.kubernetes.io/component: business-service
+  strategy:
+    canary:
+      canaryService: frontend-canary
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+        - setWeight: 50
+        - pause: {duration: 15s}
+        - analysis:
+            templates:
+              - {templateName: microtodosuite-canary-health, clusterScope: true}
+            args:
+              - {name: target-url, value: "http://frontend-canary:8080/"}
+        - setWeight: 100

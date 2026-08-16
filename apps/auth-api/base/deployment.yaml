@@ -49,5 +49,6 @@ spec:
             periodSeconds: 5
           securityContext:
             allowPrivilegeEscalation: false
-            # TODO: runAsNonRoot once the auth-api Dockerfile stops running as
-            # root (tracked outside this repository).
+            runAsNonRoot: true
+            capabilities:
+              drop: [ALL]

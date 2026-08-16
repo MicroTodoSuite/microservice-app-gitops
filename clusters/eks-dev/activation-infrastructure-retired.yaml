@@ -15,3 +15,6 @@
     - name: kyverno
       path: infrastructure/kyverno
       namespace: kyverno
+    - name: argo-rollouts
+      path: infrastructure/argo-rollouts
+      namespace: argo-rollouts

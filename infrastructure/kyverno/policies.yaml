@@ -66,3 +66,91 @@ spec:
             pattern:
               livenessProbe: {}
               readinessProbe: {}
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-approved-release-signatures
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    policies.kyverno.io/title: Verify Approved Release Signatures
+    policies.kyverno.io/category: MicroTodoSuite Supply Chain
+    policies.kyverno.io/severity: critical
+    policies.kyverno.io/minversion: 1.18.0
+    pod-policies.kyverno.io/autogen-controllers: none
+spec:
+  validationFailureAction: Enforce
+  admission: true
+  background: true
+  emitWarning: false
+  webhookConfiguration:
+    failurePolicy: Fail
+    timeoutSeconds: 30
+  rules:
+    - name: verify-reviewed-main-through-pinned-workflow
+      skipBackgroundRequests: true
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - "microtodo-*"
+      verifyImages:
+        - imageReferences:
+            - "995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/*"
+          failureAction: Enforce
+          required: true
+          mutateDigest: true
+          verifyDigest: true
+          imageRegistryCredentials:
+            providers:
+              - amazon
+          attestors:
+            - count: 1
+              entries:
+                - keyless:
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    issuer: https://token.actions.githubusercontent.com
+                    additionalExtensions:
+                      githubWorkflowTrigger: push
+                      githubWorkflowRepository: MicroTodoSuite/microservice-app-auth-api
+                      githubWorkflowRef: refs/heads/main
+                    rekor:
+                      url: https://rekor.sigstore.dev
+                - keyless:
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    issuer: https://token.actions.githubusercontent.com
+                    additionalExtensions:
+                      githubWorkflowTrigger: push
+                      githubWorkflowRepository: MicroTodoSuite/microservice-app-todos-api
+                      githubWorkflowRef: refs/heads/main
+                    rekor:
+                      url: https://rekor.sigstore.dev
+                - keyless:
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    issuer: https://token.actions.githubusercontent.com
+                    additionalExtensions:
+                      githubWorkflowTrigger: push
+                      githubWorkflowRepository: MicroTodoSuite/microservice-app-users-api
+                      githubWorkflowRef: refs/heads/main
+                    rekor:
+                      url: https://rekor.sigstore.dev
+                - keyless:
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    issuer: https://token.actions.githubusercontent.com
+                    additionalExtensions:
+                      githubWorkflowTrigger: push
+                      githubWorkflowRepository: MicroTodoSuite/microservice-app-frontend
+                      githubWorkflowRef: refs/heads/main
+                    rekor:
+                      url: https://rekor.sigstore.dev
+                - keyless:
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    issuer: https://token.actions.githubusercontent.com
+                    additionalExtensions:
+                      githubWorkflowTrigger: push
+                      githubWorkflowRepository: MicroTodoSuite/microservice-app-log-message-processor
+                      githubWorkflowRef: refs/heads/main
+                    rekor:
+                      url: https://rekor.sigstore.dev

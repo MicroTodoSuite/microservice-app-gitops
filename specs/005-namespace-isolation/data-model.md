@@ -69,7 +69,7 @@ path.
 | --- | --- |
 | `environment` | one of dev, staging, prod |
 | `sourceName` | `microtodosuite/<env>/auth-api-secrets` |
-| `generation` | AWS-provider ephemeral random password |
+| `generation` | local-provider ephemeral random password |
 | `storage` | `aws_secretsmanager_secret_version.secret_string_wo` |
 | `readerRole` | `microtodosuite-<env>-jwt-reader` |
 | `trustedSubject` | `system:serviceaccount:microtodo-<env>:external-secrets-jwt` |

@@ -66,6 +66,9 @@ base_files=(
   environments/base/redis-deployment.yaml
   environments/base/redis-service.yaml
   environments/base/role.yaml
+  environments/base/external-secrets-serviceaccount.yaml
+  environments/base/secretstore.yaml
+  environments/base/external-secret.yaml
 )
 for file in "${base_files[@]}"; do
   require_file "$file"
@@ -119,10 +122,10 @@ declare -A namespaces=(
   [staging]=microtodo-staging
   [prod]=microtodo-prod
 )
-declare -A cpu_requests=([dev]=400m [staging]=500m [prod]=650m)
-declare -A cpu_limits=([dev]=1200m [staging]=1500m [prod]=2)
-declare -A memory_requests=([dev]=512Mi [staging]=640Mi [prod]=896Mi)
-declare -A memory_limits=([dev]=1536Mi [staging]=2Gi [prod]=3Gi)
+declare -A cpu_requests=([dev]=550m [staging]=625m [prod]=700m)
+declare -A cpu_limits=([dev]=2300m [staging]=2700m [prod]=3)
+declare -A memory_requests=([dev]=896Mi [staging]=1Gi [prod]=1152Mi)
+declare -A memory_limits=([dev]=2304Mi [staging]=2816Mi [prod]=3Gi)
 declare -A pod_limits=([dev]=12 [staging]=14 [prod]=18)
 
 for environment in "${environments[@]}"; do
@@ -172,13 +175,28 @@ for environment in "${environments[@]}"; do
     "$environment render must contain exactly one Redis Deployment"
   require_render_count "$render" '^kind: Service$' 1 \
     "$environment render must contain exactly one Redis Service"
+  require_render_count "$render" '^kind: SecretStore$' 1 \
+    "$environment render must contain exactly one namespaced SecretStore"
+  require_render_count "$render" '^kind: ExternalSecret$' 1 \
+    "$environment render must contain exactly one ExternalSecret"
   require_render_text "$render" "namespace: ${namespaces[$environment]}" \
     "$environment resources are not namespace-scoped correctly"
-  if rg -q 'name: default-deny' "$render"; then
-    fail "$environment foundation activation includes default deny"
-  fi
+  final_policy_count=4
+  [[ "$environment" == dev ]] && final_policy_count=5
+  require_render_count "$render" '^kind: NetworkPolicy$' "$final_policy_count" \
+    "$environment steady state must contain default deny plus exact allowances"
+  require_render_text "$render" 'name: default-deny' \
+    "$environment steady state lacks ingress-and-egress default deny"
   require_render_text "$render" 'name: redis' \
     "$environment render lacks namespace-local Redis"
+  require_render_text "$render" 'name: external-secrets-jwt' \
+    "$environment render lacks its exact JWT synchronization ServiceAccount"
+  require_render_text "$render" \
+    "eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-${environment}-jwt-reader" \
+    "$environment JWT ServiceAccount role mapping drifted"
+  require_render_text "$render" \
+    "key: microtodosuite/$environment/auth-api-secrets" \
+    "$environment ExternalSecret reads the wrong source secret"
   check_rendered_images "$render"
 
   foundation_render="$TMP_DIR/environment-$environment-foundation.yaml"
@@ -195,6 +213,40 @@ for environment in "${environments[@]}"; do
   require_render_count "$foundation_render" '^kind: Deployment$' 1 \
     "$environment foundation must retain its Redis Deployment"
 done
+
+reject_text environments 'kind: ClusterSecretStore' \
+  "managed environments use a cluster-wide secret store"
+require_text environments/base/secretstore.yaml 'serviceAccountRef:' \
+  "namespaced SecretStore does not use ServiceAccount JWT authentication"
+require_text environments/base/external-secret.yaml 'secretStoreRef:' \
+  "ExternalSecret does not reference its namespaced SecretStore"
+require_text environments/base/external-secret.yaml 'creationPolicy: Owner' \
+  "ExternalSecret does not own its destination Secret"
+require_text environments/base/external-secret.yaml 'secretKey: JWT_SECRET' \
+  "ExternalSecret does not materialize the JWT_SECRET key"
+
+# The approved production bound must fit steady workloads, the largest
+# serialized service surge, and one bounded analysis Job.
+prod_steady_cpu_requests=475
+prod_steady_cpu_limits=2200
+prod_steady_memory_requests=672
+prod_steady_memory_limits=2176
+largest_surge_cpu_requests=150
+largest_surge_cpu_limits=500
+largest_surge_memory_requests=256
+largest_surge_memory_limits=512
+analysis_cpu_requests=10
+analysis_cpu_limits=50
+analysis_memory_requests=16
+analysis_memory_limits=32
+(( prod_steady_cpu_requests + largest_surge_cpu_requests + analysis_cpu_requests <= 700 )) ||
+  fail "production CPU-request quota cannot fit steady state plus one surge and analysis"
+(( prod_steady_cpu_limits + largest_surge_cpu_limits + analysis_cpu_limits <= 3000 )) ||
+  fail "production CPU-limit quota cannot fit steady state plus one surge and analysis"
+(( prod_steady_memory_requests + largest_surge_memory_requests + analysis_memory_requests <= 1152 )) ||
+  fail "production memory-request quota cannot fit steady state plus one surge and analysis"
+(( prod_steady_memory_limits + largest_surge_memory_limits + analysis_memory_limits <= 3072 )) ||
+  fail "production memory-limit quota cannot fit steady state plus one surge and analysis"
 
 if [[ "$(rg --no-filename 'name: microtodosuite:(dev|staging|prod)-maintainers' \
     "$ROOT/environments"/{dev,staging,prod}/rolebinding.yaml | sort -u | wc -l)" != 3 ]]; then
@@ -225,9 +277,9 @@ fi
 reject_text clusters/eks-dev/activation-environments.yaml \
   'env: production|env: local' \
   "managed environment activation contains an unsupported environment"
-reject_text environments/base/kustomization.yaml \
+require_text environments/base/kustomization.yaml \
   'networkpolicy-default-deny.yaml' \
-  "foundation revision activates default deny"
+  "steady-state environment root does not activate default deny"
 if rg -n 'tests/fixtures/namespace-isolation' \
     "$ROOT/environments"/{base,dev,staging,prod}; then
   fail "verification fixtures are activated by steady-state environment desired state"
@@ -239,13 +291,15 @@ require_text clusters/base/infrastructure.yaml 'elements: \[\]' \
 for name in keda cert-manager external-secrets kyverno redis; do
   require_text clusters/local-kind/activation-infrastructure.yaml \
     "name: $name" "local infrastructure list omits $name"
-  require_text clusters/eks-dev/activation-infrastructure.yaml \
-    "name: $name" "managed foundation infrastructure list omits $name"
 done
-for name in keda cert-manager external-secrets kyverno; do
+for name in keda cert-manager external-secrets kyverno argo-rollouts; do
+  require_text clusters/eks-dev/activation-infrastructure.yaml \
+    "name: $name" "managed final infrastructure list omits $name"
   require_text clusters/eks-dev/activation-infrastructure-retired.yaml \
     "name: $name" "post-retirement infrastructure list omits $name"
 done
+reject_text clusters/eks-dev/activation-infrastructure.yaml \
+  'name: redis' "managed final infrastructure list retains shared Redis"
 reject_text clusters/eks-dev/activation-infrastructure-retired.yaml \
   'name: redis' "post-retirement infrastructure list retains shared Redis"
 

@@ -1,0 +1,23 @@
+- op: add
+  path: /spec/strategy
+  value:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: microtodosuite.io/environment
+              operator: In
+              values: ["dev"]
+          maxUpdate: 1
+        - matchExpressions:
+            - key: microtodosuite.io/environment
+              operator: In
+              values: ["staging"]
+          maxUpdate: 1
+        - matchExpressions:
+            - key: microtodosuite.io/environment
+              operator: In
+              values: ["prod"]
+          maxUpdate: 1
+- op: remove
+  path: /spec/template/spec/syncPolicy/automated
