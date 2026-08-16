@@ -1,23 +1,23 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 -> 1.2.0
-- Modified principles: none.
-- Added sections:
-  - Profile adoption: cost-optimized (economical).
-- Superseded defaults:
-  - Section 17's shared-cluster, no-mesh, no-AKS, native-canary, and Spot-favored targets supersede the full-profile defaults.
+- Version change: 1.2.0 -> 2.0.0
+- Modified principles:
+  - Cost-Governed Design: Infracost remains an infrastructure gate; OpenCost becomes claim-gated.
+  - Quality and Supply-Chain Gates: defines the minimum release baseline and capability-gated tests.
+  - Observable and Resilient Operations: probes/release health are baseline; the full stack is claim-gated.
+  - Least Privilege and Secret Hygiene: defines the economical security baseline and claim-gated runtime tools.
+- Added sections: economical-profile activation baseline and explicit deferred-capability governance.
 - Removed sections: none.
-- Follow-up TODOs:
-  - Reconcile affected platform specifications and GitOps state with the adopted profile.
+- Follow-up TODOs: reconcile feature 005 and create separate specs for each deferred capability before claiming it.
 -->
 
 # MicroTodoSuite Constitution
 
-Version: 1.2.0
+Version: 2.0.0
 
-Ratified: 2026-08-09
+Ratified: 2026-08-11
 
-Assessment basis: `docs/MicroTodoSuite evolution plan.md` and `context-snapshot.xml`.
+Assessment basis: `docs/MicroTodoSuite evolution plan.md`, `context-snapshot.xml`, and repository/live evidence through 2026-08-10.
 
 ## Purpose
 
@@ -50,7 +50,7 @@ it, and MUST be recorded in bootstrap documentation so it remains auditable.
 
 ### 5. Cost-Governed Design
 
-**Measure cost without silently weakening the design.** Infracost and OpenCost MUST expose infrastructure-change and runtime cost, and any move to the cost-optimized profile MUST be an approved architectural amendment — Rationale: simplification must be an informed decision, not hidden scope erosion.
+**Measure cost without silently weakening the design.** Every Terraform change MUST produce Infracost evidence before apply. OpenCost MUST be installed and verified before the project claims runtime cost allocation or makes it an acceptance gate; its absence does not block a release that makes no runtime-cost claim and records the gap — Rationale: cost evidence must match the capability actually being asserted.
 
 ### 6. Immutable Build Promotion
 
@@ -62,15 +62,15 @@ it, and MUST be recorded in bootstrap documentation so it remains auditable.
 
 ### 8. Quality and Supply-Chain Gates
 
-**Automate quality and supply-chain gates.** Each pull request MUST run applicable unit, integration, contract, end-to-end, performance, and DAST tests plus SonarQube and Trivy gates; Syft, Cosign, and Kyverno MUST protect released images — Rationale: unverified code or artifacts must not become deployable state.
+**Automate quality and supply-chain gates.** Every PR MUST run the test categories for which its owning specification defines a runnable contract. Every released image MUST, at minimum, pass source tests and Trivy, produce a Syft SBOM, receive a Cosign signature, and pass Kyverno admission. SonarQube, integration, E2E, performance, and DAST become blocking when a checked-in harness/profile exists or a feature depends on or claims that capability; any deferral MUST be explicit in the feature specification and current-state assessment — Rationale: release gates must be executable and truthful, while absent future tooling is never reported as passing.
 
 ### 9. Observable and Resilient Operations
 
-**Design for observable, resilient, and healthy operation.** OpenTelemetry, Jaeger, Prometheus/Grafana, ELK/Filebeat, Alertmanager, explicit startup/readiness/liveness probes, Istio resilience, and KEDA scaling MUST cover every deployed service as applicable — Rationale: safe automation requires uniform telemetry, health signals, and bounded failure behavior.
+**Design for observable, resilient, and healthy operation.** Every deployed service MUST have startup, readiness, and liveness probes plus a service-owned endpoint or metric used by release health gates. OpenTelemetry, Jaeger, Prometheus/Grafana, ELK/Filebeat, Alertmanager, and KEDA MUST exist before a feature depends on them or claims their telemetry, alerting, or scaling outcomes; otherwise their absence MUST remain a disclosed deferred capability. Istio is forbidden by the economical profile — Rationale: minimum health automation is immediate, while broader operational claims require live supporting systems.
 
 ### 10. Least Privilege and Secret Hygiene
 
-**Enforce least privilege and secret hygiene.** CI MUST use OIDC, workloads MUST use namespace-scoped RBAC and IRSA, secrets MUST come through External Secrets, ingress MUST use TLS, internal traffic MUST use mTLS, and Trivy, Kyverno, Falco, `kube-bench`, and `kube-hunter` MUST be enforced — Rationale: static credentials, embedded secrets, and unaudited workloads are unacceptable trust shortcuts.
+**Enforce least privilege and secret hygiene.** CI cloud writes MUST use OIDC; workloads MUST use namespace-scoped RBAC and MUST use IRSA when calling AWS APIs; secrets MUST come through External Secrets; any ingress MUST use TLS; and released images MUST pass Trivy and Kyverno. Service-mesh mTLS is superseded by the economical profile. Falco, `kube-bench`, and `kube-hunter` become mandatory before runtime-threat, CIS-benchmark, or penetration-test coverage is claimed or depended upon, and remain explicitly deferred otherwise — Rationale: the activation baseline closes active credential and artifact paths without fabricating controls that are not installed.
 
 ### 11. Declarative and Policy-Controlled Platform
 
@@ -105,32 +105,34 @@ This trades weaker workload isolation for materially lower cost. It is a
 deliberate, informed trade-off, not an oversight, and is reversible via a
 future amendment reverting to the full profile if isolation needs change.
 
+Workload activation under this profile requires namespace isolation, GitOps-only reconciliation, immutable test/scan/SBOM/signature evidence, Kyverno admission, External Secrets and IRSA where applicable, explicit probes, native production canaries, and live acceptance evidence. Capability-gated controls above MUST have a versioned follow-up spec and owner before they are claimed; their documented absence is neither an implicit pass nor a blocker for an unrelated release.
+
 ## Current state vs. plan
 
 Status meanings: **HONORED** = concrete implementation exists; **PARTIAL** = some required behavior exists; **ASPIRATIONAL** = no implementation evidence exists; **CONTRADICTED** = current behavior violates the planned rule.
 
 | Plan principle or component | Status | Snapshot evidence and discrepancy |
 | --- | --- | --- |
-| Single AWS account and isolated dev/staging/prod | **CONTRADICTED** | The infrastructure is one Azure Container Apps environment tagged as production; no AWS account configuration, shared EKS cluster, or dev/staging/prod namespace isolation is present. |
-| GitOps-only delivery | **CONTRADICTED** | No `microservice-app-gitops` repository or ArgoCD configuration appears. Service workflows build and directly run `az containerapp update` and revision restart; their pull-request trigger also reaches the deploy step. Ops workflows directly apply Terraform and mutate resiliency policies. |
+| Single AWS account and isolated dev/staging/prod | **PARTIAL** | The live shared EKS cluster has three ArgoCD-managed namespaces with quotas, limits, scoped RBAC objects, network-policy scaffolding, and per-environment Redis. Default deny, IAM group mappings, business workloads, and the live negative-test matrix remain incomplete. |
+| GitOps-only delivery | **PARTIAL / LEGACY CONTRADICTION** | ArgoCD now reconciles the EKS platform and three environment Applications from `microservice-app-gitops`; business activation remains empty. Legacy Azure ops and Prometheus workflows still contain direct cloud mutations. |
 | Trunk-Based Development and feature flags | **PARTIAL** | Repositories use `main`, PR triggers, and short-lived `feat/*` references, and ops documentation names trunk-based development. No feature-flag implementation or enforcement is present, and historical docs still describe GitHub Flow for application repositories. |
-| Specification as source of truth | **PARTIAL** | Repository `AGENTS.md` files state the rule, and this file establishes the Constitution stage. The snapshot contains no `specs/`, feature specs, clarifications, plans, tasks, version-controlled acceptance criteria, OpenAPI, AsyncAPI, Spectral, or Pact artifacts. |
-| FinOps-informed design | **ASPIRATIONAL** | No checked-in Infracost or OpenCost configuration exists; a Git reference named `feat/infracost` is not an implementation. |
-| Planned repository topology | **PARTIAL** | Auth, todos, users, frontend, log processor, ops, docs, Prometheus, and AI-agents repositories exist. The GitOps and organization-level shared-workflow repositories do not appear; AI-agents is only partially populated. |
-| Terraform cloud foundation | **CONTRADICTED / PARTIAL** | Modular Terraform and Azure Blob remote state are real, but they create Azure Container Apps, ACR, Log Analytics, and one environment. The adopted target's single multi-AZ EKS/VPC foundation, AWS state, IAM/IRSA, ECR, Spot-oriented capacity, and Infracost are absent. |
-| Kubernetes platform add-ons | **ASPIRATIONAL** | No Kubernetes manifests or configuration for Argo Rollouts, KEDA, cert-manager, External Secrets Operator, Kyverno, Chaos Mesh, Falco, or OpenCost exists; Istio/Kiali are no longer target add-ons under the adopted profile. |
-| ArgoCD layout, promotion, rollback, and notifications | **CONTRADICTED** | There are no cluster folders, bases/overlays, auto-sync, dev-update PRs, staging/production promotion PRs, production approval, Git-revert rollback flow, or ArgoCD Slack notifications. Current pipelines deploy application images directly. |
-| Environment-specific deployment strategy | **CONTRADICTED** | Azure Container Apps uses `revision_mode = "Single"`, sends 100% of traffic to the latest revision, and deploys `:latest`; no Argo Rollout, AnalysisTemplate, Prometheus gate, native replica-based canary steps, or distinct dev/staging/prod strategy exists. |
-| Reusable CI, OIDC, and artifact supply chain | **PARTIAL / CONTRADICTED** | Per-repository GitHub Actions build images and semantic-release creates releases, but workflows are duplicated and use Azure credential, subscription, registry-admin, and GitHub token secrets. There is no shared workflow, AWS/Azure OIDC, build-once promotion, SonarQube, Trivy, Syft SBOM, Cosign signing, or signature admission. |
+| Specification as source of truth | **PARTIAL** | GitOps features 001-005 include versioned specs, plans, tasks, contracts, and acceptance criteria. Coverage is not uniform across repositories, and feature 005 must be reconciled with this amendment before implementation resumes. |
+| FinOps-informed design | **ASPIRATIONAL / DEFERRED** | No checked-in Infracost or live OpenCost evidence exists. Runtime-cost claims remain unavailable, while unrelated economical-profile activation is allowed only with this gap disclosed. |
+| Planned repository topology | **PARTIAL** | The GitOps and organization `.github` shared-workflow repositories now exist alongside the service, ops, docs, Prometheus, and AI-agents repositories. Adoption and AI-agent assets remain incomplete. |
+| Terraform cloud foundation | **PARTIAL / UNMERGED SOURCE** | A live multi-AZ EKS/VPC foundation, AWS remote state, two managed nodes, and VPC CNI network-policy enforcement exist. Their Terraform source remains on an unmerged ops branch; Infracost, workload IRSA, ECR activation, and Spot/Karpenter remain absent. |
+| Kubernetes platform add-ons | **PARTIAL** | ArgoCD, KEDA, cert-manager, External Secrets Operator, and Kyverno are live and healthy, with Redis currently active per environment plus the pending shared instance. Argo Rollouts and a metric backend are absent; Chaos Mesh, Falco, and OpenCost remain deferred. |
+| ArgoCD layout, promotion, rollback, and notifications | **PARTIAL** | The live root, infrastructure, and three environment Applications are Git-owned and Synced/Healthy, and the service matrix is deliberately empty. Business promotion, native rollout health, reviewed failure recovery, and notifications remain unverified. |
+| Environment-specific deployment strategy | **ASPIRATIONAL / BLOCKED** | All five managed overlays exist, but zero business Applications are active. Argo Rollouts CRDs/controller and a valid analysis backend are absent, and the existing auth-only canary seam cannot provide acceptance evidence. |
+| Reusable CI, OIDC, and artifact supply chain | **PARTIAL / RELEASE-BLOCKED** | Five services call the central workflow, which defines build-once digests, AWS OIDC, Trivy, Syft, and Cosign stages. Test execution is largely unwired, SonarQube is inactive, and successful image-specific baseline evidence plus Kyverno signature admission remain prerequisites to release. |
 | Resilience and configuration patterns | **PARTIAL** | Services read environment variables, Terraform converts selected values to secret references, Todos retries Redis connections, and an ops workflow imperatively applies Azure's recommended resiliency policy. General service-library circuit breaker, bulkhead, and timeout behavior is not demonstrated; OpenFeature and Spring Cloud Config are absent. |
-| Test strategy and quality reporting | **PARTIAL, NEARLY ABSENT** | Users API has one Spring context-load test and Maven packaging runs it; frontend has a lint command. Auth, Todos, frontend, log processor, Prometheus, and ops have no functional suites, several `npm test` scripts deliberately fail, and CI runs none of the planned unit, Testcontainers, contract, E2E, Locust, ZAP, coverage, or SonarQube gates. |
-| Observability and workload health | **PARTIAL** | Prometheus metrics, a custom Prometheus image, Grafana, an nginx exporter, Zipkin tracing, stdout logging, and Azure Log Analytics exist. OpenTelemetry, short-retention Jaeger, business metrics, Loki, Alertmanager/Slack, and deployment probes are absent; only Users exposes an actuator health capability, which is not wired as a probe. |
-| Security controls | **PARTIAL / CONTRADICTED** | JWT authentication and some Azure secret references exist. Static CI credentials, ACR admin access, source JWT fallbacks, Terraform's `PRFT` JWT default, Grafana password `12345`, public monitoring ingress, and unsigned `:latest` images contradict the target; External Secrets, RBAC/IRSA, explicit TLS/mTLS, Trivy, Kyverno, Falco, `kube-bench`, and `kube-hunter` are absent. |
+| Test strategy and quality reporting | **PARTIAL / RELEASE-BLOCKED** | The central workflow exposes explicit unit, integration, contract, E2E, performance, DAST, and Sonar gates, but most are fail-closed scaffolds without runnable suites. No business image has complete baseline release evidence. |
+| Observability and workload health | **PARTIAL / DEFERRED** | Service manifests expose health/metric endpoints and declare probes, but no business workload is live in EKS and production rollout health is untested. OpenTelemetry, Jaeger, Prometheus/Grafana, Loki, and Alertmanager are not active on EKS and cannot be claimed. |
+| Security controls | **PARTIAL / RELEASE-BLOCKED** | Namespace RBAC objects, External Secrets Operator, Kyverno, network-policy enforcement, and supply-chain stages now exist. EKS group mappings, workload IRSA/secret flow, verified signatures/admission, and ingress TLS remain incomplete; legacy Azure static credentials persist, while Falco and benchmark tools are deferred. |
 | Change management and traceability | **PARTIAL / CONTRADICTED** | Semantic-release, semantic versions, release tags, and changelogs exist. Deployments nevertheless select `:latest`; PR rollback plans, spec-to-image traceability, immutable promotion, and GitOps `git revert` rollback are absent. |
-| Cost-optimized resilience, chaos engineering, and cost controls | **ASPIRATIONAL** | This amendment adopts the cost-optimized profile, but the assessment snapshot contains no EKS, namespace quotas/policies/RBAC, multi-AZ or Velero recovery, Spot/Karpenter, native canaries, service-library resilience, Loki, short-retention Jaeger, SonarCloud, cluster-level Chaos Mesh evidence, OpenCost, or Infracost. Current Azure Container Apps remains a legacy state, not an implementation of the adopted profile. |
+| Cost-optimized resilience, chaos engineering, and cost controls | **PARTIAL** | Shared EKS, three bounded namespaces, VPC CNI enforcement, GitOps, selected add-ons, and per-environment Redis are live. Default-deny evidence, business activation, canaries, continuity, Spot capacity, resilience libraries, and FinOps evidence remain incomplete or explicitly deferred. |
 | Data continuity | **CONTRADICTED AS A DR CAPABILITY; HONESTLY IDENTIFIED AS A RISK** | Redis is an unreplicated, unpersisted Pub/Sub service, Todos stores data in process memory, and Users uses pod-local H2 seed data. Restarts and scaling can lose or diverge state, so the code confirms the plan's warning but provides no continuity. |
 | AI-agents repository | **PARTIAL** | The repository contains context documentation plus scripts to generate `AGENTS.md` files and index repositories. The advertised `.claude/agents`, `.claude/skills`, and `.claude/mcp` content does not appear in the snapshot, so specialized agents, Spec Kit skills, and MCP configuration are not delivered. |
-| Suggested roadmap | **PARTIAL, PRE-MIGRATION** | Legacy Terraform, container images, basic telemetry, semantic release, and agent-context scripts predate the target. Roadmap steps for AWS foundations, platform add-ons, GitOps, shared CI, target observability, multicloud, chaos, and FinOps remain undone; this constitution begins only the governance portion of step 6. |
+| Suggested roadmap | **PARTIAL, MIGRATION ACTIVE** | AWS foundation, GitOps, namespace isolation scaffolding, core add-ons, shared CI, and service overlays now exist at different maturity levels. Business activation, progressive delivery, continuity, complete quality evidence, observability, chaos, and FinOps remain open. |
 
 ## Amendment process
 
@@ -144,4 +146,4 @@ Status meanings: **HONORED** = concrete implementation exists; **PARTIAL** = som
 
 This constitution outranks feature specifications; approved feature specifications outrank plans and tasks; all of them outrank current code and deployed state. A conflicting feature specification MUST be changed to comply or blocked until a constitution amendment is approved first. Existing contradictory code creates remediation work and never establishes precedent or an implicit waiver. Ambiguity is resolved in a documented pull-request decision by the same maintainers required for an amendment, and no conversation, prompt, emergency command, or undocumented exception may override that decision hierarchy.
 
-**Version**: 1.2.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09
+**Version**: 2.0.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-08-11

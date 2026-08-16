@@ -1,225 +1,219 @@
-# Contract: Managed Environment Isolation
+# Contract: Shared-Cluster Isolation and Managed Release
 
-## Purpose
+## Scope
 
-This contract defines the reusable desired-state and live-evidence boundary for
-`dev`, `staging`, and `prod` on the one shared EKS cluster. It does not activate
-the cluster or authorize Terraform, AWS, ArgoCD UI, or direct Kubernetes changes.
+This contract governs the single shared EKS cluster adopted by constitution
+v2.0.0. It covers the three namespace boundaries and the one reviewed release
+of auth-api, todos-api, users-api, frontend, and log-message-processor across
+dev, staging, and production.
 
-## Ownership
+## Exact environment mapping
 
-| Concern | Owner | This feature's behavior |
-| --- | --- | --- |
-| VPC, EKS, nodes, VPC CNI add-on, IAM, ECR | `microservice-app-ops` / Terraform | Read-only prerequisite evidence; no edits. |
-| ArgoCD bootstrap and shared identity | Existing `clusters/eks-dev` registration | Reuse the live root and physical cluster without renaming or bootstrap changes. |
-| Infrastructure ApplicationSet activation values | This GitOps feature | Use an exact per-cluster list; retain four controllers plus shared Redis through replacement verification, then remove only shared Redis. |
-| Namespace, quota, limits, network policy, namespace RBAC | This GitOps feature | Declarative paths below. |
-| Environment Redis | This GitOps feature | One immutable, ephemeral instance in each managed namespace. |
-| AWS principal-to-Kubernetes-group mapping | Cluster-access handoff | Required live evidence; no personal ARN in environment manifests. |
-| New platform add-ons and business-service workloads | Their own feature specs | No activation in this feature. |
-| Verification fixtures | This feature | Opt-in Git resources, activated and removed through reviewed revisions. |
+| Environment | Namespace | Environment Application | Maintainer group | JWT source |
+| --- | --- | --- | --- | --- |
+| dev | `microtodo-dev` | `env-dev` | `microtodosuite:dev-maintainers` | `microtodosuite/dev/auth-api-secrets` |
+| staging | `microtodo-staging` | `env-staging` | `microtodosuite:staging-maintainers` | `microtodosuite/staging/auth-api-secrets` |
+| prod | `microtodo-prod` | `env-prod` | `microtodosuite:prod-maintainers` | `microtodosuite/prod/auth-api-secrets` |
 
-## Directory and Render Contract
+The physical cluster and GitOps root retain their legacy identifiers
+`microtodosuite-dev` and `clusters/eks-dev`.
 
-The planned final layout is:
+## Namespace boundary invariants
 
-```text
-environments/
-├── base/
-│   ├── kustomization.yaml
-│   ├── limitrange.yaml
-│   ├── networkpolicy-default-deny.yaml
-│   ├── networkpolicy-allow-dns.yaml
-│   ├── networkpolicy-allow-intra-namespace.yaml
-│   ├── networkpolicy-allow-redis.yaml
-│   ├── redis-deployment.yaml
-│   ├── redis-service.yaml
-│   ├── redis-serviceaccount.yaml
-│   └── role.yaml
-├── dev/
-│   ├── kustomization.yaml
-│   ├── namespace.yaml
-│   ├── resourcequota.yaml
-│   ├── rolebinding.yaml
-│   └── networkpolicy-allow-required-egress.yaml  # only evidenced rules
-├── staging/
-│   ├── kustomization.yaml
-│   ├── namespace.yaml
-│   ├── resourcequota.yaml
-│   └── rolebinding.yaml
-└── prod/
-    ├── kustomization.yaml
-    ├── namespace.yaml
-    ├── resourcequota.yaml
-    └── rolebinding.yaml
-```
+Every managed environment render MUST contain exactly one:
 
-`networkpolicy-default-deny.yaml` exists in the final base but is introduced in
-a later rollout revision than the prerequisite allow rules. No environment may
-replace the common default deny, LimitRange, same-namespace allowance, DNS
-allowance, or Role with a divergent copy.
+- Namespace with the exact mapping above;
+- ResourceQuota with all five required bounds;
+- LimitRange with default requests, default limits, minima, and maxima;
+- workload-maintainer Role and exact group RoleBinding;
+- ingress-and-egress default-deny policy;
+- DNS, same-namespace, and Redis-specific exact allow rules;
+- namespace-local Redis Deployment, ServiceAccount, and Service;
+- `external-secrets-jwt` ServiceAccount;
+- namespaced `aws-secrets-manager` SecretStore; and
+- `auth-api-secrets` ExternalSecret.
 
-Each final steady-state environment render MUST contain exactly:
+No managed render may contain a wildcard RBAC subject/resource/verb, personal
+IAM ARN, broad other-environment selector, shared Redis endpoint, literal secret
+value, or mutable image.
 
-- one Namespace with the exact mapping below;
-- one ResourceQuota with evidence-approved CPU, memory, and pod bounds;
-- one LimitRange with CPU/memory defaults and maxima;
-- one ingress-and-egress default-deny NetworkPolicy;
-- one DNS allowance;
-- one same-namespace allowance;
-- zero or more exact environment-specific allowances;
-- one custom workload Role; and
-- one RoleBinding to the exact environment group;
-- one Redis Deployment and ServiceAccount;
-- one namespace-local Redis ClusterIP Service; and
-- one Redis-specific ingress policy.
+## Resource budget contract
 
-| Environment | Namespace | ArgoCD Application | Maintainer group |
-| --- | --- | --- | --- |
-| `dev` | `microtodo-dev` | `env-dev` | `microtodosuite:dev-maintainers` |
-| `staging` | `microtodo-staging` | `env-staging` | `microtodosuite:staging-maintainers` |
-| `prod` | `microtodo-prod` | `env-prod` | `microtodosuite:prod-maintainers` |
+| Environment | Requests CPU | Limits CPU | Requests memory | Limits memory | Pods |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| dev | `550m` | `2300m` | `896Mi` | `2304Mi` | `12` |
+| staging | `625m` | `2700m` | `1Gi` | `2816Mi` | `14` |
+| prod | `700m` | `3` | `1152Mi` | `3Gi` | `18` |
 
-The Application names and namespace derivation come from the existing
-`clusters/base/environments.yaml` ApplicationSet. The `clusters/eks-dev`
-registration MUST activate all three with
-`server: https://kubernetes.default.svc`, keep business-service activation
-empty, and retain the exact five-entry foundation infrastructure list until
-environment Redis is verified. The later retirement revision removes only
-shared Redis. This feature does not bootstrap or rename the cluster.
+These ceilings admit steady state plus the largest serialized one-service surge;
+production also admits one bounded AnalysisRun Job. They are not dedicated node
+reservations and do not guarantee complete rescheduling after loss of one of the
+two workers.
 
-## Static Invariants
+## AWS secret contract
 
-- Every overlay renders with `kubectl kustomize` and schema-validates with the
-  implementation's pinned validator.
-- The three overlays consume the same base.
-- Namespace names, labels, RoleBinding subjects, and ArgoCD destination mapping
-  agree with the table above.
-- ResourceQuota covers `requests.cpu`, `limits.cpu`, `requests.memory`,
-  `limits.memory`, and `pods` with positive values.
-- LimitRange defines container default requests, default limits, and maxima for
-  CPU and memory.
-- Default deny selects all pods for both `Ingress` and `Egress`.
-- DNS rules do not use an unrestricted egress block.
-- Each managed render contains exactly one Redis Deployment and Service in the
-  rendered namespace, selected by immutable digest.
-- Managed todos-api and log-message-processor overlays resolve
-  `REDIS_HOST=redis`; their local overlays retain the local pilot endpoint.
-- Cross-environment allowances, wildcard RBAC subjects/resources/verbs,
-  `system:authenticated`, personal IAM ARNs, direct secret values, mutable image
-  tags, and cloud credentials are absent.
-- `environments/local` has no diff from its pre-feature revision.
-- The live Application inventory contains exactly `env-dev`, `env-staging`, and
-  `env-prod` from the managed activation scope, zero business-service
-  Applications, and an exact stage-specific infrastructure allowlist: the four
-  retained controllers plus `infra-redis` before Redis retirement, then only
-  the four controllers afterward. Pre-existing dev workloads are inventoried
-  separately and remain continuity subjects.
+- Terraform creates three independent Secrets Manager secrets and versions.
+- Secret values are generated ephemerally and supplied only through a write-only
+  provider argument.
+- Each source secret has one IAM role trusted by one exact Kubernetes
+  service-account subject.
+- Each policy allows only `secretsmanager:GetSecretValue` and
+  `secretsmanager:DescribeSecret` on one exact ARN.
+- ESO materializes `auth-api-secrets/JWT_SECRET` only in the matching namespace.
+- Evidence may compare hashes or lengths but MUST NOT print or persist values.
+- All six attempts to read another environment's source secret MUST be denied.
 
-## Staged Activation Contract
+## Registry and artifact contract
 
-### Stage 0: prerequisites and baseline
-
-Required evidence:
-
-- authoritative constitution is v1.2.0;
-- the existing `clusters/eks-dev` registration is reviewed as the shared target, with
-  three environment Applications, no business Applications, and the exact four
-  retained controller Applications plus the existing `infra-redis`;
-- CNI enforcement gate passes on every eligible node;
-- identity group mapping is confirmed before RBAC acceptance; the foundation
-  may leave the stable groups unmapped under the recorded deferral;
-- dev Applications are current and healthy;
-- current dev requests, limits, ready replicas, restarts, health paths, and
-  required network connections are recorded; and
-- proposed quota values leave documented rollout and platform reserve.
-
-Any CNI, registration, capacity, or immutable-input failure blocks Stage 1.
-Deferred identity mapping blocks only the RBAC acceptance claim and MUST NOT be
-worked around by mapping one principal to every environment.
-
-### Stage 1: foundation and allow rules
-
-A reviewed Git revision reconciles Namespace, ResourceQuota, LimitRange, RBAC,
-DNS, same-namespace policy, namespace-local Redis, and exact required dev
-allowances. Default deny is not active in this revision. All three environment
-applications and Redis instances must converge, every instance must return
-`PONG`, and dev continuity must match baseline before Stage 2.
-
-### Stage 2: default deny
-
-A later reviewed Git revision adds default deny to the managed base. The
-operator waits for exact-revision convergence and records dev continuity again.
-Any loss of readiness, new attributable restart, or failed required connection
-causes a Git revert before fixtures are activated.
-
-### Stage 3: shared Redis retirement
-
-A later reviewed Git revision removes only `redis` from the managed cluster's
-explicit infrastructure list. The four controller Applications remain
-Synced/Healthy, `infra-redis` and namespace `redis` disappear through ArgoCD
-pruning, and all three environment Redis instances remain Ready.
-
-### Stage 4: verification fixtures
-
-A later reviewed Git revision references the opt-in fixtures. The fixture image
-must be immutable, available before egress deny, and run as Deployment-owned
-pods. The resulting logs and Kubernetes events must prove:
-
-- six directed cross-environment connections denied;
-- three same-environment connections allowed;
-- DNS allowed in all three namespaces;
-- three Redis `PONG` checks;
-- six directed cross-environment Redis connections denied;
-- one unique Pub/Sub event observed only in its source environment;
-- one over-budget Deployment cannot realize its excess pod;
-- the comparison environment remains healthy; and
-- the complete RBAC authorization matrix.
-
-### Stage 5: cleanup
-
-`git revert` removes fixture activation. Final acceptance waits until all three
-environment applications are Synced/Healthy at the cleanup revision, no fixture
-workload remains, and dev continuity still matches baseline.
-
-## Live Evidence Contract
-
-The verifier writes one directory below
-`.local/evidence/namespace-isolation/<timestamp>/` containing at minimum:
+Exactly five additive private repositories exist:
 
 ```text
-summary.json
-command-log.txt
-applications/
-cluster/
-environments/
-network/
-redis/
-rbac/
-resource/
-dev-continuity/
+microtodosuite/auth-api
+microtodosuite/todos-api
+microtodosuite/users-api
+microtodosuite/frontend
+microtodosuite/log-message-processor
 ```
 
-`summary.json` MUST validate against
-[`namespace-isolation-evidence.schema.json`](namespace-isolation-evidence.schema.json).
-Raw files preserve the API observations and logs used by each summary result.
+The existing empty `microtodosuite/dev/*` repositories remain unchanged.
 
-## Failure and Rollback Contract
+For each service, one reviewed green `main` run MUST:
 
-- A failed gate sets the run result to `FAIL`; evidence is not rewritten to hide
-  the failure.
-- Desired-state recovery is a reviewed Git revert of the failing stage.
-- The operator may use read-only diagnostics, logs, events, and health calls.
-- The operator MUST NOT use `kubectl apply`, `create`, `patch`, `replace`,
-  `scale`, `rollout`, `delete`, or an ArgoCD UI mutation to repair the cluster.
-- A revert is not complete until ArgoCD reports the cleanup revision and dev
-  continuity is rechecked.
+1. run applicable tests;
+2. build the image once locally;
+3. pass Trivy against that exact image;
+4. produce one retained SBOM;
+5. assume AWS through the exact GitHub OIDC publisher role;
+6. push the already-tested image once;
+7. resolve its ECR manifest digest; and
+8. keylessly sign that exact digest.
 
-## Explicit Non-Guarantees
+Dev, staging, and prod MUST reference the same repository URI and digest. A PR
+run, failing run, rebuilt artifact, unsigned digest, unapproved workflow
+identity, mutable tag, placeholder registry, or all-zero digest is ineligible.
 
-This contract does not claim separate failure domains, dedicated CPU/node
-reservation, protection from control-plane failure, protection from a privileged
-cluster administrator or compromised ArgoCD controller, layer-7 policy, service
-mesh mTLS, durable Redis data, or disaster recovery. Redis instances isolate
-event streams but remain ephemeral. Those limits are part of the accepted
-cost-optimized trade-off or separate specifications.
+Kyverno MUST enforce digest use, probes, and approved keyless signatures for
+neutral-ECR business images before activation.
+
+## ApplicationSet release contract
+
+Before activation, the business generator's list is empty. The final activation
+revision adds all three `{env, server}` objects together. Matrix discovery then
+declares exactly fifteen Applications.
+
+Each generated EKS Application has label
+`microtodosuite.io/environment=<env>`. EKS-only RollingSync has three ordered
+steps and `maxUpdate: 1`:
+
+```text
+dev -> staging -> prod
+```
+
+The next environment is ineligible until every Application in the current
+environment is Healthy. A failed group leaves later groups unapplied and starts
+the reviewed Git-revert recovery path. Local-kind remains outside this strategy.
+
+## Infrastructure inventory contract
+
+Before shared-Redis retirement, the exact list is:
+
+```text
+infra-keda
+infra-cert-manager
+infra-external-secrets
+infra-kyverno
+infra-redis
+```
+
+After all three local Redis instances pass and before business activation, the
+exact list is:
+
+```text
+infra-keda
+infra-cert-manager
+infra-external-secrets
+infra-kyverno
+infra-argo-rollouts
+```
+
+Folder discovery is forbidden. The local-kind Redis registration is unchanged.
+
+## Production Rollout contract
+
+All five production overlays render one Rollout plus one dedicated canary
+Service. The Rollout reuses the Deployment pod template, serializes with
+`maxSurge: 1`/`maxUnavailable: 0`, exposes a live canary at 50 percent, and
+blocks on an inline Job metric targeting that canary Service.
+
+The initial creation establishes the first stable ReplicaSet and is not canary
+evidence. Production acceptance additionally requires:
+
+- a reviewed same-digest pod-template evidence revision;
+- five successful AnalysisRuns associated with five promoted Rollouts;
+- one reviewed negative metric revision;
+- observed `AnalysisRun Failed`, `Rollout Aborted`, and stable restoration; and
+- recovery by Git revert with all five original digests retained.
+
+## Staged activation contract
+
+### Stage 0: baseline
+
+Record constitution, cluster identity, node/CNI state, Argo CD inventory,
+namespace resources, quotas/usage, Redis health, dev readiness/restarts, and all
+open prerequisites. Zero business Applications is required.
+
+### Stage 1: AWS and supply chain
+
+Merge the live foundation source, repair the Terraform role, and apply a reviewed
+additive plan for ECR, secrets, and identities. Merge the sequential shared
+workflow and five green service PRs. Record five admissible release artifacts.
+
+### Stage 2: deployment prerequisites
+
+Reconcile progressive-sync support, Argo Rollouts, ESO resources, signature
+admission, economical topology, quota changes, and shared-Redis retirement. Zero
+business Applications remains required. All three ExternalSecrets and Redis
+instances must be Ready.
+
+### Stage 3: single activation
+
+One reviewed revision declares all fifteen Applications and the five release
+digests. Observe dev, staging, and prod in order; any failure blocks the next
+group and is reverted.
+
+### Stage 4: production evidence
+
+Run the same-digest successful canary revision, the intentional negative gate,
+and Git-revert recovery.
+
+### Stage 5: isolation fixtures
+
+Activate GitOps-owned fixtures and prove six directed network denials, three
+same-environment paths, DNS, three Redis PONGs, six Redis denials, three isolated
+Pub/Sub streams, one quota rejection, comparison-environment continuity, and the
+RBAC matrix when approved mappings exist.
+
+### Stage 6: cleanup
+
+Git revert removes fixtures. All Applications return to the exact cleanup
+revision, workloads remain Healthy, and acceptance evidence is schema-valid.
+
+## Failure and mutation contract
+
+- Every failed gate remains recorded as FAIL; evidence is never rewritten.
+- Recovery of managed state is a reviewed Git revert.
+- Observers may read Kubernetes, Argo CD, AWS metadata, GitHub results, logs,
+  events, authorization results, and endpoints.
+- Observers MUST NOT apply, create, patch, replace, scale, edit, or delete a
+  GitOps-managed Kubernetes resource.
+- AWS resource creation MUST NOT use ad hoc AWS CLI calls; only the reviewed
+  Terraform state owner may create or change it.
+
+## Explicit non-guarantees
+
+This contract does not promise separate cluster/VPC failure domains, dedicated
+node reservation, complete one-node-loss rescheduling, durable Redis, durable
+todos or H2 state, layer-7 network policy, service-mesh mTLS, full Prometheus or
+logging coverage, AKS DR, or protection from a compromised cluster
+administrator/Argo CD controller. Those limitations remain disclosed rather
+than being converted into acceptance claims.

@@ -9,3 +9,31 @@ resources:
   - resourcequota.yaml
   - rolebinding.yaml
   - networkpolicy-allow-required-egress.yaml
+
+patches:
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: external-secrets-jwt
+    patch: |-
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: external-secrets-jwt
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-dev-jwt-reader
+  - target:
+      group: external-secrets.io
+      version: v1
+      kind: ExternalSecret
+      name: auth-api-secrets
+    patch: |-
+      apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: auth-api-secrets
+      spec:
+        data:
+          - secretKey: JWT_SECRET
+            remoteRef:
+              key: microtodosuite/dev/auth-api-secrets

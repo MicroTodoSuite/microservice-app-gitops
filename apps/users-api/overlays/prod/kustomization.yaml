@@ -3,11 +3,7 @@ kind: Kustomization
 
 namespace: microtodo-prod
 resources: [../../topology]
-replicas:
-  # H2 is pod-local. Keep one replica until a separate persistence design is
-  # ratified; scaling this scaffold would create divergent user databases.
-  - name: users-api
-    count: 1
+components: [../../components/strategy-canary]
 patches:
   - target: {kind: Deployment, name: users-api}
     patch: |-
@@ -15,6 +11,9 @@ patches:
       kind: Deployment
       metadata: {name: users-api}
       spec:
+        # workloadRef owns one production replica. The source Deployment remains
+        # at zero so migration does not duplicate the pod-local H2 workload.
+        replicas: 0
         template:
           spec:
             containers:

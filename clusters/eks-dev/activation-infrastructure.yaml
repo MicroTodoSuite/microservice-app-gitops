@@ -13,8 +13,6 @@
     - name: kyverno
       path: infrastructure/kyverno
       namespace: kyverno
-    # Foundation value only. Remove this element in the reviewed retirement
-    # revision after all three environment-owned instances return PONG.
-    - name: redis
-      path: infrastructure/redis
-      namespace: redis
+    - name: argo-rollouts
+      path: infrastructure/argo-rollouts
+      namespace: argo-rollouts

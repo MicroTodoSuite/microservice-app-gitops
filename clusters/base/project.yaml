@@ -83,4 +83,6 @@ spec:
       kind: APIService
     - group: kyverno.io
       kind: ClusterPolicy
+    - group: argoproj.io
+      kind: ClusterAnalysisTemplate
   namespaceResourceBlacklist: []

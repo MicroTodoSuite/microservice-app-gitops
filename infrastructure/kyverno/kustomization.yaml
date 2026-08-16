@@ -23,6 +23,32 @@ patches:
         path: /spec/conversion
         value:
           strategy: None
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: kyverno-admission-controller
+    patch: |-
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: kyverno-admission-controller
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-kyverno-ecr-verifier
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: kyverno-admission-controller
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: kyverno-admission-controller
+      spec:
+        template:
+          metadata:
+            annotations:
+              microtodosuite.io/ecr-verifier-irsa-revision: "v1"
 
 images:
   - name: reg.kyverno.io/kyverno/kyverno

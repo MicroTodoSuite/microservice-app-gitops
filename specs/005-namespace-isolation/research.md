@@ -1,313 +1,324 @@
-# Research: Shared-Cluster Namespace Isolation
+# Research: Shared-Cluster Isolation and Managed-Environment Publication
 
-## Decision 1: Treat NetworkPolicy enforcement as an external activation gate
+**Date**: 2026-08-10
+**Feature**: `005-namespace-isolation`
 
-**Decision**: Render and statically validate standard Kubernetes
-`NetworkPolicy` resources in this repository, but block default-deny activation
-until live evidence proves that every eligible shared-cluster worker runs the
-policy agent with enforcement enabled. The verification fixtures use
-Deployment-owned pods and new TCP connections.
+This research combines repository inspection, live read-only EKS/AWS/GitHub
+evidence, and primary product documentation. It records the decisions required
+to move from the already-reconciled namespace foundations to one verified
+release of the five business services in dev, staging, and production.
 
-**Rationale**:
+## Live baseline
 
-- Kubernetes accepts `NetworkPolicy` objects even when the cluster networking
-  plugin does not enforce them. A successful render, sync, or API read therefore
-  does not prove isolation.
-- The sibling AWS foundation pins VPC CNI `v1.23.0-eksbuild.1`, which is newer
-  than AWS's current minimum for native standard network policy support.
-- The same Terraform resource does not set `configuration_values` or otherwise
-  expose `enableNetworkPolicy: "true"`. AWS documents that new EKS clusters do
-  not enable this feature by default, so the current repository evidence is
-  insufficient for live acceptance.
-- AWS documents that VPC CNI standard policy enforcement applies to Linux EC2
-  nodes and to pods owned by a Deployment. The planned probes therefore do not
-  rely on standalone pods or Fargate behavior.
-- Existing connections can give misleading results during policy rollout. Each
-  network assertion opens a new TCP session after convergence.
+- The only EKS cluster is the existing `microtodosuite-dev` cluster, adopted as
+  the shared cluster without physical rename. It runs Kubernetes 1.35 on two
+  Linux nodes with combined allocatable capacity of `3860m` CPU,
+  `14549840Ki` memory, and 58 pods.
+- Existing platform and Redis pods request `1301m` CPU and approximately
+  `892Mi` memory before business-service activation.
+- `env-dev`, `env-staging`, and `env-prod` are Synced/Healthy. Each namespace has
+  one Ready Redis pod and active default-deny policy. There are zero business
+  Applications, zero managed ExternalSecrets, and zero Argo Rollouts CRDs.
+- Amazon VPC CNI `v1.23.0-eksbuild.1` is active with network-policy enforcement
+  enabled. That static prerequisite does not replace the required live traffic
+  tests.
+- Argo CD 3.5.0 exposes RollingSync in its ApplicationSet CRD, but
+  `applicationsetcontroller.enable.progressive.syncs` is absent, so the live
+  controller currently behaves as `AllAtOnce`.
+- AWS has only the five empty `microtodosuite/dev/<service>` repositories. No
+  neutral repository, JWT source secret, GitHub OIDC publisher, environment JWT
+  reader role, or Kyverno ECR-verifier role exists.
+- The Terraform configuration that owns the live AWS foundation is on the
+  unmerged `microservice-app-ops` branch `esteban/eks-dev-foundation` at
+  `c5ecbda`; remote `main` does not yet contain it.
+- The intended Terraform role cannot currently plan the live foundation because
+  its IAM policy lacks required read and narrowly scoped IAM lifecycle actions.
+  The broader developer user can technically act, but is not an acceptable
+  substitute for the reviewed Terraform execution path.
+- All five recorded source baselines have failing CI. Four failed because a
+  mutable shared-workflow tag resolved before the private-GHCR authentication
+  repair; auth-api authenticated and then failed Trivy with 33 HIGH and two
+  CRITICAL findings. No baseline is releasable.
 
-**Alternatives rejected**:
+## Decision 1: Preserve the existing GitOps and shared-cluster identities
 
-- Accepting manifests or ArgoCD Healthy status as network proof: neither tests
-  packet enforcement.
-- Enabling VPC CNI through a direct AWS CLI, Helm, or `kubectl edit` command:
-  that would create infrastructure or add-on drift outside GitOps/Terraform
-  ownership.
-- Installing a second policy engine from this feature: add-on installation is
-  explicitly out of scope and running two engines against the same policies can
-  leave conflicting rules.
+**Decision**: Keep the physical cluster name `microtodosuite-dev`, the
+`clusters/eks-dev` registration path, and the root Application unchanged. Every
+Kubernetes change after bootstrap remains a Git commit reconciled by Argo CD.
 
-**Repository evidence**:
+**Rationale**: Renaming EKS means replacement, and renaming the live root path is
+a separate migration with its own failure modes. Neither is necessary for
+namespace isolation or application publication.
 
-- `microservice-app-ops/aws/modules/environment-foundation/eks.tf` declares the
-  managed VPC CNI add-on without policy configuration.
-- `microservice-app-ops/aws/modules/environment-foundation/variables.tf` pins
-  `v1.23.0-eksbuild.1`.
-- `environments/local/networkpolicy-default-deny.yaml` already warns that the
-  local kind CNI does not enforce its policy intent.
+**Rejected**: Direct `kubectl apply`, Argo CD UI sync as a deployment path,
+cluster replacement, or a second managed-cluster registration.
 
-**Primary sources**:
+## Decision 2: Enable and scope ApplicationSet RollingSync declaratively
 
-- [Amazon EKS: limit pod traffic with network policies](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html)
-- [Amazon EKS: configure VPC CNI network policy](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy-configure.html)
-- [Kubernetes NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+**Decision**:
 
-## Decision 2: Reuse one managed isolation base and three value-owning overlays
+1. Patch the self-managed Argo CD `argocd-cmd-params-cm` with
+   `applicationsetcontroller.enable.progressive.syncs: "true"`.
+2. Change a pod-template checksum annotation on the ApplicationSet controller so
+   the ConfigMap-backed environment variable is actually reloaded.
+3. Add an environment label to generated business Applications.
+4. Add the RollingSync strategy only in the EKS registration, not the reusable
+   base, with ordered `dev`, `staging`, and `prod` steps and `maxUpdate: 1` for
+   each step.
+5. Remove generated-Application automated sync for this registration. RollingSync
+   initiates each sync and waits for every Application in the preceding group to
+   become Healthy.
 
-**Decision**: Add a reusable `environments/base` Kustomize root for common
-LimitRange, default-deny, DNS, same-namespace network, workload-maintainer Role,
-and digest-pinned Redis behavior. `environments/dev`, `environments/staging`,
-and `environments/prod` each own their Namespace, ResourceQuota, RoleBinding,
-and any exact environment-specific allow policy. Each environment Application
-instantiates the common Redis resources in its own namespace. The current
-`environments/local` root remains independent and unchanged.
+**Rationale**: The local-kind registration also consumes `clusters/base`; an
+unconditional dev/staging/prod strategy would leave its `local` Application
+unmatched. Serializing each five-Application group bounds surge and makes the
+observed order unambiguous.
 
-**Rationale**:
+**Rejected**: Three separate activation commits, `AllAtOnce`, relying only on
+sync-wave annotations, or a global strategy that breaks local-kind.
 
-- `clusters/base/environments.yaml` already discovers only explicitly activated
-  `environments/<env>` paths, so a non-activated `base` directory does not create
-  a fourth managed environment.
-- Common policy in one root prevents three copies from drifting while preserving
-  environment-owned values where capacity and identity legitimately differ.
-- The local pilot has different capacity and CNI behavior. Retrofitting it onto
-  the managed base would expand scope and could invalidate already proven local
-  contracts.
+**Primary source**: [Argo CD 3.5 Progressive Syncs](https://argo-cd.readthedocs.io/en/release-3.5/operator-manual/applicationset/Progressive-Syncs/)
 
-**Alternatives rejected**:
+## Decision 3: Vendor Argo Rollouts 1.9.1 as an explicit add-on
 
-- Copying the seven local files three times: this would reproduce exactly the
-  structural drift the current environment ApplicationSet was designed to
-  avoid.
-- Converting `environments/local` into the common base: local's explicitly
-  non-enforcing network posture and small quota are not managed-cluster values.
-- Generating namespaces in Terraform: namespace policy is in-cluster desired
-  state and belongs to ArgoCD under the constitution.
+**Decision**: Vendor the official Argo Rollouts v1.9.1 install manifest and
+checksum under `infrastructure/argo-rollouts`, pin the controller image by
+digest, and register `infra-argo-rollouts` explicitly after retiring shared
+Redis. The final infrastructure inventory is KEDA, cert-manager, External
+Secrets, Kyverno, and Argo Rollouts.
 
-## Decision 3: Stage allow rules before default deny using separate Git changes
+**Rationale**: Production release controls cannot reference absent CRDs or an
+unmanaged controller. The repository already uses vendored, checksummed add-ons
+and an exact infrastructure allowlist.
 
-**Decision**: Use a minimum three-stage live sequence:
-
-1. capture dev health, dependency, resource, and CNI evidence;
-2. reconcile namespaces, budgets, RBAC, DNS/same-namespace policy, and every
-   evidenced dev allow rule, then re-check dev;
-3. reconcile default-deny ingress and egress, then run isolation and continuity
-   checks.
-
-Verification fixtures are activated by a later reviewed commit and removed by
-`git revert`. Every stage must converge before the next begins.
-
-**Rationale**:
-
-- A default-deny egress policy also denies DNS unless an explicit DNS rule is
-  present.
-- Applying allow and deny resources in one unsafely ordered sync can create a
-  brief outage even if the final render is correct. Separate reviewed revisions
-  make the intermediate state visible and reversible.
-- ArgoCD already uses automated prune/self-heal and exact revision evidence; the
-  repository's operating model is commit-based rollback, not object repair.
-
-**Alternatives rejected**:
-
-- One large activation commit: it cannot demonstrate that required allow rules
-  were healthy before deny took effect.
-- Syncing manually from the ArgoCD UI or patching resources: this makes the
-  environment diverge from the reviewable Git sequence.
-- A temporary allow-all rule during rollout: it creates an unmeasured window in
-  which cross-environment access remains possible.
-
-## Decision 4: Derive quota values from live capacity and workload evidence
-
-**Decision**: The implementation records cluster allocatable capacity, system
-and platform use, current dev requests/limits/use, rollout surge, evidence
-workload capacity, and a disruption reserve before approving numeric quota
-values. Each environment then receives aggregate CPU and memory requests and
-limits plus a pod-count ceiling. A common LimitRange supplies bounded container
-defaults and maxima.
-
-The 2026-08-09 read-only baseline found two `m7i-flex.large` nodes with a
-combined 3860m allocatable CPU, 14,549,840 Ki allocatable memory, and 58 pod
-slots. The 28 current pods declare 1226m CPU and 796 Mi memory requests. Metrics
-Server is absent, so actual use is explicitly unavailable. For the policy-only
-scope, initial request ceilings are 400m/512Mi for dev, 500m/640Mi for staging,
-and 650m/896Mi for prod. Their 1550m CPU and 2048Mi memory totals, plus 50m/64Mi
-for replacing one Redis with three, leave 1034m CPU and more than 10 Gi memory
-outside environment request ceilings. These values cover Redis and verification
-fixtures only; business-service activation must produce a new baseline and
-quota review.
-
-**Rationale**:
-
-- Kubernetes ResourceQuota limits aggregate namespace consumption but does not
-  reserve node capacity. If the sum of quotas exceeds real capacity, namespaces
-  can still contend on a first-come basis.
-- Quota changes do not evict already-created pods, but an undersized quota can
-  prevent replacement or rollout pods from being created. A continuity check
-  must include rollout headroom, not just current usage.
-- CPU/memory quota can reject new pods that omit requests or limits. LimitRange
-  defaults prevent accidental omission while its maxima bound one container.
-- A Deployment that exceeds quota may be created while its ReplicaSet reports
-  failed pod creation. The resource-violation verifier must inspect events and
-  realized pods rather than expecting only an API rejection.
-
-**Alternatives rejected**:
-
-- Reusing the local `1/2 CPU`, `1/2 GiB`, ten-pod values: those are pilot values
-  with no relationship to the managed cluster or production priority.
-- Dividing node capacity equally by three: dev, staging, prod, controllers, and
-  rollout reserve have different needs, and quota is not a reservation.
-- Treating quotas as full noisy-neighbor protection: CPU throttling, scheduling,
-  priority, and node pools need separate controls outside this feature.
+**Rejected**: A remote install URL, Helm at reconciliation time, folding the
+controller into another add-on, or leaving the inactive auth-only seam in place.
 
 **Primary sources**:
 
-- [Kubernetes ResourceQuota](https://kubernetes.io/docs/concepts/policy/resource-quotas/)
-- [Kubernetes LimitRange](https://kubernetes.io/docs/concepts/policy/limit-range/)
+- [Argo Rollouts installation](https://argo-rollouts.readthedocs.io/en/stable/installation/)
+- [Argo Rollouts v1.9.1 release](https://github.com/argoproj/argo-rollouts/releases/tag/v1.9.1)
 
-## Decision 5: Bind stable groups to a custom namespace workload role
+## Decision 4: Use replica canaries with a deterministic canary health metric
 
-**Decision**: Use the stable groups
-`microtodosuite:dev-maintainers`,
-`microtodosuite:staging-maintainers`, and
-`microtodosuite:prod-maintainers`. Each environment RoleBinding references one
-group and one custom namespace Role. The Role grants only the approved workload
-resource verbs and excludes Namespace, ResourceQuota, LimitRange,
-NetworkPolicy, Role, RoleBinding, Secret, and any cluster-scoped resource.
+**Decision**: Each production overlay opts into a service-specific Rollout
+component that:
 
-The successful RBAC matrix is evidence of containment, not permission to bypass
-GitOps. Human environment changes still travel through Git review and ArgoCD.
-AWS identity-to-group mapping remains part of the external cluster-access
-handoff.
+- reuses the base Deployment pod template with `workloadRef`;
+- declares the existing production replica count on the Rollout and sets the
+  referenced Deployment to zero during migration;
+- uses `maxSurge: 1`, `maxUnavailable: 0`, and a 50-percent replica step;
+- creates a dedicated `<service>-canary` Service selected by the Rollout;
+- runs an inline AnalysisRun against that canary Service; and
+- automatically aborts and restores the stable ReplicaSet when analysis fails.
 
-**Rationale**:
+A shared ClusterAnalysisTemplate uses the official Kubernetes Job metric
+provider. Its digest-pinned curl container performs repeated failing-on-non-2xx
+requests to the service-specific probe endpoint, has bounded resources, no
+service-account token, and the probes required by the live Kyverno policy.
 
-- A RoleBinding grants within one namespace; a ClusterRoleBinding would broaden
-  the same permissions cluster-wide.
-- Stable group subjects keep personal IAM ARNs and account-specific identities
-  out of reusable manifests.
-- Excluding the isolation resources prevents an environment maintainer from
-  lifting its own quota, deleting default deny, or granting broader access.
-- The vendored ArgoCD application controller currently has a wildcard
-  ClusterRoleBinding. It is an explicitly authorized platform principal; this
-  feature does not claim that namespace RoleBindings sandbox the controller.
-  Git review, AppProject destinations, and the controller's platform ownership
-  remain separate controls.
+The five target paths are `/version:8000`, `/metrics:8082`,
+`/prometheus:8083`, `/:8080`, and `/metrics:9090`.
 
-**Alternatives rejected**:
+**Rationale**: With one desired replica for three services, weights below 50
+percent cannot create a live canary. A dedicated canary Service ensures the
+metric reaches the new ReplicaSet rather than an arbitrary stable pod. A Job's
+exit status is an Argo Rollouts metric and needs no absent Prometheus backend.
 
-- Binding individual users or IAM ARNs: identity values are cluster-specific and
-  create repeated edits during team changes.
-- Binding the built-in `admin` role: its evolving permission set is broader than
-  the exact environment workload contract.
-- Binding `system:authenticated` or a cluster-wide maintainer group: either
-  breaks environment isolation.
-- Refactoring ArgoCD's upstream wildcard controller role here: controller
-  hardening spans every add-on and application and requires a separate feature
-  with its own conformance evidence.
+**Limit**: This is an availability metric, not an HTTP error-rate metric. The
+feature must not claim request-rate observability that the cluster does not
+have.
 
-**Primary source**:
+**Rejected**: Istio routing, the inactive auth-only Prometheus template,
+unmeasured timed pauses, or concurrent production canaries.
 
-- [Kubernetes RBAC authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+**Primary sources**:
 
-## Decision 6: Make verification fixtures declarative and observers read-only
+- [Replica-based canary](https://argo-rollouts.readthedocs.io/en/stable/features/canary/)
+- [Analysis and automatic abort](https://argo-rollouts.readthedocs.io/en/stable/features/analysis/)
+- [Job metric provider](https://argo-rollouts.readthedocs.io/en/stable/analysis/job/)
 
-**Decision**: Store opt-in, digest-pinned test Deployments and Services under
-`tests/fixtures/namespace-isolation`. They are not referenced by normal
-environment overlays. A reviewed evidence commit activates them; a Git revert
-removes them. The managed verifier only reads Applications, namespaces, nodes,
-DaemonSets, resources, events, logs, authorization checks, and health endpoints
-and writes untracked evidence under `.local/evidence/namespace-isolation/`.
+## Decision 5: Separate initial stable creation from canary acceptance
 
-**Rationale**:
+**Decision**: The one activation revision declares all fifteen Applications and
+establishes the initial production stable ReplicaSets. Production is not
+accepted yet. A later reviewed, same-digest GitOps revision changes only a
+production pod-template evidence annotation so all five Rollouts execute their
+canary steps and metrics. A second reviewed negative-gate fixture makes one
+analysis target fail, proving `Failed -> Aborted -> stable restored`; its
+recovery is a Git revert.
 
-- `kubectl run`, `apply`, `create`, and `delete` would violate the GitOps-only
-  path even for short-lived probes.
-- Deployment-owned probes match the VPC CNI enforcement constraint and can run
-  their checks autonomously, leaving results in logs for read-only collection.
-- Opt-in fixtures prevent permanent test pods from consuming environment quota.
-- A machine-readable summary plus raw observations can tie every result to the
-  exact desired-state and cleanup revisions.
+**Rationale**: Argo Rollouts intentionally skips canary steps on first creation
+because there is no stable ReplicaSet. Pretending the initial creation ran a
+canary would be false evidence.
 
-**Alternatives rejected**:
+**Rejected**: Seeding production before the declared activation, marking the
+first creation as a canary, changing image digests only to force a test, or
+imperatively restarting a Rollout.
 
-- `kubectl exec` into application containers: it changes runtime process state,
-  depends on application tooling, and is less reproducible than declarative
-  probes.
-- Permanent verification workloads: they consume scarce shared capacity and
-  enlarge the production attack surface.
-- A script that edits Kustomizations or commits automatically: humans must review
-  the exact activation and cleanup changes; the verifier remains observational.
+**Primary source**: [Argo Rollouts getting started](https://argo-rollouts.readthedocs.io/en/stable/getting-started/)
 
-## Decision 7: Reuse the current cluster identity and keep CNI ownership outside this feature
+## Decision 6: Resize quotas from checked-in replica arithmetic and live capacity
 
-**Decision**: The operator adopts the existing `microtodosuite-dev` EKS cluster
-and `clusters/eks-dev` GitOps root as the shared target. Activation does not
-rename either identity. The foundation revision requires:
+**Decision**: Keep all existing container requests/limits and use RollingSync
+`maxUpdate: 1`. The exact steady-state totals, including Redis, are:
 
-1. verified live VPC CNI enforcement on every eligible node;
-2. `clusters/eks-dev` consumes reusable registration wiring, activates only the
-   `dev`, `staging`, and `prod` environment-policy list against the in-cluster
-   API, keeps business-service activation empty, and starts with the exact four
-   controller Applications plus the existing `infra-redis`; and
-3. stable Kubernetes groups remain in desired state while AWS mappings stay
-   deferred and therefore outside the live RBAC acceptance claim.
+| Environment | Requests CPU | Limits CPU | Requests memory | Limits memory | Pods |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| dev | 350m | 1600m | 512Mi | 1536Mi | 6 |
+| staging | 425m | 1950m | 608Mi | 1920Mi | 8 |
+| prod | 475m | 2200m | 672Mi | 2176Mi | 9 |
 
-This feature owns the reusable infrastructure ApplicationSet refactor from
-folder discovery to explicit list values and supplies values that keep
-`infra-keda`, `infra-cert-manager`, `infra-external-secrets`, and
-`infra-kyverno`, retain `infra-redis` through replacement verification, and
-remove only `infra-redis` in the later retirement revision. It does not create
-the EKS cluster, alter Terraform/access entries, or perform root bootstrap.
+The largest serialized surge is one users-api pod (`150m/500m`,
+`256Mi/512Mi`). Production also needs one analysis pod
+(`10m/50m`, `16Mi/32Mi`). The approved quota targets are:
 
-**Rationale**:
+| Environment | Requests CPU | Limits CPU | Requests memory | Limits memory | Pods |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| dev | 550m | 2300m | 896Mi | 2304Mi | 12 |
+| staging | 625m | 2700m | 1Gi | 2816Mi | 14 |
+| prod | 700m | 3 | 1152Mi | 3Gi | 18 |
 
-- Current live GitOps revision
-  `10d59e50591e66fa8e54f21814a1be29da6d7979` uses `clusters/eks-dev` and its
-  root retains the exact five reviewed infrastructure Applications.
-- `clusters/README.md` currently requires matching app/environment activation
-  lists, while `clusters/base/infrastructure.yaml` automatically discovers every
-  `infrastructure/*` root. Consuming that base unchanged would deploy services
-  and all current add-ons merely by registering the cluster, which violates this
-  feature's policy-only scope and the requested dev-first follow-on sequence.
-- EKS has no in-place cluster-name update. Treating the legacy name as a logical
-  scope would force an unnecessary replacement, while moving the GitOps path
-  would require a separately staged root Application migration.
-- Changing Terraform or EKS access entries would mix ownership and violate the
-  requested scope. Refactoring reusable GitOps activation values is necessary
-  to remove only shared Redis without pruning healthy controllers.
+The request ceilings total `1875m`; combined with the live platform request of
+`1301m`, they leave `684m` allocatable CPU uncommitted. Expected steady state
+leaves `1309m`. These are namespace ceilings, not reservations. The current
+two-node cluster cannot promise full rescheduling after losing an entire node,
+so the evidence must state that limitation rather than claim node-failure
+capacity.
 
-**Alternatives rejected**:
+**Rationale**: Current CPU-limit quotas already reject the intended steady state
+in every environment. The new values admit the largest serialized rollout and
+test jobs without permitting every environment to consume the cluster.
 
-- Mapping the Terraform role into all three maintainer groups. It would make the
-  three RoleBindings operationally equivalent and invalidate access isolation.
-- Reusing matching application/environment activation or automatic
-  infrastructure discovery. Namespace policy must be activatable
-  without installing new add-ons or real services.
+**Rejected**: Keeping the failing quotas, adding all possible concurrent surges,
+or representing ResourceQuota as reserved capacity.
 
-## Decision 8: Run one Redis instance per managed namespace
+## Decision 7: Keep managed secrets environment-local with ESO and IRSA
 
-**Decision**: Render the same immutable Redis 7.4.9 image and hardened ephemeral
-Deployment/Service contract once inside each managed namespace. Managed
-todos-api and log-message-processor overlays use the namespace-local `redis`
-service name. The local pilot retains its current
-`redis.redis.svc.cluster.local` endpoint and `infra-redis` Application.
+**Decision**: Extend the existing AWS foundation state with three protected
+Secrets Manager entries and three exact-subject IRSA roles. Generate each JWT
+independently with the AWS provider's ephemeral Secrets Manager random-password
+resource and write it through `secret_string_wo`; neither plan nor state stores
+the value. Each environment renders:
 
-**Rationale**:
+- ServiceAccount `external-secrets-jwt` annotated with only its role ARN;
+- namespaced SecretStore `aws-secrets-manager` using JWT service-account auth;
+- ExternalSecret `auth-api-secrets` materializing only `JWT_SECRET`.
 
-- todos-api publishes and log-message-processor consumes the same Redis Pub/Sub
-  channel. One shared Redis would make an environment's events visible to
-  consumers in the other environments even if their application deployments
-  were otherwise isolated.
-- Namespace-local service discovery and NetworkPolicy create both a routing and
-  enforcement boundary.
-- Reusing the existing digest, probes, security context, and non-durable
-  contract avoids introducing a new image or a false persistence claim.
-- Keeping local unchanged preserves its already-validated pilot while the
-  managed registration removes only its own `infra-redis`.
+Each IAM policy permits only `GetSecretValue` and `DescribeSecret` on one exact
+secret ARN.
 
-**Alternatives rejected**:
+**Rationale**: A controller-wide role or shared source secret would allow one
+environment's signing identity to escape its namespace boundary.
 
-- One shared Redis with channel-name prefixes: application code does not enforce
-  those prefixes, and a naming convention is not an isolation control.
-- Separate logical Redis databases: Pub/Sub is not isolated by Redis database
-  number and clients can still observe the shared server.
-- Deploying three Redis instances in one `redis` namespace: that retains a
-  cross-namespace dependency and weakens both DNS and policy ownership.
+**Rejected**: Static AWS keys, Git values, ClusterSecretStore, shared JWT,
+ordinary Terraform secret arguments, or the same IAM role in all namespaces.
+
+**Primary sources**:
+
+- [ESO AWS service-account authentication](https://external-secrets.io/latest/provider/aws-access/)
+- [Terraform ephemeral values](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/ephemeral)
+- [Terraform write-only arguments](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/write-only)
+
+## Decision 8: Add neutral ECR repositories without touching legacy repositories
+
+**Decision**: Add exactly five repositories named `microtodosuite/<service>` to
+the existing foundation module/state. Preserve the five empty
+`microtodosuite/dev/*` resources unchanged. Neutral repositories use immutable
+tags, scan-on-push, encryption, lifecycle policy, and `Environment=shared`.
+
+**Rationale**: Renaming the existing Terraform resources would destroy and
+replace them, while environment-qualified repositories contradict build-once
+promotion.
+
+**Rejected**: Reusing, renaming, or deleting the legacy repositories; separate
+repos per environment; or mutable release tags.
+
+## Decision 9: Use least-privilege OIDC identities for CI and Kyverno
+
+**Decision**: Terraform creates:
+
+- one GitHub Actions OIDC provider and publisher role trusted only for
+  `refs/heads/main` in the five exact service repositories;
+- ECR authorization plus push/signature operations only on the five neutral
+  repositories; and
+- one IRSA role for the Kyverno admission controller with read-only ECR access
+  to verify signatures on those repositories.
+
+Kyverno adds an enforcing keyless `verifyImages` rule limited to the neutral ECR
+prefix, the GitHub OIDC issuer, the five allowed workflow subjects, and the
+reviewed shared-workflow identity.
+
+**Rationale**: The live cluster cannot verify private-ECR signatures without
+registry read credentials, and CI must not use static AWS secrets.
+
+**Rejected**: Developer credentials in GitHub, account-wide ECR writes,
+controller write access, unsigned exceptions, or trusting arbitrary GitHub
+workflows.
+
+**Primary source**: [Kyverno keyless Sigstore verification](https://kyverno.io/docs/policy-types/cluster-policy/verify-images/sigstore/)
+
+## Decision 10: Make the supply-chain workflow sequential and immutable
+
+**Decision**: Replace mutable `ci.yml@v1` callers with an immutable shared
+workflow revision. PR runs execute applicable tests, build once locally, scan
+the exact local image with Trivy, and generate one SBOM. Only a reviewed `main`
+run may assume the AWS publisher role, push that already-tested image under a
+unique commit-derived handle, resolve the ECR manifest digest, attach the SBOM,
+and keylessly sign the digest. A failed test or scan produces no ECR image.
+
+**Rationale**: The current workflow pushes and signs in parallel with Trivy;
+auth-api therefore produced a signature even though its scan failed. Four other
+runs used a different implementation behind the same mutable tag.
+
+**Rejected**: Publishing from PRs, building again for each environment, signing
+before scan completion, mutable shared-workflow tags, or authenticating private
+ECR jobs with long-lived secrets.
+
+## Decision 11: Repair each service from its recorded baseline before release
+
+**Decision**: Use one short-lived reviewed branch per service. Changes are
+limited to tests, reproducible dependency declarations, dependency/security
+updates, and build configuration required for truthful green gates. Preserve
+REST, event, persistence, and business behavior.
+
+Known starting work:
+
+- auth-api: commit `go.mod`/`go.sum`, update the Go toolchain and vulnerable Go
+  modules, and add focused tests;
+- todos-api: remove unused vulnerable `prometheus-client`, update affected
+  production dependencies, and add JWT/Redis/controller regression tests;
+- users-api: run its existing Maven test explicitly and remediate the
+  authenticated image scan findings;
+- frontend: run lint/tests and include source-lock audit/SBOM evidence because
+  runtime-image scanning cannot see bundled JavaScript provenance; and
+- log-message-processor: pin dependencies and add mock-based processing and
+  transport tests before evaluating authenticated Trivy results.
+
+**Rationale**: The five baseline commits are evidence inputs, not releasable
+artifacts. A minimal fix is the smallest change that makes the required gates
+truthful, not a waiver for known critical findings.
+
+## Decision 12: Stage prerequisites, then activate all services in one revision
+
+**Decision**: The implementation order is:
+
+1. merge the already-live AWS foundation source into `main`;
+2. repair the Terraform execution role through its reviewed bootstrap path;
+3. provision neutral ECR, OIDC publisher/verifier, JWT secrets, and reader roles;
+4. merge the shared-workflow correction;
+5. repair and merge five green service PRs, producing five signed ECR digests;
+6. reconcile Argo CD progressive-sync support, Argo Rollouts, ESO resources,
+   signature admission, quota changes, and shared-Redis retirement while the
+   business activation list stays empty;
+7. prove all prerequisite gates live;
+8. merge one activation revision containing all three environment entries and
+   all five digests; and
+9. observe dev, then staging, then prod, followed by the same-digest canary and
+   negative-gate evidence revisions and Git revert cleanup.
+
+**Rationale**: This preserves the user's one-publication decision for business
+services while preventing incomplete prerequisites from creating broken Pods.
+
+**Rejected**: Activating services incrementally, using placeholder images or
+secrets, or merging an activation revision before every gate is live.

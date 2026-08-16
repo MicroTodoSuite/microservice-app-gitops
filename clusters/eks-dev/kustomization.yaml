@@ -28,6 +28,12 @@ patches:
       version: v1alpha1
       kind: ApplicationSet
       name: infrastructure
+  - path: rolling-sync-apps.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: apps
 
 replacements:
   - source:

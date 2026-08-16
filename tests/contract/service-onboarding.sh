@@ -38,6 +38,13 @@ require_render_text() {
   rg -q -- "$pattern" "$render" || fail "$description ($(basename "$render"))"
 }
 
+require_render_count() {
+  local render="$1" pattern="$2" expected="$3" description="$4" actual
+  actual="$(rg -c -- "$pattern" "$render" || true)"
+  [[ "$actual" == "$expected" ]] ||
+    fail "$description: expected $expected, found $actual ($(basename "$render"))"
+}
+
 services=(todos-api users-api frontend log-message-processor)
 declare -A ports=(
   [todos-api]=8082
@@ -195,5 +202,80 @@ if rg -n -i \
     "${new_desired_state[@]}"; then
   fail "new service foundation contains a cloud-provider dependency"
 fi
+
+# Shared-EKS delivery must be progressive, while the reusable/local registration
+# stays free of an EKS-only ordering policy.
+require_file bootstrap/argocd/kustomization.yaml
+require_file clusters/eks-dev/rolling-sync-apps.yaml
+require_text bootstrap/argocd/kustomization.yaml \
+  'applicationsetcontroller\.enable\.progressive\.syncs: "true"' \
+  "Argo CD progressive syncs are not enabled declaratively"
+require_text bootstrap/argocd/kustomization.yaml \
+  'microtodosuite\.io/progressive-syncs-revision:' \
+  "ApplicationSet controller lacks a pod-template restart trigger"
+require_text clusters/base/apps.yaml \
+  'microtodosuite\.io/environment: "\{\{ \.env \}\}"' \
+  "generated business Applications lack the environment label"
+require_text clusters/eks-dev/kustomization.yaml 'rolling-sync-apps.yaml' \
+  "shared EKS registration does not apply its RollingSync policy"
+require_text clusters/eks-dev/rolling-sync-apps.yaml 'type: RollingSync' \
+  "shared EKS registration is not configured for RollingSync"
+if [[ "$(rg -c 'maxUpdate: 1' "$ROOT/clusters/eks-dev/rolling-sync-apps.yaml" || true)" != 3 ]]; then
+  fail "RollingSync must serialize every environment step with maxUpdate 1"
+fi
+for environment in dev staging prod; do
+  require_text clusters/eks-dev/rolling-sync-apps.yaml \
+    "values: \\[\"$environment\"\\]" \
+    "RollingSync omits or mislabels the $environment step"
+done
+require_text clusters/eks-dev/rolling-sync-apps.yaml \
+  'path: /spec/template/spec/syncPolicy/automated' \
+  "EKS RollingSync patch does not remove generated Application autosync"
+require_text clusters/eks-dev/activation-apps.yaml 'value: \[\]' \
+  "business activation must remain empty until all prerequisites pass"
+
+# Every production overlay must select the economical topology and opt into a
+# replica-based, metric-gated Rollout without duplicating its pod template.
+managed_services=(auth-api todos-api users-api frontend log-message-processor)
+for service in "${managed_services[@]}"; do
+  component="apps/$service/components/strategy-canary"
+  require_file "$component/kustomization.yaml"
+  require_file "$component/rollout.yaml"
+  require_file "$component/canary-service.yaml"
+  require_text "apps/$service/topology/kustomization.yaml" \
+    '../components/topology-economical' \
+    "$service managed topology is not economical"
+  reject_text "apps/$service/topology/kustomization.yaml" \
+    'components/topology-full' \
+    "$service managed topology still selects the full profile"
+  require_text "apps/$service/overlays/prod/kustomization.yaml" \
+    '../../components/strategy-canary' \
+    "$service production overlay does not activate its Rollout component"
+  require_text "$component/rollout.yaml" 'workloadRef:' \
+    "$service Rollout does not reuse the base Deployment"
+  require_text "$component/rollout.yaml" "canaryService: $service-canary" \
+    "$service Rollout lacks its dedicated canary Service"
+  require_text "$component/rollout.yaml" 'maxSurge: 1' \
+    "$service Rollout surge is not bounded"
+  require_text "$component/rollout.yaml" 'maxUnavailable: 0' \
+    "$service Rollout permits avoidable unavailability"
+  require_text "$component/rollout.yaml" 'setWeight: 50' \
+    "$service Rollout cannot realize a live replica canary"
+  require_text "$component/rollout.yaml" 'setWeight: 100' \
+    "$service Rollout lacks its promotion step"
+  require_text "$component/rollout.yaml" \
+    'templateName: microtodosuite-canary-health' \
+    "$service Rollout does not use the shared metric gate"
+  require_text "$component/rollout.yaml" 'clusterScope: true' \
+    "$service Rollout does not reference the cluster-scoped metric gate"
+
+  prod_render="$TMP_DIR/$service-prod-rollout.yaml"
+  render_kustomize "$ROOT/apps/$service/overlays/prod" >"$prod_render" ||
+    fail "$service production Rollout overlay does not render"
+  require_render_count "$prod_render" '^kind: Rollout$' 1 \
+    "$service production render must contain one Rollout"
+  require_render_text "$prod_render" "name: $service-canary" \
+    "$service production render lacks its canary Service"
+done
 
 pass "remaining service onboarding static contract"

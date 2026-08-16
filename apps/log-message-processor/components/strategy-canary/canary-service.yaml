@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata: {name: log-message-processor-canary}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    app.kubernetes.io/component: business-service
+  ports:
+    - {name: metrics, port: 9090, targetPort: metrics}

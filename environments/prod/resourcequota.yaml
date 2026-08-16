@@ -6,8 +6,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
   hard:
-    requests.cpu: 650m
-    limits.cpu: "2"
-    requests.memory: 896Mi
+    requests.cpu: 700m
+    limits.cpu: "3"
+    requests.memory: 1152Mi
     limits.memory: 3Gi
     pods: "18"

@@ -97,8 +97,8 @@ infrastructure_root_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
   infrastructure_root_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#infrastructure_root_names[@]}" == "6" ]] \
-  || fail "expected exactly six infrastructure roots, found ${#infrastructure_root_names[@]}"
+[[ "${#infrastructure_root_names[@]}" == "7" ]] \
+  || fail "expected exactly seven infrastructure roots, found ${#infrastructure_root_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
   [[ " ${infrastructure_root_names[*]} " == *" $addon "* ]] \
@@ -149,6 +149,7 @@ require_resource "$TMP_DIR/kyverno.yaml" Deployment kyverno-cleanup-controller
 require_resource "$TMP_DIR/kyverno.yaml" Deployment kyverno-reports-controller
 require_resource "$TMP_DIR/kyverno.yaml" ClusterPolicy require-immutable-images
 require_resource "$TMP_DIR/kyverno.yaml" ClusterPolicy require-health-probes
+require_resource "$TMP_DIR/kyverno.yaml" ClusterPolicy verify-approved-release-signatures
 
 require_resource "$TMP_DIR/redis.yaml" Namespace redis
 require_resource "$TMP_DIR/redis.yaml" ServiceAccount redis
@@ -170,8 +171,8 @@ require_text infrastructure/redis/README.md 'non-durable' \
   "Redis continuity risk is not documented"
 
 if [[ "$(rg -c '^  validationFailureAction: Enforce$' \
-    "$ROOT/infrastructure/kyverno/policies.yaml")" != "2" ]]; then
-  fail "both Kyverno baseline policies must be in Enforce mode"
+    "$ROOT/infrastructure/kyverno/policies.yaml")" != "3" ]]; then
+  fail "all three Kyverno policies must be in Enforce mode"
 fi
 require_text infrastructure/kyverno/policies.yaml 'background: true' \
   "Kyverno background reports are disabled"
@@ -193,6 +194,31 @@ require_text infrastructure/kyverno/policies.yaml 'livenessProbe' \
   "Kyverno health policy does not require liveness probes"
 require_text infrastructure/kyverno/policies.yaml 'readinessProbe' \
   "Kyverno health policy does not require readiness probes"
+require_text infrastructure/kyverno/kustomization.yaml \
+  'eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-kyverno-ecr-verifier' \
+  "Kyverno admission ServiceAccount lacks its exact ECR verifier IRSA role"
+require_text infrastructure/kyverno/policies.yaml 'verifyImages:' \
+  "Kyverno lacks enforcing signature verification"
+require_text infrastructure/kyverno/policies.yaml \
+  '995253610162\.dkr\.ecr\.us-east-1\.amazonaws\.com/microtodosuite/\*' \
+  "signature verification is not limited to neutral MicroTodoSuite ECR"
+require_text infrastructure/kyverno/policies.yaml \
+  'https://token\.actions\.githubusercontent\.com' \
+  "signature verification lacks the approved GitHub OIDC issuer"
+require_text infrastructure/kyverno/policies.yaml \
+  'https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55' \
+  "signature verification lacks the pinned reusable workflow identity"
+for service in auth-api todos-api users-api frontend log-message-processor; do
+  require_text infrastructure/kyverno/policies.yaml \
+    "githubWorkflowRepository: MicroTodoSuite/microservice-app-$service" \
+    "signature verification omits the $service caller identity"
+done
+require_text infrastructure/kyverno/policies.yaml \
+  'providers:.*|amazon' \
+  "signature verification does not use the admission controller's Amazon credential provider"
+reject_text infrastructure/kyverno/policies.yaml \
+  'validationFailureAction: Audit|failureAction: Audit|required: false|mutateDigest: false' \
+  "signature verification contains a fail-open setting"
 
 reject_text clusters/base/infrastructure.yaml 'directories:|infrastructure/\*' \
   "shared infrastructure still uses unsafe folder discovery"
@@ -229,12 +255,16 @@ require_text clusters/base/project.yaml 'group: kyverno.io' \
   "Kyverno group is missing from the exact cluster trust boundary"
 require_text clusters/base/project.yaml 'kind: ClusterPolicy' \
   "ClusterPolicy is missing from the exact cluster trust boundary"
+require_text clusters/base/project.yaml 'group: argoproj.io' \
+  "Argo Rollouts API group is missing from the exact cluster trust boundary"
+require_text clusters/base/project.yaml 'kind: ClusterAnalysisTemplate' \
+  "ClusterAnalysisTemplate is missing from the exact cluster trust boundary"
 reject_text clusters/base/project.yaml '^[[:space:]]+group:.*\*' \
   "cluster trust boundary contains a group wildcard"
 reject_text clusters/base/project.yaml '^[[:space:]]+kind:.*\*' \
   "cluster trust boundary contains a kind wildcard"
 
-for addon in keda cert-manager external-secrets kyverno redis; do
+for addon in keda cert-manager external-secrets redis; do
   first_party_files=("$ROOT/infrastructure/$addon/kustomization.yaml")
   [[ -f "$ROOT/infrastructure/$addon/capability-check.yaml" ]] \
     && first_party_files+=("$ROOT/infrastructure/$addon/capability-check.yaml")
@@ -278,8 +308,54 @@ for addon in keda cert-manager external-secrets kyverno redis; do
     "$addon destination is missing from the AppProject"
 done
 
-if [[ -f "$ROOT/infrastructure/argo-rollouts/kustomization.yaml" ]]; then
-  fail "inactive Argo Rollouts placeholder became an infrastructure application"
+require_text clusters/eks-dev/activation-infrastructure-retired.yaml \
+  'name: argo-rollouts' \
+  "post-retirement infrastructure list omits Argo Rollouts"
+
+require_file infrastructure/argo-rollouts/namespace.yaml
+require_file infrastructure/argo-rollouts/kustomization.yaml
+require_file infrastructure/argo-rollouts/cluster-analysis-template.yaml
+require_file infrastructure/argo-rollouts/vendor/v1.9.1/install.yaml
+require_file infrastructure/argo-rollouts/vendor/v1.9.1/README.md
+require_file infrastructure/argo-rollouts/vendor/v1.9.1/SHA256SUMS
+check_checksum infrastructure/argo-rollouts/vendor/v1.9.1
+require_text infrastructure/argo-rollouts/vendor/v1.9.1/SHA256SUMS \
+  '^78c82343803c2bbc13a36049e269a532dd67f25b7e2cb3603c99e31d8d8a40b5  install.yaml$' \
+  "Argo Rollouts 1.9.1 upstream checksum is not recorded"
+require_text infrastructure/argo-rollouts/kustomization.yaml \
+  'newName: quay.io/argoproj/argo-rollouts' \
+  "Argo Rollouts controller image name is not explicit"
+require_text infrastructure/argo-rollouts/kustomization.yaml \
+  'digest: sha256:15c0d41f2c69a382d4399bcb28ed4f03ee9f58b56cfc9e6cd55bcbf0f311c06d' \
+  "Argo Rollouts controller image is not digest-pinned"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'kind: ClusterAnalysisTemplate' \
+  "shared canary health gate is not cluster-scoped"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'provider:' \
+  "shared canary health gate lacks a metric provider"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'job:' \
+  "shared canary health gate is not backed by a bounded Job metric"
+
+render_kustomize "$ROOT/infrastructure/argo-rollouts" >"$TMP_DIR/argo-rollouts.yaml" \
+  || fail "Kustomize render failed for argo-rollouts"
+check_rendered_images "$TMP_DIR/argo-rollouts.yaml"
+require_resource "$TMP_DIR/argo-rollouts.yaml" Namespace argo-rollouts
+require_resource "$TMP_DIR/argo-rollouts.yaml" Deployment argo-rollouts
+require_resource "$TMP_DIR/argo-rollouts.yaml" ClusterAnalysisTemplate microtodosuite-canary-health
+for crd in rollouts.argoproj.io analysisruns.argoproj.io analysistemplates.argoproj.io clusteranalysistemplates.argoproj.io experiments.argoproj.io; do
+  require_resource "$TMP_DIR/argo-rollouts.yaml" CustomResourceDefinition "$crd"
+done
+
+if [[ "$(rg -c '^    - name:' "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" || true)" != 5 ]]; then
+  fail "shared EKS infrastructure activation must contain exactly five final controllers"
 fi
+for addon in keda cert-manager external-secrets kyverno argo-rollouts; do
+  require_text clusters/eks-dev/activation-infrastructure.yaml \
+    "name: $addon" "shared EKS infrastructure activation omits $addon"
+done
+reject_text clusters/eks-dev/activation-infrastructure.yaml \
+  'name: redis' "shared EKS infrastructure activation retains shared Redis"
 
 pass "platform add-on static contract"

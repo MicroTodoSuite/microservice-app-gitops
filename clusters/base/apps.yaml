@@ -34,6 +34,7 @@ spec:
       name: "{{ .path.basename }}-{{ .env }}"
       labels:
         microtodosuite.io/business-service: "true" # used by pilot verification
+        microtodosuite.io/environment: "{{ .env }}"
       annotations:
         argocd.argoproj.io/sync-wave: "1" # after platform add-ons and env policy
     spec:

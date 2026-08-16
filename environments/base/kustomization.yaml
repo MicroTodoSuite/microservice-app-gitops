@@ -10,9 +10,13 @@ labels:
 
 resources:
   - limitrange.yaml
+  - networkpolicy-default-deny.yaml
   - networkpolicy-allow-dns.yaml
   - networkpolicy-allow-intra-namespace.yaml
   - networkpolicy-allow-redis.yaml
+  - external-secrets-serviceaccount.yaml
+  - secretstore.yaml
+  - external-secret.yaml
   - redis-serviceaccount.yaml
   - redis-deployment.yaml
   - redis-service.yaml
