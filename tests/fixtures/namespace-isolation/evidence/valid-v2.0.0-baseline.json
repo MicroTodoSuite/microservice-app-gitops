@@ -110,6 +110,22 @@
     "principalMappingsVerified": false,
     "result": "BLOCKED"
   },
+  "devSnapshot": {
+    "services": [],
+    "healthEndpointsReady": 0,
+    "redisReady": true,
+    "externalSecretReady": false,
+    "redisClientsConfigured": false,
+    "requiredConnectionsReady": false,
+    "quotaUsed": {
+      "requestsCpu": "25m",
+      "limitsCpu": "250m",
+      "requestsMemory": "32Mi",
+      "limitsMemory": "256Mi",
+      "pods": "1"
+    },
+    "result": "BLOCKED"
+  },
   "devContinuity": [],
   "commandAudit": {
     "mutatingCommands": 0,

@@ -68,6 +68,22 @@ command_audit_passes() {
   [[ "$(mutating_command_count)" == 0 && "$(secret_value_print_count)" == 0 ]]
 }
 
+previous_phase_is_acceptable() {
+  local evidence="$1" required_phase="$2" cluster_name="$3"
+  jq -e --arg phase "$required_phase" --arg clusterName "$cluster_name" '
+    .phase == $phase and .cluster.name == $clusterName and
+    .commandAudit.mutatingCommands == 0 and
+    .commandAudit.secretValuesPrinted == 0 and
+    .commandAudit.result == "PASS" and
+    (if $phase == "baseline" then
+      .result == "BLOCKED" and
+      (.blockedReasons | index("business release prerequisites are not yet reconciled")) != null and
+      (.blockedReasons | index("AWS principal-to-group mappings remain deferred")) != null
+    else
+      .result == "PASS"
+    end)' "$evidence" >/dev/null
+}
+
 capture() {
   local output_name="$1"
   shift
@@ -127,7 +143,7 @@ collect_environment_state() {
     namespace="$(namespace_for "$environment")"
     kube_capture_optional "$environment-namespace.json" get namespace "$namespace" -o json
     kube_capture "$environment-core-resources.json" -n "$namespace" get \
-      resourcequota,limitrange,networkpolicy,role,rolebinding,deployment,replicaset,service,serviceaccount,pod -o json
+      resourcequota,limitrange,networkpolicy,role,rolebinding,deployment,replicaset,service,serviceaccount,configmap,pod -o json
     kube_capture_optional "$environment-external-secrets.json" -n "$namespace" get \
       externalsecret.external-secrets.io,secretstore.external-secrets.io -o json
     kube_capture_optional "$environment-rollouts.json" -n "$namespace" get \
@@ -701,10 +717,59 @@ comparison_environment_healthy() {
     [[ "$ping" == PONG ]]
 }
 
+dev_snapshot_json() {
+  local resources ping redis_ready
+  resources="$(evidence_file dev-resources.json)"
+  ping="$(tr -d '\r\n' <"$(evidence_file dev-redis-ping.txt)" 2>/dev/null || true)"
+  redis_ready=false
+  if [[ "$ping" == PONG ]] && jq -e '
+    [.items[] | select(.kind == "Deployment" and .metadata.name == "redis" and
+      .status.readyReplicas == 1)] | length == 1' "$resources" >/dev/null 2>&1; then
+    redis_ready=true
+  fi
+  jq -c --argjson redisReady "$redis_ready" --argjson expectedServices \
+    "$(jq -cn '$ARGS.positional' --args "${SERVICES[@]}")" '
+    . as $root |
+    def values($source): {
+      requestsCpu: ($source["requests.cpu"] // "0"),
+      limitsCpu: ($source["limits.cpu"] // "0"),
+      requestsMemory: ($source["requests.memory"] // "0"),
+      limitsMemory: ($source["limits.memory"] // "0"),
+      pods: ($source.pods // "0")};
+    def service($name):
+      ([$root.items[] | select(.kind == "Deployment" and .metadata.name == $name)][0] // {}) as $deployment |
+      [$root.items[] | select(.kind == "Pod" and
+        .metadata.labels["app.kubernetes.io/component"] == "business-service" and
+        .metadata.labels["app.kubernetes.io/name"] == $name)] as $pods |
+      {name:$name,
+        desiredReplicas:($deployment.spec.replicas // 0),
+        readyReplicas:($deployment.status.readyReplicas // 0),
+        readyPods:([$pods[] | select((.status.containerStatuses // []) | length > 0) |
+          select((.status.containerStatuses // []) | all(.ready == true))] | length),
+        restarts:([$pods[].status.containerStatuses[]?.restartCount] | add // 0),
+        imageIds:([$pods[].status.containerStatuses[]?.imageID // "" |
+          select(length > 0)] | unique | sort)};
+    [$expectedServices[] as $name | service($name)] as $services |
+    ([$root.items[] | select(.kind == "ExternalSecret" and .metadata.name == "auth-api-secrets") |
+      select(any(.status.conditions[]?; .type == "Ready" and .status == "True"))] | length == 1) as $externalReady |
+    (["todos-api","log-message-processor"] | all(. as $name |
+      [$root.items[] | select(.kind == "ConfigMap" and .metadata.name == $name and .data.REDIS_HOST == "redis")] | length == 1)) as $redisConfigured |
+    ([$services[] | select(.desiredReplicas > 0 and
+      .readyReplicas == .desiredReplicas and .readyPods == .desiredReplicas and
+      (.imageIds | length) > 0)] | length) as $healthyServices |
+    ([$root.items[] | select(.kind == "ResourceQuota" and .metadata.name == "environment-budget")][0].status.used // {}) as $used |
+    {services:$services,healthEndpointsReady:$healthyServices,
+      redisReady:$redisReady,externalSecretReady:$externalReady,
+      redisClientsConfigured:$redisConfigured,
+      requiredConnectionsReady:($redisReady and $externalReady and $redisConfigured),
+      quotaUsed:values($used),
+      result:(if ($services | length) == 5 and $healthyServices == 5 and
+        $redisReady and $externalReady and $redisConfigured then "PASS" else "BLOCKED" end)}' \
+    "$resources"
+}
+
 snapshot_dev_workloads() {
-  jq -S '[.items[] | select(.metadata.labels["app.kubernetes.io/component"] == "business-service") |
-    {name: .metadata.name, readyReplicas: (.status.readyReplicas // 0), replicas: (.status.replicas // 0)}] | sort_by(.name)' \
-    "$(evidence_file dev-deployments.json)"
+  dev_snapshot_json | jq -cS '.services'
 }
 
 application_inventory_json() {
@@ -811,7 +876,7 @@ rbac_observation_json() {
 
 write_phase_summary() {
   local result="$1" message="$2" exit_code="$3" revision cleanup
-  local cluster inventory environments releases secrets progressive canaries redis rbac
+  local cluster inventory environments releases secrets progressive canaries redis rbac dev_snapshot
   local phase_evidence mutation_count secret_count audit_result previous_continuity continuity
   revision="${CLEANUP_REVISION:-$EXPECTED_REVISION}"
   cleanup="${CLEANUP_REVISION:-}"
@@ -826,12 +891,13 @@ write_phase_summary() {
   [[ -n "$phase_evidence" ]] || phase_evidence='{}'
   redis="$(redis_isolation_observation_json)"
   rbac="$(rbac_observation_json)"
+  dev_snapshot="$(dev_snapshot_json)"
   previous_continuity='[]'
   if [[ -n "$PREVIOUS_EVIDENCE" && -f "$PREVIOUS_EVIDENCE" ]]; then
     previous_continuity="$(jq -c '.devContinuity // []' "$PREVIOUS_EVIDENCE")"
   fi
   continuity="$previous_continuity"
-  if [[ "$result" == PASS ]]; then
+  if [[ "$result" == PASS && "$(jq -r '.result' <<<"$dev_snapshot")" == PASS ]]; then
     continuity="$(jq -cn --argjson previous "$previous_continuity" --arg sample "$PHASE" \
       '$previous + [{sample:$sample,readyReplicaLoss:0,restartDelta:0,health:"healthy",result:"PASS"}]')"
   fi
@@ -848,6 +914,7 @@ write_phase_summary() {
     --argjson environments "$environments" --argjson releases "$releases" \
     --argjson secrets "$secrets" --argjson progressive "$progressive" \
     --argjson canaries "$canaries" --argjson redis "$redis" --argjson rbac "$rbac" \
+    --argjson devSnapshot "$dev_snapshot" \
     --argjson phaseEvidence "$phase_evidence" --argjson continuity "$continuity" \
     --argjson mutationCount "$mutation_count" --argjson secretCount "$secret_count" \
     --arg auditResult "$audit_result" --argjson blockedReasons "${BLOCKED_REASONS_JSON:-[]}" \
@@ -861,6 +928,7 @@ write_phase_summary() {
       sameEnvironmentTests:($phaseEvidence.sameEnvironmentTests // []),
       dnsTests:($phaseEvidence.dnsTests // []),redisIsolation:$redis,
       resourceViolation:($phaseEvidence.resourceViolation // null),rbac:$rbac,
+      devSnapshot:$devSnapshot,
       devContinuity:$continuity,
       commandAudit:{mutatingCommands:$mutationCount,secretValuesPrinted:$secretCount,result:$auditResult},
       blockedReasons:(if $result == "BLOCKED" then $blockedReasons else [] end),
@@ -900,7 +968,19 @@ validate_final_evidence_summary() {
 
 compare_dev_baseline() {
   local current baseline
-  current="$(snapshot_dev_workloads)"
-  baseline="$(jq -cS '.baselineSnapshot // .devSnapshot' "$PREVIOUS_EVIDENCE")"
-  [[ "$current" == "$baseline" && "$current" != '[]' ]]
+  current="$(dev_snapshot_json)" || return 1
+  baseline="$(jq -c '.devSnapshot // null' "$PREVIOUS_EVIDENCE")"
+  jq -e --argjson baseline "$baseline" '
+    $baseline != null and $baseline.result == "PASS" and .result == "PASS" and
+    .healthEndpointsReady == 5 and .requiredConnectionsReady == true and
+    ([.services[].name] | sort) == ([$baseline.services[].name] | sort) and
+    all(.services[];
+      . as $current |
+      [$baseline.services[] | select(.name == $current.name)][0] as $previous |
+      $previous != null and
+      $current.desiredReplicas == $previous.desiredReplicas and
+      $current.readyReplicas == $previous.readyReplicas and
+      $current.readyPods == $previous.readyPods and
+      $current.restarts == $previous.restarts and
+      $current.imageIds == $previous.imageIds)' <<<"$current" >/dev/null
 }

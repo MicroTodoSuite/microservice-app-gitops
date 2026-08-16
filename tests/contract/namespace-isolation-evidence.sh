@@ -39,6 +39,13 @@ if validate_fixture "$INVALID_FIXTURE" >/dev/null 2>&1; then
   printf 'FAIL: secret-output fixture unexpectedly satisfied schema v2.0.0\n' >&2
   exit 1
 fi
+previous_phase_is_acceptable "$VALID_FIXTURE" baseline microtodosuite-dev
+jq '.blockedReasons = ["different blocker"]' "$VALID_FIXTURE" \
+  >"$TMP_DIR/invalid-baseline-predecessor.json"
+if previous_phase_is_acceptable "$TMP_DIR/invalid-baseline-predecessor.json" baseline microtodosuite-dev; then
+  printf 'FAIL: an unrelated blocked baseline was accepted as a prerequisite predecessor\n' >&2
+  exit 1
+fi
 
 help_output="$("$ROOT/scripts/managed/verify-namespace-isolation.sh" --help 2>&1)"
 for phase in baseline prerequisites activated canary fixtures final; do
@@ -107,6 +114,8 @@ jq -e '
   .redisIsolation.sharedApplicationPresent == true and
   .redisIsolation.sharedNamespacePresent == true and
   .redisIsolation.result == "BLOCKED" and
+  .devSnapshot.result == "BLOCKED" and
+  .devSnapshot.redisReady == true and
   .commandAudit.mutatingCommands == 0 and
   .commandAudit.secretValuesPrinted == 0 and
   .commandAudit.result == "PASS"
@@ -199,5 +208,76 @@ jq -n '{items:[{metadata:{labels:{"app.kubernetes.io/name":"redis"}},status:{con
 printf 'PONG\n' >"$(evidence_file staging-redis-ping.txt)"
 resource_violation_observed
 comparison_environment_healthy
+
+OUTPUT_DIR="$TMP_DIR/continuity"
+initialize_evidence_directory
+write_dev_continuity_fixture() {
+  local todos_ready="$1" auth_restarts="$2" auth_digest="$3"
+  local redis_host="$4" external_ready="$5"
+  jq -n \
+    --argjson todosReady "$todos_ready" \
+    --argjson authRestarts "$auth_restarts" \
+    --arg authDigest "$auth_digest" \
+    --arg redisHost "$redis_host" \
+    --arg externalReady "$external_ready" '
+    def deployment($name; $ready):
+      {kind:"Deployment",metadata:{name:$name,labels:{"app.kubernetes.io/component":"business-service","app.kubernetes.io/name":$name}},spec:{replicas:1},status:{readyReplicas:$ready}};
+    def pod($name; $restarts; $digest):
+      {kind:"Pod",metadata:{name:($name + "-test"),labels:{"app.kubernetes.io/component":"business-service","app.kubernetes.io/name":$name}},status:{containerStatuses:[{ready:true,restartCount:$restarts,imageID:("registry/" + $name + "@" + $digest)}]}};
+    {items:[
+      deployment("auth-api";1),deployment("todos-api";$todosReady),deployment("users-api";1),deployment("frontend";1),deployment("log-message-processor";1),
+      pod("auth-api";$authRestarts;$authDigest),pod("todos-api";0;("sha256:" + ("b" * 64))),pod("users-api";0;("sha256:" + ("c" * 64))),pod("frontend";0;("sha256:" + ("d" * 64))),pod("log-message-processor";0;("sha256:" + ("e" * 64))),
+      {kind:"Deployment",metadata:{name:"redis"},status:{readyReplicas:1}},
+      {kind:"ConfigMap",metadata:{name:"todos-api"},data:{REDIS_HOST:$redisHost}},
+      {kind:"ConfigMap",metadata:{name:"log-message-processor"},data:{REDIS_HOST:$redisHost}},
+      {kind:"ExternalSecret",metadata:{name:"auth-api-secrets"},status:{conditions:[{type:"Ready",status:$externalReady}]}},
+      {kind:"ResourceQuota",metadata:{name:"environment-budget"},status:{used:{"requests.cpu":"350m","limits.cpu":"1600m","requests.memory":"512Mi","limits.memory":"1536Mi",pods:"6"}}}
+    ]}' >"$(evidence_file dev-resources.json)"
+  printf 'PONG\n' >"$(evidence_file dev-redis-ping.txt)"
+}
+
+write_dev_continuity_fixture 1 0 "sha256:$(printf 'a%.0s' {1..64})" redis True
+dev_snapshot="$(dev_snapshot_json)"
+jq -e '
+  (.services | length == 5) and .healthEndpointsReady == 5 and
+  .redisReady == true and .externalSecretReady == true and
+  .redisClientsConfigured == true and .requiredConnectionsReady == true and
+  .result == "PASS" and
+  ([.services[].imageIds[]] | all(test("@sha256:[0-9a-f]{64}$")))
+' <<<"$dev_snapshot" >/dev/null
+if rg -q 'JWT_SECRET|secretValue' <<<"$dev_snapshot"; then
+  printf 'FAIL: dev continuity snapshot contains a secret key or value\n' >&2
+  exit 1
+fi
+jq -n --argjson devSnapshot "$dev_snapshot" '{devSnapshot:$devSnapshot}' \
+  >"$TMP_DIR/continuity-previous.json"
+PREVIOUS_EVIDENCE="$TMP_DIR/continuity-previous.json"
+compare_dev_baseline
+
+write_dev_continuity_fixture 0 0 "sha256:$(printf 'a%.0s' {1..64})" redis True
+if compare_dev_baseline; then
+  printf 'FAIL: continuity comparison ignored ready-replica loss\n' >&2
+  exit 1
+fi
+write_dev_continuity_fixture 1 1 "sha256:$(printf 'a%.0s' {1..64})" redis True
+if compare_dev_baseline; then
+  printf 'FAIL: continuity comparison ignored restart growth\n' >&2
+  exit 1
+fi
+write_dev_continuity_fixture 1 0 "sha256:$(printf 'f%.0s' {1..64})" redis True
+if compare_dev_baseline; then
+  printf 'FAIL: continuity comparison ignored an unexpected image revision\n' >&2
+  exit 1
+fi
+write_dev_continuity_fixture 1 0 "sha256:$(printf 'a%.0s' {1..64})" redis.microtodo-staging.svc.cluster.local True
+if compare_dev_baseline; then
+  printf 'FAIL: continuity comparison ignored a cross-environment Redis endpoint\n' >&2
+  exit 1
+fi
+write_dev_continuity_fixture 1 0 "sha256:$(printf 'a%.0s' {1..64})" redis False
+if compare_dev_baseline; then
+  printf 'FAIL: continuity comparison ignored an unavailable ExternalSecret\n' >&2
+  exit 1
+fi
 
 printf 'PASS: namespace-isolation evidence schema, redaction, and observer contracts\n'

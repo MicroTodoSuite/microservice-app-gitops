@@ -108,12 +108,18 @@ if [[ "$PHASE" != baseline ]]; then
     fixtures) required_previous_phase=canary ;;
     final) required_previous_phase=fixtures ;;
   esac
-  jq -e --arg phase "$required_previous_phase" --arg clusterName "${EXPECTED_CLUSTER_ID##*/}" \
-    '.phase == $phase and .result == "PASS" and .cluster.name == $clusterName and
-      .commandAudit.mutatingCommands == 0 and
-      .commandAudit.secretValuesPrinted == 0 and
-      .commandAudit.result == "PASS"' \
-    "$PREVIOUS_EVIDENCE" >/dev/null ||
+  jq -e --arg phase "$required_previous_phase" --arg clusterName "${EXPECTED_CLUSTER_ID##*/}" '
+    .phase == $phase and .cluster.name == $clusterName and
+    .commandAudit.mutatingCommands == 0 and
+    .commandAudit.secretValuesPrinted == 0 and
+    .commandAudit.result == "PASS" and
+    (if $phase == "baseline" then
+      .result == "BLOCKED" and
+      (.blockedReasons | index("business release prerequisites are not yet reconciled")) != null and
+      (.blockedReasons | index("AWS principal-to-group mappings remain deferred")) != null
+    else
+      .result == "PASS"
+    end)' "$PREVIOUS_EVIDENCE" >/dev/null ||
     die_usage "--previous-evidence is not the passing predecessor for this cluster"
 fi
 case "$PHASE" in
@@ -253,11 +259,14 @@ case "$PHASE" in
     business_applications_ready || finish 4 FAIL "one or more business Applications are not Synced/Healthy"
     business_pods_match_release || finish 12 FAIL "live Pods do not match the reviewed release evidence"
     production_rollouts_bootstrapped || finish 13 FAIL "production stable Rollouts are incomplete"
+    jq -e '.result == "PASS"' <<<"$(dev_snapshot_json)" >/dev/null ||
+      finish 8 FAIL "dev readiness, secret, Redis, or required-connection baseline is incomplete"
     finish 0 PASS "fifteen Applications are Healthy at the reviewed release digests"
     ;;
   canary)
     production_canaries_proven || finish 13 FAIL "production canary or rollback evidence is incomplete"
     business_pods_match_release || finish 12 FAIL "canary evidence changed a reviewed image digest"
+    compare_dev_baseline || finish 8 FAIL "dev workload state differs from the activation baseline"
     finish 0 PASS "production canary success and automatic rollback are proved"
     ;;
   fixtures)
@@ -303,9 +312,9 @@ case "$PHASE" in
       finish 10 FAIL "shared redis namespace returned after cleanup"
     compare_dev_baseline || finish 8 FAIL "dev workload state differs from baseline"
     jq -e '.devContinuity | map(.sample) ==
-      ["baseline", "prerequisites", "activated", "canary", "fixtures"]' \
+      ["activated", "canary", "fixtures"]' \
       "$PREVIOUS_EVIDENCE" >/dev/null ||
-      finish 9 FAIL "preceding evidence does not contain the exact five-phase continuity chain"
+      finish 9 FAIL "preceding evidence does not contain the exact post-activation continuity chain"
     command_audit_passes || finish 9 FAIL "command audit found a managed-state mutation"
     write_final_evidence_summary ||
       finish 9 FAIL "final cumulative evidence could not be serialized"

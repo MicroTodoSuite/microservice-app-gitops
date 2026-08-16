@@ -252,6 +252,25 @@ if [[ "$(rg --no-filename 'name: microtodosuite:(dev|staging|prod)-maintainers' 
     "$ROOT/environments"/{dev,staging,prod}/rolebinding.yaml | sort -u | wc -l)" != 3 ]]; then
   fail "environment RoleBindings do not contain exactly three distinct groups"
 fi
+for subject_environment in "${environments[@]}"; do
+  for target_environment in "${environments[@]}"; do
+    binding="environments/$target_environment/rolebinding.yaml"
+    if [[ "$subject_environment" == "$target_environment" ]]; then
+      require_text "$binding" \
+        "name: microtodosuite:${subject_environment}-maintainers" \
+        "$subject_environment maintainers are not bound in their own namespace"
+    else
+      reject_text "$binding" \
+        "name: microtodosuite:${subject_environment}-maintainers" \
+        "$subject_environment maintainers are bound into $target_environment"
+    fi
+  done
+done
+for environment in "${environments[@]}"; do
+  require_text "environments/$environment/rolebinding.yaml" \
+    'name: environment-workload-maintainer' \
+    "$environment RoleBinding does not reference the bounded workload Role"
+done
 if rg -n '^kind: (ClusterRole|ClusterRoleBinding)$' \
     "$ROOT/environments"/{base,dev,staging,prod}; then
   fail "managed environment access escaped the namespace boundary"

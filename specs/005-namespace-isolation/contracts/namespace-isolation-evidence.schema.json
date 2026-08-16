@@ -24,6 +24,7 @@
     "redisIsolation",
     "resourceViolation",
     "rbac",
+    "devSnapshot",
     "devContinuity",
     "commandAudit",
     "blockedReasons",
@@ -86,6 +87,7 @@
       ]
     },
     "rbac": { "$ref": "#/$defs/rbac" },
+    "devSnapshot": { "$ref": "#/$defs/devSnapshot" },
     "devContinuity": {
       "type": "array",
       "items": { "$ref": "#/$defs/continuity" }
@@ -548,6 +550,51 @@
           }
         },
         "principalMappingsVerified": { "type": "boolean" },
+        "result": { "$ref": "#/$defs/result" }
+      }
+    },
+    "devServiceSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "desiredReplicas", "readyReplicas", "readyPods", "restarts", "imageIds"],
+      "properties": {
+        "name": { "$ref": "#/$defs/serviceName" },
+        "desiredReplicas": { "type": "integer", "minimum": 0 },
+        "readyReplicas": { "type": "integer", "minimum": 0 },
+        "readyPods": { "type": "integer", "minimum": 0 },
+        "restarts": { "type": "integer", "minimum": 0 },
+        "imageIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "@sha256:[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "devSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "services",
+        "healthEndpointsReady",
+        "redisReady",
+        "externalSecretReady",
+        "redisClientsConfigured",
+        "requiredConnectionsReady",
+        "quotaUsed",
+        "result"
+      ],
+      "properties": {
+        "services": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/devServiceSnapshot" }
+        },
+        "healthEndpointsReady": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "redisReady": { "type": "boolean" },
+        "externalSecretReady": { "type": "boolean" },
+        "redisClientsConfigured": { "type": "boolean" },
+        "requiredConnectionsReady": { "type": "boolean" },
+        "quotaUsed": { "$ref": "#/$defs/resourceValues" },
         "result": { "$ref": "#/$defs/result" }
       }
     },

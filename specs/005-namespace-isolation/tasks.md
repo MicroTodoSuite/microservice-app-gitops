@@ -160,8 +160,8 @@ restart, health, or required-connection regression.
 **Independent Test**: Compare exact pre-prerequisite, pre-activation,
 post-activation, post-canary, post-fixture, and final ten-minute dev samples.
 
-- [ ] T073 [US1] Extend continuity collection for five dev Applications, ready replicas, restarts, health endpoints, Redis, secret readiness, resource usage, and required connections in `scripts/managed/lib/namespace-isolation.sh`
-- [ ] T074 [US1] Add failing continuity-comparison coverage for readiness loss, restart deltas, wrong revisions, and failed required paths in `tests/contract/namespace-isolation-evidence.sh`
+- [X] T073 [US1] Extend continuity collection for five dev Applications, ready replicas, restarts, health endpoints, Redis, secret readiness, resource usage, and required connections in `scripts/managed/lib/namespace-isolation.sh`
+- [X] T074 [US1] Add failing continuity-comparison coverage for readiness loss, restart deltas, wrong revisions, and failed required paths in `tests/contract/namespace-isolation-evidence.sh`
 - [ ] T075 [US1] Run the complete continuity chain through final cleanup and cite zero policy/release-attributable loss in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: Dev continuity is evidenced, not inferred from manifests.
@@ -176,9 +176,9 @@ denied while same-environment traffic, DNS, and Redis remain functional.
 **Independent Test**: GitOps fixtures open new connections across all six
 directions and unique Pub/Sub streams; all negatives and positives match.
 
-- [ ] T076 [P] [US2] Update Deployment-owned probe fixtures for live service/DNS targets and immutable images in `tests/fixtures/namespace-isolation/base/`
-- [ ] T077 [P] [US2] Update three environment fixture overlays and exact no-cross-environment selectors in `tests/fixtures/namespace-isolation/overlays/`
-- [ ] T078 [US2] Extend observer collection for six new-session denials, three same-environment calls, three DNS checks, six Redis denials, and three Pub/Sub isolation results in `scripts/managed/lib/namespace-isolation.sh`
+- [X] T076 [P] [US2] Update Deployment-owned probe fixtures for live service/DNS targets and immutable images in `tests/fixtures/namespace-isolation/base/`
+- [X] T077 [P] [US2] Update three environment fixture overlays and exact no-cross-environment selectors in `tests/fixtures/namespace-isolation/overlays/`
+- [X] T078 [US2] Extend observer collection for six new-session denials, three same-environment calls, three DNS checks, six Redis denials, and three Pub/Sub isolation results in `scripts/managed/lib/namespace-isolation.sh`
 - [ ] T079 [US2] Activate fixtures by reviewed Git commit, observe all directed outcomes live, and cite raw logs/timestamps in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: Network and Redis isolation pass with positive controls.
@@ -194,8 +194,8 @@ comparison environment.
 Kubernetes records the expected admission/ReplicaSet event while comparison
 workloads retain readiness and restart counts.
 
-- [ ] T080 [P] [US3] Update the deliberate over-budget Deployment to exceed one approved dev bound deterministically in `tests/fixtures/namespace-isolation/quota-violation/deployment.yaml`
-- [ ] T081 [US3] Add event/pod-realization and comparison-environment assertions in `scripts/managed/lib/namespace-isolation.sh`
+- [X] T080 [P] [US3] Update the deliberate over-budget Deployment to exceed one approved dev bound deterministically in `tests/fixtures/namespace-isolation/quota-violation/deployment.yaml`
+- [X] T081 [US3] Add event/pod-realization and comparison-environment assertions in `scripts/managed/lib/namespace-isolation.sh`
 - [ ] T082 [US3] Activate the quota fixture by reviewed commit, capture the violated bound/event and unaffected staging/prod workloads, then remove it by Git revert and cite evidence in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: Resource exhaustion is contained live.
@@ -211,8 +211,8 @@ deferred AWS-principal mapping gap.
 verbs in its own namespace, denied in the other two and on isolation controls;
 an unbound subject is denied everywhere.
 
-- [ ] T083 [US4] Expand static Role/RoleBinding matrix coverage for all three groups, every namespace, protected isolation kinds, platform access, and an unbound subject in `tests/contract/namespace-isolation.sh`
-- [ ] T084 [US4] Extend read-only authorization-review collection and explicit principal-mapping status in `scripts/managed/lib/namespace-isolation.sh`
+- [X] T083 [US4] Expand static Role/RoleBinding matrix coverage for all three groups, every namespace, protected isolation kinds, platform access, and an unbound subject in `tests/contract/namespace-isolation.sh`
+- [X] T084 [US4] Extend read-only authorization-review collection and explicit principal-mapping status in `scripts/managed/lib/namespace-isolation.sh`
 - [ ] T085 [US4] Execute the complete Kubernetes group matrix live, cite results, and leave AWS-principal mapping acceptance unchecked in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: Kubernetes RBAC is proved; deferred AWS identity mapping remains
@@ -227,7 +227,7 @@ accurate final report.
 
 - [X] T086 [P] Update managed-cluster operator documentation, stage order, rollback rules, data-loss limits, and no-direct-mutation examples in `docs/namespace-isolation.md`
 - [X] T087 [P] Update add-on and service-onboarding documentation for Argo Rollouts, neutral ECR, ESO, and RollingSync in `clusters/README.md` and `infrastructure/argo-rollouts/README.md`
-- [ ] T088 Run all GitOps contract tests, Kustomize renders, schema validation, local pilot contracts, Terraform tests, five service tests/builds, and shared workflow contract checks; cite the consolidated result in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T088 Run all GitOps contract tests, Kustomize renders, schema validation, local pilot contracts, Terraform tests, five service tests/builds, and shared workflow contract checks; cite the consolidated result in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T089 Verify all temporary canary/isolation/quota/signature fixtures are absent after Git revert and all twenty-three final Argo CD Applications (root, Argo CD, five infrastructure, three environment, fifteen business) are Synced/Healthy at expected revisions
 - [ ] T090 Run the final observer phase and validate `summary.json` against `contracts/namespace-isolation-evidence.schema.json`; preserve raw evidence under `.local/evidence/namespace-isolation/`
 - [ ] T091 Audit `specs/005-namespace-isolation/checklists/acceptance.md` so every checked item cites specific evidence, every unmet item remains unchecked with its blocker, and no secret value or unsupported claim appears
