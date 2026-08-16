@@ -3,7 +3,7 @@
 ## Scope
 
 This contract governs the single shared EKS cluster adopted by constitution
-v1.2.0. It covers the three namespace boundaries and the one reviewed release
+v2.0.0. It covers the three namespace boundaries and the one reviewed release
 of auth-api, todos-api, users-api, frontend, and log-message-processor across
 dev, staging, and production.
 

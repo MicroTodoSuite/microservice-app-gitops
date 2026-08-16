@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
   "feature": "005-namespace-isolation",
-  "constitutionVersion": "1.2.0",
+  "constitutionVersion": "2.0.0",
   "phase": "baseline",
   "expectedRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "cleanupRevision": null,

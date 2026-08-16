@@ -42,8 +42,8 @@ truthful CI, and GitOps release controls while business activation remains empty
 
 ### AWS source ownership and Terraform identity
 
-- [ ] T007 Open, review, and merge the existing `esteban/eks-dev-foundation` source into `microservice-app-ops/main`, recording the PR and merge SHA in `specs/005-namespace-isolation/checklists/acceptance.md`
-- [ ] T008 Document the exact missing Terraform-role permissions and a least-privilege remediation scoped to current foundation roles plus the new feature roles in `../microservice-app-ops/aws/environments/dev/backend/README.md`
+- [X] T007 Open, review, and merge the existing `esteban/eks-dev-foundation` source into `microservice-app-ops/main`, recording the PR and merge SHA in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T008 Document the exact missing Terraform-role permissions and a least-privilege remediation scoped to current foundation roles plus the new feature roles in `../microservice-app-ops/aws/environments/dev/backend/README.md`
 - [ ] T009 Repair the `microtodosuite-terraform-dev` execution policy through its reviewed bootstrap ownership path and record a successful `AWS_PROFILE=microtodosuite-terraform` check/refresh plan in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ### Terraform tests first

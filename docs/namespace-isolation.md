@@ -92,7 +92,7 @@ rollout; its legacy name is retained to preserve the live ArgoCD root.
 Before any environment Application is activated, record all of these with exact
 revisions and raw evidence:
 
-1. constitution v1.2.0 is authoritative and byte-synchronized;
+1. constitution v2.0.0 is authoritative and byte-synchronized;
 2. reuse of the existing `microtodosuite-dev` cluster and `clusters/eks-dev`
    registration as the shared-cluster target is reviewed;
 3. the managed registration activates exactly three environment-policy entries,
@@ -213,4 +213,4 @@ accounts, storage, or cryptographic pod identity. ResourceQuota bounds admitted
 namespace demand but cannot eliminate every node-level noisy-neighbor effect.
 NetworkPolicy controls pod traffic but does not encrypt it. Redis remains a
 single ephemeral replica per environment. These are explicit tradeoffs of the
-constitution v1.2.0 cost-optimized profile.
+constitution v2.0.0 cost-optimized profile.

@@ -1,7 +1,7 @@
 # Deployment Profiles: economical (adopted) and full (reversible)
 
 The plan (§17) defines two cost profiles. This repo supports **both** and lets you
-switch between them. Constitution v1.2.0 formally adopts the **economical
+switch between them. Constitution v2.0.0 formally adopts the **economical
 profile** for managed environments: one EKS cluster, environment namespaces,
 no service mesh, native replica-based canaries, and no AKS DR target.
 

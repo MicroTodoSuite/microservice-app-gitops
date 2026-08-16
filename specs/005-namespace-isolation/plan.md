@@ -38,7 +38,7 @@ live and recorded in the acceptance checklist only with cited evidence.
 observers; Terraform 1.15.8; AWS provider 6.58.0; service-native Go, Node,
 Java, Vue/Node, and Python build tools as pinned by their owning repositories
 
-**Primary dependencies**: Constitution v1.2.0; Argo CD 3.5.0; Argo Rollouts
+**Primary dependencies**: Constitution v2.0.0; Argo CD 3.5.0; Argo Rollouts
 1.9.1; External Secrets Operator 2.9.0; Kyverno 1.18.2; Amazon VPC CNI
 1.23.0-eksbuild.1; AWS EKS 1.35; ECR; Secrets Manager; IAM OIDC/IRSA; GitHub
 Actions OIDC; Trivy; Syft; Cosign
@@ -112,7 +112,7 @@ the plan contains remediation.*
 | 2. GitOps-Only Deployment | PASS | Every Kubernetes stage is a reviewed Git revision reconciled by Argo CD; observers are read-only. AWS changes remain Terraform-owned. |
 | 3. Stable Trunk Development | PASS | AWS, shared workflow, five services, and GitOps use short-lived reviewed branches and green `main` descendants. |
 | 4. Authoritative Specifications | PASS | Clarifications, this plan, research, contracts, tasks, and evidence remain the controlling record. |
-| 5. Cost-Governed Design | PASS WITH DISCLOSED LIMIT | One shared cluster, serialized rollout, native canary, and no mesh implement v1.2.0; quotas do not claim full-node-loss capacity. |
+| 5. Cost-Governed Design | PASS WITH DISCLOSED LIMIT | One shared cluster, serialized rollout, native canary, and no mesh implement v2.0.0; quotas do not claim full-node-loss capacity. |
 | 6. Immutable Build Promotion | PASS AFTER GATE | Each service builds once; one signed digest is referenced in all three environments. |
 | 7. Progressive and Reversible Releases | PASS AFTER GATE | RollingSync orders environments; production uses metric-gated Rollouts; failed desired state recovers by Git revert. |
 | 8. Quality and Supply-Chain Gates | CONDITIONAL | Tests, Trivy, Syft, Cosign, and Kyverno are mandatory tasks. SonarQube/applicable test coverage is a hard pre-activation determination, not an assumed waiver. |

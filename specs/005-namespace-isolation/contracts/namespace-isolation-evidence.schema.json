@@ -32,7 +32,7 @@
   "properties": {
     "schemaVersion": { "const": "2.0.0" },
     "feature": { "const": "005-namespace-isolation" },
-    "constitutionVersion": { "const": "1.2.0" },
+    "constitutionVersion": { "const": "2.0.0" },
     "phase": {
       "enum": ["baseline", "prerequisites", "activated", "canary", "fixtures", "final"]
     },

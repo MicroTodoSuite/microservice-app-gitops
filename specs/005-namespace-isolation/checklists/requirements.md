@@ -41,5 +41,5 @@
 - The sibling AWS foundation pins a supported VPC CNI version but still does not
   declare `enableNetworkPolicy: "true"`; implementation must obtain durable
   configuration and live enforcement evidence or stop before default deny.
-- Constitution v1.2.0 is merged to authoritative `main` and its vendored copy is
+- Constitution v2.0.0 is merged to authoritative `main` and its vendored copy is
   byte-identical; the exact revisions and SHA-256 are recorded in acceptance.

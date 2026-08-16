@@ -6,7 +6,7 @@
 
 **Status**: In implementation
 
-**Input**: User description: "Establish namespace-based isolation for development, staging, and production on the single shared AWS EKS cluster under constitution v1.2.0. Enforce resource, network, access, and Redis event-stream boundaries through ArgoCD, prove isolation live, and preserve existing development workloads without disruption."
+**Input**: User description: "Establish namespace-based isolation for development, staging, and production on the single shared AWS EKS cluster under constitution v2.0.0. Enforce resource, network, access, and Redis event-stream boundaries through ArgoCD, prove isolation live, and preserve existing development workloads without disruption."
 
 ## Clarifications
 
@@ -304,7 +304,7 @@ contract, and production canary result.
 ### Functional Requirements
 
 - **FR-001**: Implementation MUST NOT begin until the authoritative constitution
-  v1.2.0 amendment is merged to `microservice-app-docs/main` and its vendored
+  v2.0.0 amendment is merged to `microservice-app-docs/main` and its vendored
   GitOps copy is synchronized.
 - **FR-002**: The feature MUST target exactly one shared AWS EKS cluster and the
   namespaces `microtodo-dev`, `microtodo-staging`, and `microtodo-prod`.
@@ -578,7 +578,7 @@ contract, and production canary result.
 
 ## Assumptions
 
-- The constitution v1.2.0 amendment is reviewed, merged, and byte-synchronized
+- The constitution v2.0.0 amendment is reviewed, merged, and byte-synchronized
   before implementation; its exact revisions and digest are recorded in the
   acceptance checklist.
 - The existing `clusters/eks-dev` ArgoCD root is the shared registration. It
