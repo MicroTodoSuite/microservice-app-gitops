@@ -81,7 +81,10 @@ metadata:
 spec:
   validationFailureAction: Enforce
   admission: true
-  background: true
+  # Private-ECR verification is enforced synchronously by the IRSA-enabled
+  # admission controller. Reports-controller scans have no registry identity
+  # and would otherwise emit false 401 policy violations for admitted images.
+  background: false
   emitWarning: false
   webhookConfiguration:
     failurePolicy: Fail

@@ -174,8 +174,14 @@ if [[ "$(rg -c '^  validationFailureAction: Enforce$' \
     "$ROOT/infrastructure/kyverno/policies.yaml")" != "3" ]]; then
   fail "all three Kyverno policies must be in Enforce mode"
 fi
-require_text infrastructure/kyverno/policies.yaml 'background: true' \
-  "Kyverno background reports are disabled"
+if [[ "$(rg -c '^  background: true$' \
+    "$ROOT/infrastructure/kyverno/policies.yaml")" != "2" ]]; then
+  fail "digest and probe policies must retain background reports"
+fi
+if [[ "$(rg -c '^  background: false$' \
+    "$ROOT/infrastructure/kyverno/policies.yaml")" != "1" ]]; then
+  fail "private-ECR signature verification must avoid credentialless background scans"
+fi
 require_text infrastructure/kyverno/policies.yaml 'admission: true' \
   "Kyverno admission default is not explicit"
 require_text infrastructure/kyverno/policies.yaml 'emitWarning: false' \
