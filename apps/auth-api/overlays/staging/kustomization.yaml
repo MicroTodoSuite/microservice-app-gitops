@@ -37,5 +37,5 @@ patches:
 
 images:
   - name: auth-api
-    newName: ECR_REGISTRY_PLACEHOLDER/auth-api
-    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+    newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+    digest: sha256:9c298bf1390c2b40469238e32a5b1e370b1174860f4d9366c66d38e81406ba2f

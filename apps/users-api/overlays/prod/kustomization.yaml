@@ -23,5 +23,5 @@ patches:
                   limits: {cpu: 500m, memory: 512Mi}
 images:
   - name: users-api
-    newName: REGISTRY_PLACEHOLDER/users-api
-    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+    newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
+    digest: sha256:afa8232041222cb40b87895d1acee82ab19dcca9b7d6d5030154dd591e132f40

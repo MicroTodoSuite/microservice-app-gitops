@@ -44,7 +44,7 @@ truthful CI, and GitOps release controls while business activation remains empty
 
 - [X] T007 Open, review, and merge the existing `esteban/eks-dev-foundation` source into `microservice-app-ops/main`, recording the PR and merge SHA in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [X] T008 Document the exact missing Terraform-role permissions and a least-privilege remediation scoped to current foundation roles plus the new feature roles in `../microservice-app-ops/aws/environments/dev/backend/README.md`
-- [ ] T009 Repair the `microtodosuite-terraform-dev` execution policy through its reviewed bootstrap ownership path and record a successful `AWS_PROFILE=microtodosuite-terraform` check/refresh plan in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T009 Repair the `microtodosuite-terraform-dev` execution policy through its reviewed bootstrap ownership path and record a successful `AWS_PROFILE=microtodosuite-terraform` check/refresh plan in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ### Terraform tests first
 
@@ -63,8 +63,8 @@ truthful CI, and GitOps release controls while business activation remains empty
 - [X] T019 Add typed feature inputs and validation for shared environments, service repositories, GitHub subjects, and secret version rotation in `../microservice-app-ops/aws/modules/environment-foundation/variables.tf`
 - [X] T020 Expose only neutral repository URLs, secret names/ARNs, and IRSA role ARNs in `../microservice-app-ops/aws/modules/environment-foundation/outputs.tf`
 - [X] T021 Wire new module inputs/outputs through `../microservice-app-ops/aws/environments/dev/foundation/main.tf`, `variables.tf`, `outputs.tf`, and `dev.tfvars.example`
-- [ ] T022 Run format, validate, module tests, contract tests, and a refresh-backed plan through `microtodosuite-terraform-dev`; require only expected additions and cite the plan in `specs/005-namespace-isolation/checklists/acceptance.md`
-- [ ] T023 Commit, push, and open the short-lived ops PR; after required review/checks, merge it and apply the exact reviewed saved plan through the intended Terraform role, recording caller, plan digest, apply result, and non-secret outputs in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T022 Run format, validate, module tests, contract tests, and a refresh-backed plan through `microtodosuite-terraform-dev`; require only expected additions and cite the plan in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T023 Commit, push, and open the short-lived ops PR; after required review/checks, merge it and apply the exact reviewed saved plan through the intended Terraform role, recording caller, plan digest, apply result, and non-secret outputs in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ### Shared workflow safety
 
@@ -132,14 +132,14 @@ staging, then prod with identical digests.
 - [X] T060 [US5] Add environment labels to the reusable app template and the EKS-only dev -> staging -> prod RollingSync strategy with `maxUpdate: 1` in `clusters/base/apps.yaml`, `clusters/eks-dev/rolling-sync-apps.yaml`, and `clusters/eks-dev/kustomization.yaml`
 - [X] T061 [US5] Replace shared Redis with explicit Argo Rollouts in `clusters/eks-dev/activation-infrastructure.yaml` while keeping `clusters/local-kind/activation-infrastructure.yaml` unchanged
 - [X] T062 [US5] Render/schema-validate all fifteen overlays, all three environment roots, Argo CD bootstrap, Argo Rollouts, and Kyverno; run every contract test and prove `clusters/eks-dev/activation-apps.yaml` remains empty
-- [ ] T063 [US5] Commit, push, open, review, and merge the GitOps prerequisite PR; wait for Argo CD and cite the exact revision, restarted progressive-sync controller, Rollouts CRDs/controller, five infrastructure Applications, three Ready ESO paths, new quotas, three Redis instances, and zero business Applications in `specs/005-namespace-isolation/checklists/acceptance.md`
+- [X] T063 [US5] Commit, push, open, review, and merge the GitOps prerequisite PR; wait for Argo CD and cite the exact revision, restarted progressive-sync controller, Rollouts CRDs/controller, five infrastructure Applications, three Ready ESO paths, new quotas, three Redis instances, and zero business Applications in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T064 [US5] Prove all three JWT destinations are non-empty and mutually distinct without printing values, and prove all six cross-environment source-secret reads are denied; cite redacted evidence in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T065 [US5] Prove Kyverno admits each approved signed neutral-ECR digest and rejects the GitOps-owned unsigned/wrong-identity fixture, then remove the fixture by Git revert and cite evidence in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ### Single activation and production evidence
 
-- [ ] T066 [US5] Replace registry placeholders/all-zero digests with the five exact neutral ECR URIs and identical per-service digests across all fifteen `apps/*/overlays/{dev,staging,prod}/kustomization.yaml` files
-- [ ] T067 [US5] Set dev, staging, and prod together in `clusters/eks-dev/activation-apps.yaml`; assert the render declares exactly fifteen generated Applications and no local-kind change
+- [X] T066 [US5] Replace registry placeholders/all-zero digests with the five exact neutral ECR URIs and identical per-service digests across all fifteen `apps/*/overlays/{dev,staging,prod}/kustomization.yaml` files
+- [X] T067 [US5] Set dev, staging, and prod together in `clusters/eks-dev/activation-apps.yaml`; assert the render declares exactly fifteen generated Applications and no local-kind change
 - [ ] T068 [US5] Commit, push, open, review, and merge the single activation PR; record its exact SHA and preserve the pre-merge dev continuity snapshot in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T069 [US5] Observe and record five serial Healthy dev operations before any staging operation, five serial Healthy staging operations before any prod operation, and five serial Healthy prod operations in `.local/evidence/namespace-isolation/`
 - [ ] T070 [US5] Verify all live business Pods are Ready, use the five reviewed image IDs, consume only same-environment secrets/Redis, and pass service health/contracts; cite results in `specs/005-namespace-isolation/checklists/acceptance.md`

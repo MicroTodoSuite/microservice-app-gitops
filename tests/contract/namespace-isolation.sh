@@ -279,8 +279,17 @@ fi
 require_file clusters/local-kind/activation-infrastructure.yaml
 require_file clusters/eks-dev/activation-infrastructure.yaml
 require_file clusters/eks-dev/activation-infrastructure-retired.yaml
-require_text clusters/eks-dev/activation-apps.yaml 'value: \[\]' \
-  "managed business-service activation is not empty"
+if [[ "$(rg -c '^    - env: (dev|staging|prod)$' \
+    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 3 ]]; then
+  fail "managed business activation must list exactly dev, staging, and prod"
+fi
+if [[ "$(rg -c '^      server: https://kubernetes.default.svc$' \
+    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 3 ]]; then
+  fail "every managed business activation must target the in-cluster API server"
+fi
+reject_text clusters/eks-dev/activation-apps.yaml \
+  'env: local|env: production' \
+  "managed business activation contains an unsupported environment"
 if [[ "$(rg -c '^    - env:' \
     "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 3 ]]; then
   fail "managed environment activation contains an extra or missing element"
