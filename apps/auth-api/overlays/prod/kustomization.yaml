@@ -41,4 +41,4 @@ patches:
 images:
   - name: auth-api
     newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
-    digest: sha256:9c298bf1390c2b40469238e32a5b1e370b1174860f4d9366c66d38e81406ba2f
+    digest: sha256:c4514e18b83b7265b90a8f7e62cbf31868fbe539d3e6c65356d9a0f4e8356fdc
