@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "2.0.0",
+  "feature": "005-namespace-isolation",
+  "constitutionVersion": "1.2.0",
+  "phase": "baseline",
+  "expectedRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "cleanupRevision": null,
+  "cluster": {
+    "name": "microtodosuite-dev",
+    "provider": "amazon-vpc-cni",
+    "kubernetesVersion": "v1.35.6-eks",
+    "cniVersion": "amazon-k8s-cni:v1.23.0-eksbuild.1",
+    "networkPolicyEnabled": true,
+    "eligibleNodes": 2,
+    "readyPolicyAgents": 2,
+    "allocatableMilliCpu": 3860,
+    "allocatableMemoryKi": 14549840,
+    "platformRequestedMilliCpu": 1301,
+    "result": "PASS"
+  },
+  "applicationInventory": {
+    "environmentApplications": ["env-dev", "env-staging", "env-prod"],
+    "businessApplications": [],
+    "infrastructureApplications": [
+      "infra-keda",
+      "infra-cert-manager",
+      "infra-external-secrets",
+      "infra-kyverno",
+      "infra-redis"
+    ],
+    "result": "PASS"
+  },
+  "environments": [
+    {
+      "environment": "dev",
+      "namespace": "microtodo-dev",
+      "application": "env-dev",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sync": "Synced",
+      "health": "Healthy",
+      "quota": {
+        "hard": {"requestsCpu": "400m", "limitsCpu": "1200m", "requestsMemory": "512Mi", "limitsMemory": "1536Mi", "pods": "12"},
+        "used": {"requestsCpu": "25m", "limitsCpu": "250m", "requestsMemory": "32Mi", "limitsMemory": "256Mi", "pods": "1"}
+      },
+      "redisReady": true,
+      "externalSecretReady": false,
+      "result": "BLOCKED"
+    },
+    {
+      "environment": "staging",
+      "namespace": "microtodo-staging",
+      "application": "env-staging",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sync": "Synced",
+      "health": "Healthy",
+      "quota": {
+        "hard": {"requestsCpu": "500m", "limitsCpu": "1500m", "requestsMemory": "640Mi", "limitsMemory": "2Gi", "pods": "14"},
+        "used": {"requestsCpu": "25m", "limitsCpu": "250m", "requestsMemory": "32Mi", "limitsMemory": "256Mi", "pods": "1"}
+      },
+      "redisReady": true,
+      "externalSecretReady": false,
+      "result": "BLOCKED"
+    },
+    {
+      "environment": "prod",
+      "namespace": "microtodo-prod",
+      "application": "env-prod",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sync": "Synced",
+      "health": "Healthy",
+      "quota": {
+        "hard": {"requestsCpu": "650m", "limitsCpu": "2", "requestsMemory": "896Mi", "limitsMemory": "3Gi", "pods": "18"},
+        "used": {"requestsCpu": "25m", "limitsCpu": "250m", "requestsMemory": "32Mi", "limitsMemory": "256Mi", "pods": "1"}
+      },
+      "redisReady": true,
+      "externalSecretReady": false,
+      "result": "BLOCKED"
+    }
+  ],
+  "releases": [],
+  "secrets": [],
+  "progressiveSync": {
+    "featureFlagEnabled": false,
+    "steps": ["dev", "staging", "prod"],
+    "maxUpdate": 1,
+    "observedOrder": [],
+    "result": "BLOCKED"
+  },
+  "productionCanaries": {
+    "initialCreationRecordedAsBootstrap": false,
+    "successful": [],
+    "negativeGate": null,
+    "result": "NOT_RUN"
+  },
+  "crossEnvironmentTests": [],
+  "sameEnvironmentTests": [],
+  "dnsTests": [],
+  "redisIsolation": {
+    "instancesReady": 3,
+    "pongPasses": 3,
+    "crossEnvironmentDenials": 0,
+    "pubSubIsolated": 0,
+    "sharedApplicationPresent": true,
+    "sharedNamespacePresent": true,
+    "result": "BLOCKED"
+  },
+  "resourceViolation": null,
+  "rbac": {
+    "groupChecks": [],
+    "principalMappingsVerified": false,
+    "result": "BLOCKED"
+  },
+  "devContinuity": [],
+  "commandAudit": {
+    "mutatingCommands": 0,
+    "secretValuesPrinted": 0,
+    "result": "PASS"
+  },
+  "blockedReasons": [
+    "business release prerequisites are not yet reconciled",
+    "AWS principal-to-group mappings remain deferred"
+  ],
+  "result": "BLOCKED"
+}

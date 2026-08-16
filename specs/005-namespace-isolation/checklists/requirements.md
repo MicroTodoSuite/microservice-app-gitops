@@ -9,7 +9,7 @@
 ## Content Quality
 
 - [x] Focused on operator and service-owner outcomes rather than unapproved manifest values
-- [x] Names only implementation constraints already fixed by the constitution and repository contracts
+- [ ] Names only implementation constraints already fixed by the constitution and repository contracts
 - [x] Explains why live enforcement is required instead of treating manifests as proof
 - [x] All mandatory sections are complete and written in English
 
@@ -23,7 +23,7 @@
 - [x] Edge cases include CNI enforcement, rollout headroom, DNS, stale connections, and Deployment quota behavior
 - [x] Cluster registration, CNI configuration, and identity mapping prerequisites are separated from GitOps ownership
 - [x] Policy-only environment activation is separated from business-service and infrastructure/add-on activation
-- [x] Scope excludes add-ons, real workload activation, Terraform, service code, mesh, and DR
+- [ ] Scope excludes add-ons, real workload activation, Terraform, service code, mesh, and DR
 
 ## Feature Readiness
 

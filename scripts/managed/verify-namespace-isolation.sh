@@ -10,9 +10,10 @@ usage() {
 Usage: verify-namespace-isolation.sh \
   --context <kube-context> \
   --expected-cluster-id <exact-kubeconfig-cluster-id> \
-  --phase <baseline|foundation|default-deny|redis-retired|fixtures|final> \
+  --phase <baseline|prerequisites|activated|canary|fixtures|final> \
   --expected-revision <40-hex-git-sha> \
   [--previous-evidence <preceding-phase-summary-json>] \
+  [--release-evidence <five-service-release-manifest-json>] \
   [--cleanup-revision <40-hex-git-sha>] \
   [--output <new-or-empty-directory>]
 USAGE
@@ -29,6 +30,7 @@ EXPECTED_CLUSTER_ID=""
 PHASE=""
 EXPECTED_REVISION=""
 PREVIOUS_EVIDENCE=""
+RELEASE_EVIDENCE=""
 CLEANUP_REVISION=""
 OUTPUT_DIR=""
 
@@ -59,6 +61,11 @@ while (($#)); do
       PREVIOUS_EVIDENCE="$2"
       shift 2
       ;;
+    --release-evidence)
+      (($# >= 2)) || die_usage "--release-evidence requires a value"
+      RELEASE_EVIDENCE="$2"
+      shift 2
+      ;;
     --cleanup-revision)
       (($# >= 2)) || die_usage "--cleanup-revision requires a value"
       CLEANUP_REVISION="$2"
@@ -82,7 +89,7 @@ done
 [[ -n "$KUBE_CONTEXT" ]] || die_usage "--context is required"
 [[ -n "$EXPECTED_CLUSTER_ID" ]] || die_usage "--expected-cluster-id is required"
 case "$PHASE" in
-  baseline|foundation|default-deny|redis-retired|fixtures|final) ;;
+  baseline|prerequisites|activated|canary|fixtures|final) ;;
   "") die_usage "--phase is required" ;;
   *) die_usage "unsupported phase: $PHASE" ;;
 esac
@@ -95,18 +102,32 @@ if [[ "$PHASE" != baseline ]]; then
   [[ -f "$PREVIOUS_EVIDENCE" ]] ||
     die_usage "preceding phase summary does not exist: $PREVIOUS_EVIDENCE"
   case "$PHASE" in
-    foundation) required_previous_phase=baseline ;;
-    default-deny) required_previous_phase=foundation ;;
-    redis-retired) required_previous_phase=default-deny ;;
-    fixtures) required_previous_phase=redis-retired ;;
+    prerequisites) required_previous_phase=baseline ;;
+    activated) required_previous_phase=prerequisites ;;
+    canary) required_previous_phase=activated ;;
+    fixtures) required_previous_phase=canary ;;
     final) required_previous_phase=fixtures ;;
   esac
-  jq -e --arg phase "$required_previous_phase" --arg clusterId "$EXPECTED_CLUSTER_ID" \
-    '.phase == $phase and .result == "PASS" and .clusterId == $clusterId and
-      .commandAudit.mutatingCommands == 0 and .commandAudit.result == "PASS"' \
+  jq -e --arg phase "$required_previous_phase" --arg clusterName "${EXPECTED_CLUSTER_ID##*/}" \
+    '.phase == $phase and .result == "PASS" and .cluster.name == $clusterName and
+      .commandAudit.mutatingCommands == 0 and
+      .commandAudit.secretValuesPrinted == 0 and
+      .commandAudit.result == "PASS"' \
     "$PREVIOUS_EVIDENCE" >/dev/null ||
     die_usage "--previous-evidence is not the passing predecessor for this cluster"
 fi
+case "$PHASE" in
+  activated|canary|fixtures|final)
+    [[ -n "$RELEASE_EVIDENCE" ]] ||
+      die_usage "--release-evidence is required for $PHASE"
+    [[ -f "$RELEASE_EVIDENCE" ]] ||
+      die_usage "release evidence does not exist: $RELEASE_EVIDENCE"
+    ;;
+  *)
+    [[ -z "$RELEASE_EVIDENCE" ]] ||
+      die_usage "--release-evidence is accepted only for activated and later phases"
+    ;;
+esac
 if [[ "$PHASE" == final ]]; then
   [[ "$CLEANUP_REVISION" =~ ^[0-9a-f]{40}$ ]] ||
     die_usage "--cleanup-revision is required for final and must be a full lowercase Git SHA"
@@ -144,6 +165,7 @@ fi
 # shellcheck source=scripts/managed/lib/namespace-isolation.sh
 source "$LIB"
 PHASE_EVIDENCE_JSON='{}'
+BLOCKED_REASONS_JSON='[]'
 initialize_evidence_directory
 
 finish() {
@@ -154,12 +176,21 @@ finish() {
     message="command audit found a managed-state mutation"
   fi
   write_phase_summary "$result" "$message" "$exit_code"
+  if ! validate_evidence_summary; then
+    mv "$OUTPUT_DIR/summary.json" "$(evidence_file invalid-summary.json)"
+    printf 'FAIL: evidence summary does not validate against schema v2.0.0\nEvidence: %s\n' \
+      "$OUTPUT_DIR" >&2
+    exit 9
+  fi
   printf '%s: %s\nEvidence: %s\n' "$result" "$message" "$OUTPUT_DIR" >&2
   exit "$exit_code"
 }
 
 collect_cluster_state || finish 3 FAIL "required cluster or ArgoCD state could not be observed"
 collect_environment_state
+if [[ -n "$RELEASE_EVIDENCE" ]]; then
+  collect_release_evidence || finish 12 FAIL "release evidence is invalid or incomplete"
+fi
 
 context_server="$(jq -r '.clusters[0].cluster.server // ""' "$(evidence_file context.json)")"
 context_cluster_id="$(jq -r '.contexts[0].context.cluster // ""' "$(evidence_file context.json)")"
@@ -176,7 +207,13 @@ business_apps="$(application_names_by_label microtodosuite.io/business-service t
 infrastructure_apps="$(application_names_by_prefix infra-)"
 array_equals "$environment_apps" env-dev env-staging env-prod ||
   finish 4 FAIL "environment Application inventory is not exactly env-dev, env-staging, env-prod"
-array_equals "$business_apps" || finish 4 FAIL "business-service Application inventory is not empty"
+if [[ "$PHASE" == baseline || "$PHASE" == prerequisites ]]; then
+  array_equals "$business_apps" ||
+    finish 4 FAIL "business-service Application inventory must remain empty before activation"
+else
+  array_equals "$business_apps" "${BUSINESS_APPLICATIONS[@]}" ||
+    finish 4 FAIL "business-service Application inventory is not the exact fifteen-Application set"
+fi
 if [[ "$PHASE" == final ]]; then
   applications_at_revision "$CLEANUP_REVISION" ||
     finish 4 FAIL "environment Applications are not Synced/Healthy at the cleanup revision"
@@ -185,43 +222,43 @@ else
     finish 4 FAIL "environment Applications are not Synced/Healthy at the expected revision"
 fi
 
-if [[ "$PHASE" == baseline || "$PHASE" == foundation || "$PHASE" == default-deny ]]; then
+if [[ "$PHASE" == baseline ]]; then
   array_equals "$infrastructure_apps" \
     infra-cert-manager infra-external-secrets infra-keda infra-kyverno infra-redis ||
     finish 4 FAIL "foundation infrastructure inventory is not the exact five-entry allowlist"
 else
   array_equals "$infrastructure_apps" "${CONTROLLER_APPS[@]}" ||
-    finish 4 FAIL "post-retirement infrastructure inventory is not the exact four-controller allowlist"
+    finish 4 FAIL "post-retirement infrastructure inventory is not the exact five-controller allowlist"
 fi
 
 case "$PHASE" in
   baseline)
     [[ "$(default_deny_count)" == 0 ]] ||
       finish 5 FAIL "baseline unexpectedly contains managed default-deny policies"
-    [[ "$(snapshot_dev_workloads)" != '[]' ]] ||
-      finish 8 FAIL "no existing dev business workload is available for continuity baseline"
-    finish 0 PASS "baseline prerequisites and dev continuity snapshot passed"
+    BLOCKED_REASONS_JSON='["business release prerequisites are not yet reconciled","AWS principal-to-group mappings remain deferred"]'
+    finish 3 BLOCKED "baseline captured; deployment prerequisites remain open"
     ;;
-  foundation)
-    [[ "$(default_deny_count)" == 0 ]] ||
-      finish 5 FAIL "foundation revision contains default deny"
-    redis_instances_ready || finish 10 FAIL "one or more environment Redis instances are not Ready/PONG"
-    compare_dev_baseline || finish 8 FAIL "dev workload state differs from baseline"
-    finish 0 PASS "foundation, three Redis instances, and dev continuity passed"
-    ;;
-  default-deny)
+  prerequisites)
     [[ "$(default_deny_count)" == 3 ]] ||
       finish 5 FAIL "default deny is not present exactly once in every managed namespace"
     redis_instances_ready || finish 10 FAIL "one or more environment Redis instances are not Ready/PONG"
-    compare_dev_baseline || finish 8 FAIL "dev workload state differs from baseline"
-    finish 0 PASS "default deny, Redis health, and dev continuity passed"
+    shared_redis_retired || finish 10 FAIL "shared Redis has not been retired"
+    progressive_sync_ready || finish 13 FAIL "ApplicationSet RollingSync is not enabled and reconciled"
+    rollouts_controller_ready || finish 13 FAIL "Argo Rollouts is not Ready"
+    external_secret_paths_ready || finish 11 FAIL "one or more environment secret paths are not Ready"
+    approved_quotas_ready || finish 6 FAIL "one or more namespace quotas differ from the approved table"
+    finish 0 PASS "deployment prerequisites are Ready with zero business Applications"
     ;;
-  redis-retired)
-    [[ ! -s "$(evidence_file shared-redis-namespace.json)" ]] ||
-      finish 10 FAIL "shared redis namespace still exists"
-    redis_instances_ready || finish 10 FAIL "an environment Redis instance regressed after retirement"
-    compare_dev_baseline || finish 8 FAIL "dev workload state differs from baseline"
-    finish 0 PASS "shared Redis retirement and replacement health passed"
+  activated)
+    business_applications_ready || finish 4 FAIL "one or more business Applications are not Synced/Healthy"
+    business_pods_match_release || finish 12 FAIL "live Pods do not match the reviewed release evidence"
+    production_rollouts_bootstrapped || finish 13 FAIL "production stable Rollouts are incomplete"
+    finish 0 PASS "fifteen Applications are Healthy at the reviewed release digests"
+    ;;
+  canary)
+    production_canaries_proven || finish 13 FAIL "production canary or rollback evidence is incomplete"
+    business_pods_match_release || finish 12 FAIL "canary evidence changed a reviewed image digest"
+    finish 0 PASS "production canary success and automatic rollback are proved"
     ;;
   fixtures)
     collect_rbac_matrix
@@ -265,16 +302,16 @@ case "$PHASE" in
     [[ ! -s "$(evidence_file shared-redis-namespace.json)" ]] ||
       finish 10 FAIL "shared redis namespace returned after cleanup"
     compare_dev_baseline || finish 8 FAIL "dev workload state differs from baseline"
-    jq -e '.continuitySamples | map(.phase) ==
-      ["baseline", "foundation", "default-deny", "redis-retired", "fixtures"]' \
+    jq -e '.devContinuity | map(.sample) ==
+      ["baseline", "prerequisites", "activated", "canary", "fixtures"]' \
       "$PREVIOUS_EVIDENCE" >/dev/null ||
       finish 9 FAIL "preceding evidence does not contain the exact five-phase continuity chain"
     command_audit_passes || finish 9 FAIL "command audit found a managed-state mutation"
     write_final_evidence_summary ||
       finish 9 FAIL "final cumulative evidence could not be serialized"
-    validate_final_evidence_summary || {
+    validate_evidence_summary || {
       mv "$OUTPUT_DIR/summary.json" "$(evidence_file invalid-summary.json)"
-      finish 9 FAIL "final cumulative summary does not validate against schema v1.1.0"
+      finish 9 FAIL "final cumulative summary does not validate against schema v2.0.0"
     }
     printf 'PASS: final cumulative namespace-isolation evidence validates\nEvidence: %s\n' \
       "$OUTPUT_DIR" >&2
