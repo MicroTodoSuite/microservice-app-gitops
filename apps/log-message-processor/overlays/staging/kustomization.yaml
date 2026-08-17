@@ -4,11 +4,11 @@ namespace: microtodo-staging
 resources: [../../topology]
 replicas: [{name: log-message-processor, count: 1}]
 patches:
-  - target: {kind: ConfigMap, name: log-message-processor}
+  - target: {kind: ConfigMap, name: log-message-processor-config}
     patch: |-
       apiVersion: v1
       kind: ConfigMap
-      metadata: {name: log-message-processor}
+      metadata: {name: log-message-processor-config}
       data:
         REDIS_HOST: redis
   - target: {kind: Deployment, name: log-message-processor}
@@ -18,6 +18,9 @@ patches:
       metadata: {name: log-message-processor}
       spec:
         template:
+          metadata:
+            annotations:
+              runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
           spec:
             containers:
               - name: log-message-processor

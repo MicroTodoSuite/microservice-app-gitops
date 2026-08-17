@@ -338,6 +338,16 @@ for service in todos-api log-message-processor; do
       "$service $environment overlay lacks a Redis endpoint override"
     require_text "$overlay" 'REDIS_HOST: redis' \
       "$service $environment overlay does not use namespace-local Redis"
+    managed_render="$TMP_DIR/$service-$environment.yaml"
+    render_kustomize "$ROOT/apps/$service/overlays/$environment" >"$managed_render"
+    require_render_text "$managed_render" '^  REDIS_HOST: redis$' \
+      "$service $environment render does not use namespace-local Redis"
+    require_render_text "$managed_render" \
+      'runtime-config.microtodosuite.io/revision: namespace-local-redis-v1' \
+      "$service $environment render does not roll pods for its managed Redis endpoint"
+    if rg -q 'REDIS_HOST: redis\.redis\.svc\.cluster\.local' "$managed_render"; then
+      fail "$service $environment render retains the retired shared Redis endpoint"
+    fi
   done
   local_render="$TMP_DIR/$service-local.yaml"
   render_kustomize "$ROOT/apps/$service/overlays/local" >"$local_render"

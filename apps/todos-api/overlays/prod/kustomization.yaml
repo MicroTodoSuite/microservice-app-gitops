@@ -4,11 +4,11 @@ namespace: microtodo-prod
 resources: [../../topology]
 components: [../../components/strategy-canary]
 patches:
-  - target: {kind: ConfigMap, name: todos-api}
+  - target: {kind: ConfigMap, name: todos-api-config}
     patch: |-
       apiVersion: v1
       kind: ConfigMap
-      metadata: {name: todos-api}
+      metadata: {name: todos-api-config}
       data:
         REDIS_HOST: redis
   - target: {kind: Deployment, name: todos-api}
@@ -19,6 +19,9 @@ patches:
       spec:
         replicas: 0
         template:
+          metadata:
+            annotations:
+              runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
           spec:
             containers:
               - name: todos-api
