@@ -24,4 +24,4 @@ patches:
 images:
   - name: users-api
     newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
-    digest: sha256:afa8232041222cb40b87895d1acee82ab19dcca9b7d6d5030154dd591e132f40
+    digest: sha256:869994d7a78fbea8dfc830357897bd98bc09a6a7d8353f0c0deb7e74295e01e9
