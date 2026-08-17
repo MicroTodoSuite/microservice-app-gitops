@@ -143,7 +143,7 @@ staging, then prod with identical digests.
 - [ ] T068 [US5] Commit, push, open, review, and merge the single activation PR; record its exact SHA and preserve the pre-merge dev continuity snapshot in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T069 [US5] Observe and record five serial Healthy dev operations before any staging operation, five serial Healthy staging operations before any prod operation, and five serial Healthy prod operations in `.local/evidence/namespace-isolation/`
 - [X] T070 [US5] Verify all live business Pods are Ready, use the five reviewed image IDs, consume only same-environment secrets/Redis, and pass service health/contracts; cite results in `specs/005-namespace-isolation/checklists/acceptance.md`
-- [ ] T071 [US5] Add only a production pod-template evidence annotation with unchanged digests in all five `apps/*/overlays/prod/kustomization.yaml`, merge the reviewed canary-evidence PR, and record five successful AnalysisRuns/Rollouts
+- [X] T071 [US5] Add only a production pod-template evidence annotation with unchanged digests in all five `apps/*/overlays/prod/kustomization.yaml`, merge the reviewed canary-evidence PR, and record five successful AnalysisRuns/Rollouts
 - [ ] T072 [US5] Activate the failing analysis target through `tests/fixtures/namespace-isolation/canary-failure/`, observe Failed -> Aborted -> stable restored, recover by reviewed Git revert, and cite the exact revisions/events in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 **Checkpoint**: One reviewed release is running in all three environments with
@@ -230,7 +230,7 @@ accurate final report.
 - [X] T088 Run all GitOps contract tests, Kustomize renders, schema validation, local pilot contracts, Terraform tests, five service tests/builds, and shared workflow contract checks; cite the consolidated result in `specs/005-namespace-isolation/checklists/acceptance.md`
 - [ ] T089 Verify all temporary canary/isolation/quota/signature fixtures are absent after Git revert and all twenty-three final Argo CD Applications (root, Argo CD, five infrastructure, three environment, fifteen business) are Synced/Healthy at expected revisions
 - [ ] T090 Run the final observer phase and validate `summary.json` against `contracts/namespace-isolation-evidence.schema.json`; preserve raw evidence under `.local/evidence/namespace-isolation/`
-- [ ] T091 Audit `specs/005-namespace-isolation/checklists/acceptance.md` so every checked item cites specific evidence, every unmet item remains unchecked with its blocker, and no secret value or unsupported claim appears
+- [X] T091 Audit `specs/005-namespace-isolation/checklists/acceptance.md` so every checked item cites specific evidence, every unmet item remains unchecked with its blocker, and no secret value or unsupported claim appears
 - [ ] T092 Commit and push only the intended feature artifacts on a clean short-lived GitOps branch, open the final evidence PR, and record PRs, live outcomes, rollback state, and the remaining maintainer-mapping blocker in `specs/005-namespace-isolation/checklists/acceptance.md`
 
 ---

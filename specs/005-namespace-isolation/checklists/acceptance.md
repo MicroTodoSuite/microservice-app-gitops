@@ -77,6 +77,7 @@
 - [x] Required dev connections and health checks pass after foundation convergence — Evidence: on 2026-08-17, `20260817T180149Z-live-isolation/service-health.log` recorded HTTP 200 from auth-api `/metrics`, todos-api `/metrics`, users-api `/prometheus`, frontend `/`, and log-message-processor `/metrics` from inside `microtodo-dev`, plus the same five passes in staging and prod. The artifact SHA-256 is `8b3e6ef4c9f863fc49bde3dd3b3f372ed0d7e3fb9cb0c1a7050305c2c1df3ea6`.
 - [x] Default-deny and release-prerequisite revision converges at the exact reviewed SHA — Evidence: `.local/evidence/namespace-isolation/20260816T214000Z-prerequisites-d9e6133/summary.json` records `env-dev`, `env-staging`, and `env-prod` `Synced/Healthy` at reviewed merge `d9e61330d8ae2a44936b7b7dfb233ddb61165a92`; each environment entry passes its quota, Redis, ExternalSecret, and policy prerequisites.
 - [x] Fifteen business Applications are reconciled and all live business Pods use the reviewed immutable images — Evidence: activation [PR #10](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/10) was approved by `Tiago0507` at exact head `a99f80d26d672e2fe55216bacc68126af49abf7b`, passed CI, and merged as `6b7bbd46b0e0028b48dc7e23e294df253f7cb979`. Recovery PRs [#11](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/11), [#12](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/12), and [#13](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/13) converged the reviewed runtime images and namespace-local Redis endpoint. `20260817T180149Z-live-isolation/applications.json` records all fifteen business Applications `Synced/Healthy` at final recovery revision `680e9559829d2284b9a07d2a7147c2667cc53d13`; `post-test-pods.txt` records all 23 environment Pods Ready, every business container at one of the five reviewed digests, and zero restarts. Their SHA-256 values are `d73c9e20af8097dded44e189ee3b5ac78a89706f489366fa540e43af7a0d7cd5` and `c0f54f186ec17282edb47bf74738727e1644a34c5ac68ba1e2a8f9d644b9f41c`.
+- [x] Five production canaries complete with fail-closed Job measurements while all image digests remain unchanged — Evidence: [PR #14](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/14) was approved by `Juanmadiaz45` at exact head `423b31a0c5f3a5cfb689be767c45747e6be3b144`, passed run `32054417084`, and merged as `6c75cb522fb32d807bccad2594667c371090eed6`. The live race record truthfully excludes `todos-api-586f9bfd9b-3-2`, whose old-template Job measurement Failed while `failureLimit: 1` incorrectly made the aggregate AnalysisRun Successful. After the shared template reached generation 2 with `failureLimit: 0`, `runAsUser: 100`, and `runAsGroup: 101`, frontend, users-api, auth-api, and log-message-processor each completed a real Successful Job measurement. [PR #15](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/15) changed only the todos-api evidence annotation, was approved by `Juanmadiaz45` at exact head `8bfafbd081e11243355cbd161cd8396ec8498432`, passed run `32055964747`, and merged as `432347fa3bde65eaab379802c6c7346528ccea21`; `todos-api-fd658dc47-4-2` then completed the fifth valid measurement. `20260817T184634Z-final-live/production-analysisruns.json` preserves all six records and has SHA-256 `e365bedad8171e792b8b95106b04f7bde07fc22280432bbd3594c8347a8b734a`; `canary-summary.txt` independently reports `validCanaries=5/5` with SHA-256 `d96c614a08c1d3d67f758ea2ddb1ed089c499e84621306e3c1989f182b0c6000`.
 - [x] Dev loses zero ready replicas and adds zero attributable restarts after default deny — Evidence: `20260817T180149Z-live-isolation/dev-continuity-10m.log` records 12 consecutive samples spanning at least 605 seconds after the live isolation tests. Every sample reports all six dev Pods Ready, zero restarts, five of five HTTP health passes, and Redis `PONG`; SHA-256 `5ca59b670c3a1d23649bdb33a4a4a6eaef926a9e9d3a3e51f4084848ecdee189`.
 - [x] Six unique directed cross-environment TCP attempts are denied — Evidence: `20260817T180149Z-live-isolation/tcp-dns-tests.log` records all six directed source/destination pairs timing out from an environment-local Redis Pod to the other environment's auth-api Service; the clean 12-test artifact has SHA-256 `ac47dc4b31527703004c665fc7c01527d05603646e4d99e756a533254980a080`.
 - [x] Three same-environment TCP attempts are allowed — Evidence: the same artifact records dev, staging, and prod each connecting from its Redis Pod to its own auth-api Service on TCP 8000, with exit code 0.
@@ -85,8 +86,8 @@
 - [x] Six unique directed cross-environment Redis attempts are denied — Evidence: corrected `20260817T180149Z-live-isolation/redis-cross-tests.log` first records three local `PONG` controls and then all six cross-environment `redis-cli PING` attempts ending only at the external eight-second timeout (`exit=124`); SHA-256 `c13b0d56ba05e9f5e206bcfb3c29d9428c3e543fed215702e1cb708c64c3f328`.
 - [x] A unique Redis Pub/Sub event is observed only in its source environment — Evidence: all three environment-local subscribers joined channel `namespace-isolation-20260817T180500Z`; publishing `dev-only-20260817T180500Z` in dev reported one subscriber, dev observed the event, and staging/prod did not. `pubsub-summary.log` SHA-256 is `a13648d584a0e22fdc47da11c0ae6117acd19fc92f818b00f49dfe7b1fa7eb55`; `pubsub-publish.log` SHA-256 is `d18a56e64357fcea2ae86256ffbe59dc4a9044f0b868ba0405e4fc3408bb5285`.
 - [x] Shared `infra-redis` and namespace `redis` are removed while all five retained controllers remain healthy — Evidence: `.local/evidence/namespace-isolation/20260816T214000Z-prerequisites-d9e6133/summary.json` records exactly `infra-argo-rollouts`, `infra-cert-manager`, `infra-external-secrets`, `infra-keda`, and `infra-kyverno`, with `sharedApplicationPresent: false`, `sharedNamespacePresent: false`, three Ready Redis instances, and three PONG passes.
-- [ ] Deliberate over-budget Deployment cannot realize its excess pod and records the expected event
-- [ ] Comparison-environment workload remains ready, restart-stable, and healthy during the violation
+- [ ] Deliberate over-budget Deployment cannot realize its excess pod and records the expected event — Not run: this requires a reviewed GitOps fixture activation and cleanup sequence; healthy ResourceQuota usage is not substituted for a deliberate admission failure.
+- [ ] Comparison-environment workload remains ready, restart-stable, and healthy during the violation — Not run: the paired comparison is valid only while the over-budget fixture above is actively rejected.
 - [x] RBAC matrix contains exactly three own-environment workload allows and six cross-environment denies — Evidence: `.local/evidence/namespace-isolation/20260816T215500Z-rbac-matrix/rbac-matrix.json` contains 28/28 passing live authorization checks, including exactly three own-environment Deployment allows and six directed cross-environment denials; its SHA-256 is `95076d11f5399c040604b628ca361261a89b2956babeec85a586894501ef7e25`.
 - [x] All maintainer groups are denied isolation-control changes — Evidence: the same live matrix contains all 15 expected denials for patching ResourceQuotas, LimitRanges, NetworkPolicies, Roles, and RoleBindings in each group's own namespace.
 - [x] Unbound subject is denied in every managed namespace — Evidence: the same live matrix records three of three Deployment-patch denials for `namespace-isolation-unbound`.
@@ -94,26 +95,29 @@
 
 ## Cleanup and Final Evidence
 
-- [ ] Fixture activation is removed by reviewed Git revert
-- [ ] All three environment Applications are Synced/Healthy at the cleanup revision
-- [ ] No verification fixture remains in any managed namespace
-- [ ] Dev remains ready, restart-stable, connected, and healthy for ten minutes after cleanup
+- [ ] Fixture activation is removed by reviewed Git revert — Not run: no negative signature, canary-failure, or quota fixture was activated in this operational deployment sequence, so no reviewed fixture-revert revision exists.
+- [ ] All three environment Applications are Synced/Healthy at the cleanup revision — Partial evidence: all 25 Applications are `Synced/Healthy` at `432347fa3bde65eaab379802c6c7346528ccea21`, but that revision is the reviewed todos canary retry rather than the required fixture-cleanup revert.
+- [x] No verification fixture remains in any managed namespace — Evidence: a final read-only inventory found zero resource names matching the isolation, quota-violation, signature, or canary-failure fixtures in dev, staging, or prod. `20260817T184634Z-final-live/fixture-absence.txt` reports PASS with SHA-256 `f0f7d76f398b9f90a53d99652ab46dd85b37791f75313263080ce18d34561a68`.
+- [ ] Dev remains ready, restart-stable, connected, and healthy for ten minutes after cleanup — Partial evidence: the earlier 605-second continuity run passed with no loss or restarts, but it did not follow a reviewed fixture-cleanup revision.
 - [ ] `summary.json` validates against the evidence schema — Static-only evidence: the cumulative evidence contract validates a synthetic complete shape; no live fixture/cleanup summary exists.
-- [ ] Raw observations support every summarized result
+- [ ] Raw observations support every summarized result — Partial evidence: raw artifacts and hashes support every checked live item above, but no schema-valid cumulative final summary exists for the intentionally unrun negative fixtures.
 - [ ] Command audit contains zero direct managed-state mutations — Partial evidence: the exact-revision foundation observation recorded 33 commands and zero entries with `mutating=true`; `summary.json` reports `commandAudit.mutatingCommands: 0` and `PASS`, but the final six-phase audit does not exist yet.
-- [ ] Final result is `PASS` only after every item above is evidenced
+- [ ] Final result is `PASS` only after every item above is evidenced — Blocked by the explicitly unchecked maintainer mapping, historical baseline/review clauses, destination-secret/cross-role checks, negative signature/canary gates, quota fixture, cleanup chain, and cumulative observer result.
 
 ## Current Status
 
-**ALL FIFTEEN BUSINESS APPLICATIONS LIVE; FINAL NEGATIVE GATES REMAIN.** The
-shared cluster has reconciled reviewed recovery revision
-`680e9559829d2284b9a07d2a7147c2667cc53d13` with five services in each of dev,
-staging, and prod. All 23 environment Pods are Ready with zero restarts and the
-five reviewed immutable business digests; 15/15 service health requests return
-HTTP 200. Live DNS, same-environment TCP, all six directed cross-environment TCP
-denials, three local Redis controls, all six directed cross-environment Redis
-denials, and Redis Pub/Sub containment pass. PR #14 is CI-green and awaits the
-required external approval to reconcile the corrected fail-closed canary Job and
-run five same-digest production analyses. AWS maintainer-principal mappings,
-destination-secret/cross-role proof, negative signature/canary fixtures, the
-quota-violation fixture, and reviewed fixture cleanup remain explicitly open.
+**COST-OPTIMIZED SHARED-CLUSTER SOLUTION OPERATIONAL; UNEVIDENCED NEGATIVE GATES
+REMAIN OPEN.** The shared cluster has reconciled reviewed revision
+`432347fa3bde65eaab379802c6c7346528ccea21`. All 25 Argo CD Applications are
+`Synced/Healthy`; the fifteen business Applications run five services in each of
+dev, staging, and prod. All 23 steady environment Pods are Ready with zero
+restarts and the five reviewed immutable business digests; 15/15 service health
+requests return HTTP 200. Live DNS, same-environment TCP, all six directed
+cross-environment TCP denials, three local Redis controls, all six directed
+cross-environment Redis denials, Redis Pub/Sub containment, ten-minute dev
+continuity, and five fail-closed production canaries pass. AWS maintainer
+principal mappings remain operator-deferred. The pre-foundation dev baseline,
+service-PR review clause, destination-secret/cross-role proof, negative signature
+and canary fixtures, quota-violation fixture, reviewed fixture-revert chain, and
+final schema-valid cumulative observer result remain unchecked rather than being
+inferred from healthy steady state.
