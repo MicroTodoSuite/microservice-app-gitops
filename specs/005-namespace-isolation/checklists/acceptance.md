@@ -74,15 +74,16 @@
 
 - [x] Foundation revision converges in all three environment Applications before default deny — Evidence: `raw/applications.json` in the `20260810T042953Z-foundation-observation-a06852d` evidence run records all three `env-*` Applications `Synced/Healthy` at `a06852d7960ef6a194f41f48d4ecbc860e182be3`; the three namespace/resource artifacts record Active namespaces, exact quotas and LimitRanges, and zero `default-deny` policies.
 - [ ] Dev loses zero ready replicas and adds zero attributable restarts after foundation convergence — Unavailable evidence: no dev business Deployment existed before or after the foundation; the observer retained this as a failed continuity gate rather than treating an empty set as success.
-- [ ] Required dev connections and health checks pass after foundation convergence — Partial evidence: each environment Redis is healthy, but there is no active dev business service or owner-provided endpoint/connection baseline to test.
+- [x] Required dev connections and health checks pass after foundation convergence — Evidence: on 2026-08-17, `20260817T180149Z-live-isolation/service-health.log` recorded HTTP 200 from auth-api `/metrics`, todos-api `/metrics`, users-api `/prometheus`, frontend `/`, and log-message-processor `/metrics` from inside `microtodo-dev`, plus the same five passes in staging and prod. The artifact SHA-256 is `8b3e6ef4c9f863fc49bde3dd3b3f372ed0d7e3fb9cb0c1a7050305c2c1df3ea6`.
 - [x] Default-deny and release-prerequisite revision converges at the exact reviewed SHA — Evidence: `.local/evidence/namespace-isolation/20260816T214000Z-prerequisites-d9e6133/summary.json` records `env-dev`, `env-staging`, and `env-prod` `Synced/Healthy` at reviewed merge `d9e61330d8ae2a44936b7b7dfb233ddb61165a92`; each environment entry passes its quota, Redis, ExternalSecret, and policy prerequisites.
-- [ ] Dev loses zero ready replicas and adds zero attributable restarts after default deny
-- [ ] Six unique directed cross-environment TCP attempts are denied
-- [ ] Three same-environment TCP attempts are allowed
-- [ ] DNS succeeds in dev, staging, and prod
+- [x] Fifteen business Applications are reconciled and all live business Pods use the reviewed immutable images — Evidence: activation [PR #10](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/10) was approved by `Tiago0507` at exact head `a99f80d26d672e2fe55216bacc68126af49abf7b`, passed CI, and merged as `6b7bbd46b0e0028b48dc7e23e294df253f7cb979`. Recovery PRs [#11](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/11), [#12](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/12), and [#13](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/13) converged the reviewed runtime images and namespace-local Redis endpoint. `20260817T180149Z-live-isolation/applications.json` records all fifteen business Applications `Synced/Healthy` at final recovery revision `680e9559829d2284b9a07d2a7147c2667cc53d13`; `post-test-pods.txt` records all 23 environment Pods Ready, every business container at one of the five reviewed digests, and zero restarts. Their SHA-256 values are `d73c9e20af8097dded44e189ee3b5ac78a89706f489366fa540e43af7a0d7cd5` and `c0f54f186ec17282edb47bf74738727e1644a34c5ac68ba1e2a8f9d644b9f41c`.
+- [ ] Dev loses zero ready replicas and adds zero attributable restarts after default deny — Current-state evidence only: `post-test-pods.txt` records all six dev Pods Ready with zero restarts after the live isolation tests, but no pre-default-deny dev business snapshot exists for a valid longitudinal comparison.
+- [x] Six unique directed cross-environment TCP attempts are denied — Evidence: `20260817T180149Z-live-isolation/tcp-dns-tests.log` records all six directed source/destination pairs timing out from an environment-local Redis Pod to the other environment's auth-api Service; the clean 12-test artifact has SHA-256 `ac47dc4b31527703004c665fc7c01527d05603646e4d99e756a533254980a080`.
+- [x] Three same-environment TCP attempts are allowed — Evidence: the same artifact records dev, staging, and prod each connecting from its Redis Pod to its own auth-api Service on TCP 8000, with exit code 0.
+- [x] DNS succeeds in dev, staging, and prod — Evidence: the same artifact records successful resolution of `kubernetes.default.svc.cluster.local` through `172.20.0.10` from all three source namespaces.
 - [x] Redis is Ready and returns `PONG` in dev, staging, and prod — Evidence: the same evidence directory records `PONG` in `raw/dev-redis-ping.txt`, `raw/staging-redis-ping.txt`, and `raw/prod-redis-ping.txt`; live Deployments were `1/1` available and all three pods were Ready with zero restarts using the reviewed digest.
-- [ ] Six unique directed cross-environment Redis attempts are denied
-- [ ] A unique Redis Pub/Sub event is observed only in its source environment
+- [x] Six unique directed cross-environment Redis attempts are denied — Evidence: corrected `20260817T180149Z-live-isolation/redis-cross-tests.log` first records three local `PONG` controls and then all six cross-environment `redis-cli PING` attempts ending only at the external eight-second timeout (`exit=124`); SHA-256 `c13b0d56ba05e9f5e206bcfb3c29d9428c3e543fed215702e1cb708c64c3f328`.
+- [x] A unique Redis Pub/Sub event is observed only in its source environment — Evidence: all three environment-local subscribers joined channel `namespace-isolation-20260817T180500Z`; publishing `dev-only-20260817T180500Z` in dev reported one subscriber, dev observed the event, and staging/prod did not. `pubsub-summary.log` SHA-256 is `a13648d584a0e22fdc47da11c0ae6117acd19fc92f818b00f49dfe7b1fa7eb55`; `pubsub-publish.log` SHA-256 is `d18a56e64357fcea2ae86256ffbe59dc4a9044f0b868ba0405e4fc3408bb5285`.
 - [x] Shared `infra-redis` and namespace `redis` are removed while all five retained controllers remain healthy — Evidence: `.local/evidence/namespace-isolation/20260816T214000Z-prerequisites-d9e6133/summary.json` records exactly `infra-argo-rollouts`, `infra-cert-manager`, `infra-external-secrets`, `infra-keda`, and `infra-kyverno`, with `sharedApplicationPresent: false`, `sharedNamespacePresent: false`, three Ready Redis instances, and three PONG passes.
 - [ ] Deliberate over-budget Deployment cannot realize its excess pod and records the expected event
 - [ ] Comparison-environment workload remains ready, restart-stable, and healthy during the violation
@@ -104,14 +105,15 @@
 
 ## Current Status
 
-**RELEASE PREREQUISITES LIVE; BUSINESS ACTIVATION PREPARED.** The shared cluster
-has reconciled reviewed merge `d9e61330d8ae2a44936b7b7dfb233ddb61165a92` with
-three isolated namespaces, default deny, environment-local Redis and secrets,
-Argo Rollouts, signature enforcement, and five retained platform controllers.
-The five exact signed digests are published and independently verified. The live
-prerequisite observer passes with zero business Applications; the single
-fifteen-Application activation revision is now statically green but is not yet
-merged or live. Kubernetes RBAC has 28/28 passing live checks, while AWS
-maintainer-principal mappings remain intentionally deferred. Service continuity,
-canary, network/Redis fixture, resource-violation, and final cleanup evidence
-remain unchecked until observed.
+**ALL FIFTEEN BUSINESS APPLICATIONS LIVE; FINAL NEGATIVE GATES REMAIN.** The
+shared cluster has reconciled reviewed recovery revision
+`680e9559829d2284b9a07d2a7147c2667cc53d13` with five services in each of dev,
+staging, and prod. All 23 environment Pods are Ready with zero restarts and the
+five reviewed immutable business digests; 15/15 service health requests return
+HTTP 200. Live DNS, same-environment TCP, all six directed cross-environment TCP
+denials, three local Redis controls, all six directed cross-environment Redis
+denials, and Redis Pub/Sub containment pass. PR #14 is CI-green and awaits the
+required external approval to reconcile the corrected fail-closed canary Job and
+run five same-digest production analyses. AWS maintainer-principal mappings,
+destination-secret/cross-role proof, negative signature/canary fixtures, the
+quota-violation fixture, and reviewed fixture cleanup remain explicitly open.
