@@ -20,4 +20,4 @@ patches:
 images:
   - name: frontend
     newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
-    digest: sha256:e9dcd7750bdbbd6cf4817dde5c1c50e825dd9febd1d4d11bf518d52bad94df6f
+    digest: sha256:1b5013646e8592c8e3970341efacf1a3d6b8b09e7fcd1fbbdd56cbd1e37ba554
