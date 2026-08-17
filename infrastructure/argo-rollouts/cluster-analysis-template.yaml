@@ -9,7 +9,7 @@ spec:
     - name: target-url
   metrics:
     - name: canary-http-health
-      failureLimit: 1
+      failureLimit: 0
       provider:
         job:
           metadata:
@@ -32,6 +32,8 @@ spec:
                 restartPolicy: Never
                 securityContext:
                   runAsNonRoot: true
+                  runAsUser: 100
+                  runAsGroup: 101
                   seccompProfile:
                     type: RuntimeDefault
                 containers:

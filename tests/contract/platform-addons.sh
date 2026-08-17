@@ -343,6 +343,15 @@ require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
   'job:' \
   "shared canary health gate is not backed by a bounded Job metric"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'failureLimit: 0' \
+  "shared canary health gate does not fail on its first failed measurement"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'runAsUser: 100' \
+  "shared canary health gate lacks the curl image's verified numeric UID"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'runAsGroup: 101' \
+  "shared canary health gate lacks the curl image's verified numeric GID"
 
 render_kustomize "$ROOT/infrastructure/argo-rollouts" >"$TMP_DIR/argo-rollouts.yaml" \
   || fail "Kustomize render failed for argo-rollouts"

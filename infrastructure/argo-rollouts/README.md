@@ -8,7 +8,9 @@ by all five production Rollouts.
 The metric performs a bounded HTTP health request against a service's dedicated
 canary Service. Exit code zero promotes the release; exhaustion of the bounded
 attempts fails the AnalysisRun, which causes Argo Rollouts to abort and retain
-the stable ReplicaSet. It is an availability gate, not a full error-rate
+the stable ReplicaSet. The metric is fail-closed (`failureLimit: 0`), and its
+pod uses the digest-pinned curl image's verified numeric UID/GID so Kubernetes
+can enforce `runAsNonRoot`. It is an availability gate, not a full error-rate
 observability claim.
 
 The shared EKS registration activates this root only after its CRDs, digest,

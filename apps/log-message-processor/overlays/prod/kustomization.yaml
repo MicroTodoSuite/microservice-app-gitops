@@ -21,6 +21,7 @@ patches:
         template:
           metadata:
             annotations:
+              release-evidence.microtodosuite.io/exercise: canary-health-gate-v1
               runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
           spec:
             containers:
