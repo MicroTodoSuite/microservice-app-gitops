@@ -27,6 +27,9 @@ patches:
       spec:
         replicas: 0
         template:
+          metadata:
+            annotations:
+              release-evidence.microtodosuite.io/exercise: canary-health-gate-v1
           spec:
             containers:
               - name: auth-api
