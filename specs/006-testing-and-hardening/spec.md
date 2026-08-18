@@ -16,6 +16,11 @@
 - Q: Which security work is included → A: CI-side only — remediating vulnerable dependencies so the image scan passes, and dynamic application security testing of the running service. Cluster-side runtime security (admission control, runtime detection, in-cluster scanning) is platform work (roadmap task 2) and is out of scope.
 - Q: Contract authoring order → A: Contract-first is mandatory: the REST and event contracts are the source of truth, authored before/with the tests, and CI fails when the implementation drifts.
 
+### Session 2026-08-16
+
+- Q: The reusable gate jobs delivered by task 4 (spec 003) are pure `exit 1` placeholders with no test-execution step, so flipping `run-unit: true` cannot execute anything (contradicts SC-002/SC-003). How is this reconciled with FR-015 ("MUST NOT modify the reusable pipeline mechanism")? → A: FR-015 forbids **restructuring** the pipeline (jobs, inputs, promotion flow), not **completing the gate execution step that spec 003 explicitly deferred** ("a later feature will populate them and enable the corresponding gates", 003 FR-018). Resolution: each reusable gate job runs a convention-based entrypoint `ci/<gate>.sh` from the service repo; a missing script still fails visibly (enabled-but-empty, FR-012). This is a one-time, stack-agnostic change to `.github/.github/workflows/ci.yml` that adds no per-service pipeline knowledge — activation stays "author artifacts (tests + `ci/<gate>.sh`) + flip the switch", preserving the value-only-activation model (FR-014). The reusable job interface (inputs/outputs/`needs`) is unchanged.
+- Q: `auth-api` uses `dep` (Gopkg.toml), not Go modules, and `github.com/dgrijalva/jwt-go` (deprecated, CVE-2020-26160); T006 assumes `go mod tidy` and a `x/crypto`-only bump. How is auth-api remediated? → A: Migrate auth-api to Go modules (mandatory for Go 1.23 + `go test ./...`), swap `dgrijalva/jwt-go` → `golang-jwt/jwt/v5` (drop-in API), and bump `golang.org/x/crypto`. This resolves the CVE at the source rather than carrying a `.trivyignore` exception for a deprecated library. T006 scope is widened accordingly.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Unblock delivery: a service passes the active security and unit gates (Priority: P1)
