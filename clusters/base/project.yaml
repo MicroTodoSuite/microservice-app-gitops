@@ -59,6 +59,8 @@ spec:
       namespace: redis
     - server: https://kubernetes.default.svc
       namespace: argo-rollouts
+    - server: https://kubernetes.default.svc
+      namespace: observability
     # Full upstream KEDA and cert-manager renders include narrowly named
     # authentication-reader and leader-election RBAC objects here.
     - server: https://kubernetes.default.svc
@@ -85,4 +87,10 @@ spec:
       kind: ClusterPolicy
     - group: argoproj.io
       kind: ClusterAnalysisTemplate
+  # Prometheus Operator's CRDs (Prometheus, Alertmanager, ServiceMonitor,
+  # PrometheusRule, AlertmanagerConfig, etc.) are all Namespaced-scope (see
+  # infrastructure/prometheus/vendor/v0.18.0/setup/*.yaml), so they need no
+  # clusterResourceWhitelist entry - they are already covered by the generic
+  # CustomResourceDefinition entry above plus the `observability` destination
+  # namespace and the empty namespaceResourceBlacklist below.
   namespaceResourceBlacklist: []
