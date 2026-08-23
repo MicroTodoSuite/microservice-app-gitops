@@ -141,14 +141,19 @@ minutes; confirm a normal-error-rate canary still promotes.
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Replace the `job`/curl provider in the
+- [x] T023 [US2] Replace the `job`/curl provider in the
   `ClusterAnalysisTemplate` with a Prometheus provider querying the canary
   revision's 5xx-to-total ratio in
   `infrastructure/argo-rollouts/cluster-analysis-template.yaml`
+- [x] T023a [US2] Label the five `*-canary` Services and add matching
+  `ServiceMonitor`s with a `revision=canary` relabel so the canary query has
+  a series to read; group the golden-signal recording rules by
+  `(workload, revision)` accordingly
 - [ ] T024 [US2] Publish the updated `ClusterAnalysisTemplate` as its own
-  commit (separate from the Prometheus/Grafana install commits) on
-  `feat/observability-platform-foundation` and wait for it to render and
-  sync cleanly before any canary exercises it
+  commit (done: `feat(canary): gate promotion on real Prometheus error rate`
+  on `feat/observability-canary-and-alerting`) and wait for it to render and
+  sync cleanly before any canary exercises it (live eks-dev step, not run
+  from this environment)
 - [ ] T025 [US2] Stage a fault-injection test path for one business workload's
   canary revision (elevated 5xx ratio, feature-flagged) and record the
   Rollout's automatic abort/rollback timing as evidence
@@ -171,19 +176,24 @@ followed by a resolution message once the breach clears.
 
 ### Tests for User Story 3
 
-- [ ] T027 [P] [US3] Add `AlertmanagerConfig`/route, ESO-secret-reference, and
+- [x] T027 [P] [US3] Add `AlertmanagerConfig`/route, ESO-secret-reference, and
   no-hard-coded-webhook assertions to `tests/contract/observability.sh`
 
 ### Implementation for User Story 3
 
-- [ ] T028 [P] [US3] Add the `ExternalSecret` referencing the pre-provisioned
+- [x] T028 [P] [US3] Add the `ExternalSecret` referencing the pre-provisioned
   Slack webhook (delivered via ESO, never a literal value) in
-  `infrastructure/prometheus/alertmanager-config.yaml`
-- [ ] T029 [US3] Add the `AlertmanagerConfig` Slack route and the five
-  golden-signal alert rules (error-rate rule fully specified at 5%/5min;
-  latency/traffic/saturation rules per-workload) in
-  `infrastructure/prometheus/rules/golden-signals.yaml` and
-  `infrastructure/prometheus/alertmanager-config.yaml`
+  `infrastructure/prometheus/alertmanager-config.yaml`. The `SecretStore`
+  behind it uses the same explicit, clearly-marked placeholder IRSA role ARN
+  already used by `environments/base/external-secrets-serviceaccount.yaml`
+  (not real yet; needs the actual IAM role from `microservice-app-ops`).
+- [x] T029 [US3] Add the `AlertmanagerConfig` Slack route and error-rate/
+  latency alert rules (error-rate fully specified at 5%/5min per the
+  Clarifications session; latency uses a starting-default 1s threshold, not
+  a measured baseline) in `infrastructure/prometheus/rules/golden-signals.yaml`
+  and `infrastructure/prometheus/alertmanager-config.yaml`. Traffic and
+  saturation alert rules remain follow-up work (saturation has no metric
+  source yet per T014a).
 - [ ] T030 [US3] Complete alert-firing/resolution evidence capture in
   `scripts/managed/verify-observability.sh`
 - [ ] T031 [US3] Publish the Alertmanager routing commit on
