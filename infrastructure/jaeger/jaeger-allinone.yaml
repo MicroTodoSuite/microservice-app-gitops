@@ -1,0 +1,169 @@
+# Jaeger 2.20.0 all-in-one: built on the OpenTelemetry Collector core, one
+# process handles OTLP ingestion, Badger embedded storage, and the query
+# UI/API. No separate collector/query/ingester deployment and no Jaeger
+# Operator, matching this feature's economical-profile scope (one pilot
+# service, not production trace volume).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  labels:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jaeger
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jaeger
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: jaeger
+          image: jaegertracing/jaeger@sha256:46a886260e04002d8f45e213fc39063fa11a50446048fdaa64786fc0840cb9f8
+          args: ["--config=/etc/jaeger/config.yaml"]
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+            - name: query-http
+              containerPort: 16686
+            - name: health
+              containerPort: 13133
+            - name: metrics
+              containerPort: 8888
+          volumeMounts:
+            - name: config
+              mountPath: /etc/jaeger
+              readOnly: true
+            - name: storage
+              mountPath: /badger/data
+            - name: tmp
+              # The upstream Dockerfile declares /tmp as its own VOLUME,
+              # implying real runtime writes there; readOnlyRootFilesystem
+              # needs this writable mount to avoid a startup failure.
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: jaeger-config
+        - name: storage
+          persistentVolumeClaim:
+            claimName: jaeger-storage
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jaeger-storage
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: gp3
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  labels:
+    app.kubernetes.io/name: jaeger
+spec:
+  selector:
+    app.kubernetes.io/name: jaeger
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  labels:
+    app.kubernetes.io/name: jaeger
+spec:
+  selector:
+    app.kubernetes.io/name: jaeger
+  ports:
+    - name: query-http
+      port: 16686
+      targetPort: query-http
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jaeger-default-deny
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jaeger-allow-otlp-and-query
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: jaeger
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    # OTLP from any namespace (auth-api today, more services later) and the
+    # query UI port for kubectl port-forward (FR-017: no Ingress).
+    - ports:
+        - port: 4317
+          protocol: TCP
+        - port: 4318
+          protocol: TCP
+        - port: 16686
+          protocol: TCP
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
