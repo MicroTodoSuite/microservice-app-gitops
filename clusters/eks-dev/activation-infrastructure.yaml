@@ -22,3 +22,6 @@
     - name: grafana
       path: infrastructure/grafana
       namespace: observability
+    - name: jaeger
+      path: infrastructure/jaeger
+      namespace: observability

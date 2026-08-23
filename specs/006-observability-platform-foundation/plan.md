@@ -15,20 +15,27 @@ checksum-pinned exactly like `keda`/`cert-manager`/`external-secrets`/
 metrics today (discovered in this repository, not assumed); the gap is a
 missing latency histogram in two of them and a missing exporter for
 `frontend`, not building metrics from scratch. `auth-api` is instrumented with
-the OpenTelemetry Go SDK behind an OpenTelemetry Collector, replacing its
-Zipkin exporter, and the existing Argo Rollouts `ClusterAnalysisTemplate` is
-updated to query real error-rate metrics instead of its synthetic curl probe.
+the OpenTelemetry Go SDK, replacing its Zipkin exporter, exporting OTLP
+directly to Jaeger (Jaeger 2.x is itself built on the OpenTelemetry Collector
+core and receives OTLP natively, so no separate Collector component is
+needed for a single pilot service - a correction made during implementation
+after verifying Jaeger's real current architecture, see research.md), and
+the existing Argo Rollouts `ClusterAnalysisTemplate` is updated to query real
+error-rate metrics instead of its synthetic curl probe.
 
 ## Technical Context
 
-**Language/Version**: Kubernetes YAML; Kustomize v5; Go 1.23 (`auth-api`
-instrumentation change only, no other service code changes in this feature)
+**Language/Version**: Kubernetes YAML; Kustomize v5; Go 1.26 (`auth-api`
+instrumentation change only, no other service code changes in this feature,
+matching its own `go.mod`)
 
-**Primary Dependencies**: kube-prometheus v0.16.0 (Prometheus Operator
-v0.82.0, Prometheus v3.5.0, Alertmanager v0.28.0), Grafana 11.7.0, Loki 3.6.0
-(single-binary/monolithic mode), Grafana Alloy 1.5.0 (log shipper, DaemonSet),
-Jaeger 1.65.0 (all-in-one, Badger embedded storage), OpenTelemetry Collector
-Contrib 0.135.0, OpenTelemetry Go SDK 1.33.0 + `otelecho`/`otlptracegrpc`
+**Primary Dependencies**: kube-prometheus v0.18.0 (Prometheus Operator
+v0.92.0, Prometheus v3.12.0, Alertmanager v0.33.0 - real current releases,
+verified via the GitHub API and `docker buildx imagetools inspect`), Grafana
+13.2.0, Loki 3.7.6 (single-binary/monolithic mode), Grafana Alloy 1.18.1 (log
+shipper, DaemonSet), Jaeger 2.20.0 (all-in-one, Badger embedded storage,
+OTLP-native), OpenTelemetry Go SDK 1.45.0 + `otelecho`/`otelhttp` (contrib
+v0.70.0)
 
 **Storage**: Prometheus TSDB on a namespace-scoped PVC (short retention, sized
 for metrics only); Loki filesystem storage on a PVC (3-day retention per
@@ -70,8 +77,8 @@ unbounded-cardinality metric or log labels; Slack webhook only via External
 Secrets Operator, never committed; any new admission policy MUST go through
 Audit before Enforce.
 
-**Scale/Scope**: One new namespace, five new ArgoCD-owned infrastructure
-Applications (`prometheus`, `grafana`, `loki`, `jaeger`, `otel-collector`),
+**Scale/Scope**: One new namespace, four new ArgoCD-owned infrastructure
+Applications (`prometheus`, `grafana`, `loki`, `jaeger`),
 one updated `ClusterAnalysisTemplate`, one existing service (`auth-api`) fully
 instrumented with OpenTelemetry, two existing services (`auth-api`,
 `todos-api`) gaining a small latency histogram alongside their existing
@@ -96,7 +103,7 @@ instrumentation already covers the required golden signals.
 | Quality and Supply-Chain Gates | PASS | Vendored bundles are checksum-verified; `auth-api`'s CI already runs Trivy/SBOM/Cosign/Kyverno on every change, including this one. |
 | Observable and Resilient Operations | PASS | This feature exists to close exactly this principle's disclosed gap ("OpenTelemetry, Jaeger, Prometheus/Grafana, Loki, and Alertmanager are not active on EKS"). Istio remains untouched and unused. |
 | Least Privilege and Secret Hygiene | PASS | The Slack webhook is delivered only through External Secrets Operator; no observability component gains a new AWS IAM/IRSA role in this feature (none needs one). |
-| Declarative and Policy-Controlled Platform | PASS | All five components are ArgoCD-owned under `infrastructure/`, added to the existing `eks-dev` activation list, matching the existing ownership boundary exactly. |
+| Declarative and Policy-Controlled Platform | PASS | All four components are ArgoCD-owned under `infrastructure/`, added to the existing `eks-dev` activation list, matching the existing ownership boundary exactly. |
 | Proven DR and Disclosed Data Loss | PASS | No DR claim is made; 3-day retention and PVC-backed (not replicated) storage are explicitly disclosed constraints, not hidden gaps. |
 
 Post-design re-check: PASS. Phase 1 design (below) introduces no Ingress, no
@@ -147,20 +154,17 @@ infrastructure/
 │   ├── kustomization.yaml
 │   ├── loki.yaml                     # single-binary StatefulSet, image pinned by digest
 │   ├── alloy.yaml                    # DaemonSet log shipper, image pinned by digest
-│   └── vendor/v3.6.0/README.md       # image source/digest provenance only, no bundle
-├── jaeger/
-│   ├── kustomization.yaml
-│   ├── jaeger-allinone.yaml          # image pinned by digest, Badger PVC
-│   └── vendor/v1.65.0/README.md      # image source/digest provenance only, no bundle
-└── otel-collector/
+│   └── vendor/v3.7.6/README.md       # image source/digest provenance only, no bundle
+└── jaeger/
     ├── kustomization.yaml
-    ├── collector-config.yaml         # OTLP receiver -> Prometheus + Jaeger exporters
-    └── deployment.yaml                # image pinned by digest
+    ├── jaeger-allinone.yaml          # image pinned by digest, Badger PVC, OTLP-native
+    ├── config.yaml                   # trimmed real upstream all-in-one config
+    └── vendor/v2.20.0/README.md      # image source/digest provenance only, no bundle
 
 apps/auth-api/
 ├── base/ (unchanged: Deployment env vars for OTLP endpoint added via overlay)
 └── overlays/dev/
-    └── kustomization.yaml             # OTEL_EXPORTER_OTLP_ENDPOINT patch
+    └── kustomization.yaml             # OTEL_EXPORTER_OTLP_ENDPOINT patch, points at Jaeger directly
 
 infrastructure/argo-rollouts/
 └── cluster-analysis-template.yaml    # updated: Prometheus error-rate query replaces curl
@@ -182,15 +186,15 @@ established by `003-platform-addons`, one Kustomize root per component so
 ArgoCD keeps a 1:1 Application-to-capability mapping. Only Prometheus
 Operator (via `kube-prometheus`) ships a genuine upstream release-manifest
 bundle worth vendoring under `vendor/<version>/`; Grafana, Loki (single-
-binary mode), Jaeger (all-in-one mode), and the OpenTelemetry Collector have
-no equivalent upstream bundle — each is normally installed via Helm or an
-operator this project's no-Helm convention avoids — so their manifests are
+binary mode), and Jaeger (all-in-one mode) have no equivalent upstream
+bundle — each is normally installed via Helm or an operator this project's
+no-Helm convention avoids — so their manifests are
 hand-authored in this repo with the same digest-pinning discipline used
 elsewhere (`newName@sha256:...`, never a tag), and their `vendor/<version>/
 README.md` records image source and digest provenance only, not a bundle
 checksum. `auth-api`'s code change is scoped to that repository and only
-referenced here through the overlay env-var patch that points it at the
-in-cluster OTLP collector.
+referenced here through the overlay env-var patch that points it directly at Jaeger's
+OTLP receiver.
 
 ## Complexity Tracking
 

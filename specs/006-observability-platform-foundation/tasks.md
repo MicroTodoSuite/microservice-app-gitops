@@ -44,9 +44,8 @@ locally.
 - [ ] T007 [P] Record Jaeger 1.65.0 (all-in-one) image source/digest
   provenance in `infrastructure/jaeger/vendor/v1.65.0/README.md` (no bundle to
   checksum)
-- [ ] T008 [P] Record OpenTelemetry Collector Contrib 0.135.0 image source/
-  digest provenance in `infrastructure/otel-collector/vendor/v0.135.0/README.md`
-  (no bundle to checksum)
+- [x] T008 Removed: no separate OpenTelemetry Collector component (Jaeger
+  2.x receives OTLP natively; see research.md's amended decision and T033)
 - [ ] T009 Confirm the `microtodosuite` AppProject's exact cluster-scoped
   resource allowlist in `clusters/base/project.yaml` already covers every
   Prometheus Operator CRD/kind this bundle introduces, and add only the exact
@@ -217,35 +216,36 @@ structured log line.
 
 ### Tests for User Story 4
 
-- [ ] T032 [P] [US4] Add OTLP-receiver, Jaeger-exporter, and no-Zipkin-
-  dependency assertions to `tests/contract/observability.sh` for
-  `infrastructure/otel-collector/` and `infrastructure/jaeger/`
+- [x] T032 [P] [US4] Add OTLP-receiver and no-Zipkin-dependency assertions to
+  `tests/contract/observability.sh` for `infrastructure/jaeger/` (no separate
+  `otel-collector` component: Jaeger 2.x receives OTLP natively, see
+  research.md's amended decision)
 
 ### Implementation for User Story 4
 
-- [ ] T033 [P] [US4] Add the Jaeger all-in-one Deployment with Badger PVC
-  (3-day retention) and immutable image transform in
-  `infrastructure/jaeger/jaeger-allinone.yaml`
-- [ ] T034 [P] [US4] Add the OpenTelemetry Collector Deployment (OTLP
-  receiver, Prometheus exporter, Jaeger OTLP exporter) and immutable image
-  transform in `infrastructure/otel-collector/collector-config.yaml` and
-  `infrastructure/otel-collector/deployment.yaml`
-- [ ] T035 [US4] [in `auth-api` repo] Replace `tracing.go`'s Zipkin exporter
+- [x] T033 [P] [US4] Add the Jaeger all-in-one Deployment with Badger PVC
+  (3-day retention), immutable image transform, and OTLP receiver config in
+  `infrastructure/jaeger/jaeger-allinone.yaml` and
+  `infrastructure/jaeger/config.yaml`
+- [x] T035 [US4] [in `auth-api` repo] Replace `tracing.go`'s Zipkin exporter
   with an OpenTelemetry Go SDK + OTLP exporter in a new `otel.go`, using
-  OpenTelemetry Semantic Conventions for span names/attributes, and remove
-  the Zipkin dependency from `go.mod`
-- [ ] T036 [US4] [in `auth-api` repo] Emit structured JSON logs carrying
-  `trace_id`/`span_id` for every request, replacing any unstructured log
-  output in `main.go`
-- [ ] T037 [US4] Add the `OTEL_EXPORTER_OTLP_ENDPOINT` env-var patch pointing
-  `auth-api` at the in-cluster Collector Service in
+  OpenTelemetry Semantic Conventions for the service resource, and remove
+  the Zipkin dependency from `go.mod` (verified: real `go build`, `go test
+  ./...`, and the actual Docker image all pass; live smoke-tested with a
+  running collector-less endpoint to confirm trace_id/span_id generation)
+- [x] T036 [US4] [in `auth-api` repo] Emit structured JSON logs carrying
+  `trace_id`/`span_id` for every request and every error path, replacing the
+  unstructured `log.Printf` calls in `main.go`
+- [x] T037 [US4] Add the `OTEL_EXPORTER_OTLP_ENDPOINT` env-var patch pointing
+  `auth-api` directly at Jaeger's OTLP Service in
   `apps/auth-api/overlays/dev/kustomization.yaml`
 - [ ] T038 [US4] Complete trace-retrieval and Semantic-Convention-attribute
-  evidence capture in `scripts/managed/verify-observability.sh`
-- [ ] T039 [US4] Publish the Jaeger and OTel Collector installation commits,
-  then the `auth-api` cutover commit (in its own repository/PR), and verify a
-  real request produces a retrievable trace with zero remaining Zipkin
-  code paths
+  evidence capture in `scripts/managed/verify-observability.sh` (live
+  eks-dev step, not run from this environment)
+- [ ] T039 [US4] Publish the Jaeger installation commit and the `auth-api`
+  cutover commit (in its own repository/PR), and verify on the live cluster
+  that a real request produces a retrievable trace with zero remaining
+  Zipkin code paths
 
 **Checkpoint**: `auth-api` is fully cut over from Zipkin to OpenTelemetry,
 proving the instrumentation pattern for future services.
@@ -346,10 +346,9 @@ Setup validation
 ## Parallel Opportunities
 
 ```text
-T004 Prometheus vendor || T005 Grafana provenance || T006 Loki/Alloy provenance || T007 Jaeger provenance || T008 OTel Collector provenance
+T004 Prometheus vendor || T005 Grafana provenance || T006 Loki/Alloy provenance || T007 Jaeger provenance
 T012 Prometheus root   || T015 Grafana root
 T016 auth-api histogram || T017 todos-api histogram || T018 frontend sidecar
-T033 Jaeger root       || T034 OTel Collector root
 ```
 
 Tasks that publish commits to `eks-dev` or observe the shared live cluster

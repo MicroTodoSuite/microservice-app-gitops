@@ -82,9 +82,10 @@ require_file "infrastructure/prometheus/vendor/v0.18.0/README.md"
 require_file "infrastructure/prometheus/vendor/v0.18.0/SHA256SUMS"
 check_checksum "infrastructure/prometheus/vendor/v0.18.0"
 require_file "infrastructure/grafana/vendor/v13.2.0/README.md"
+require_file "infrastructure/jaeger/vendor/v2.20.0/README.md"
 
 # --- Render check ---
-for component in prometheus grafana; do
+for component in prometheus grafana jaeger; do
   render="$TMP_DIR/$component.yaml"
   render_kustomize "$ROOT/infrastructure/$component" >"$render" \
     || fail "Kustomize render failed for $component"
@@ -104,6 +105,32 @@ require_resource "$TMP_DIR/prometheus.yaml" PrometheusRule business-workload-gol
 require_resource "$TMP_DIR/prometheus.yaml" AlertmanagerConfig slack-golden-signals
 require_resource "$TMP_DIR/prometheus.yaml" ExternalSecret alertmanager-slack-webhook
 require_resource "$TMP_DIR/prometheus.yaml" SecretStore aws-secrets-manager
+
+# --- Jaeger resources ---
+require_resource "$TMP_DIR/jaeger.yaml" Deployment jaeger
+require_resource "$TMP_DIR/jaeger.yaml" Service jaeger-collector
+require_resource "$TMP_DIR/jaeger.yaml" Service jaeger-query
+require_resource "$TMP_DIR/jaeger.yaml" PersistentVolumeClaim jaeger-storage
+require_text infrastructure/jaeger/config.yaml 'receivers:' \
+  "Jaeger must receive OTLP directly (no separate otel-collector component)"
+require_text infrastructure/jaeger/config.yaml 'ttl:' \
+  "Jaeger Badger storage must declare an explicit retention TTL"
+require_text infrastructure/jaeger/config.yaml 'spans: 72h' \
+  "Jaeger retention must match the Clarifications session's 3-day decision"
+reject_text infrastructure/jaeger/jaeger-allinone.yaml 'kind: Ingress' \
+  "Jaeger must not add a public Ingress (FR-017: port-forward only)"
+
+# --- Grafana wired to Jaeger ---
+require_text infrastructure/grafana/datasources.yaml 'type: jaeger' \
+  "Grafana must have a Jaeger datasource once Jaeger exists"
+
+# --- auth-api OTLP wiring points at Jaeger directly ---
+require_text apps/auth-api/overlays/dev/kustomization.yaml \
+  'OTEL_EXPORTER_OTLP_ENDPOINT' \
+  "auth-api dev overlay must set the OTLP endpoint"
+require_text apps/auth-api/overlays/dev/kustomization.yaml \
+  'jaeger-collector\.observability\.svc' \
+  "auth-api must point OTLP directly at Jaeger, not an otel-collector"
 
 # --- Canary gate ---
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
@@ -168,4 +195,4 @@ reject_text infrastructure/grafana/admin-secret.yaml \
   'GF_SECURITY_ADMIN_PASSWORD: [^"{]' \
   "Grafana admin password must be ESO-generated, never a literal value"
 
-pass "observability platform static contract (prometheus, grafana)"
+pass "observability platform static contract (prometheus, grafana, jaeger)"

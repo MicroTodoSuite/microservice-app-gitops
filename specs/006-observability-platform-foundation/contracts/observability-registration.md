@@ -7,7 +7,7 @@
 plainly that "folder discovery is intentionally forbidden: adding a directory
 must never activate a controller or shared dependency implicitly." Activation
 happens only through `clusters/eks-dev/activation-infrastructure.yaml`'s
-`op: replace` patch over that element list. This feature appends five
+`op: replace` patch over that element list. This feature appends four
 elements to that patch (it does not touch any other cluster's registration):
 
 | Application (`infra-{{name}}`) | Source path | Destination namespace |
@@ -16,7 +16,6 @@ elements to that patch (it does not touch any other cluster's registration):
 | `infra-grafana` | `infrastructure/grafana` | `observability` |
 | `infra-loki` | `infrastructure/loki` | `observability` |
 | `infra-jaeger` | `infrastructure/jaeger` | `observability` |
-| `infra-otel-collector` | `infrastructure/otel-collector` | `observability` |
 
 Every generated Application inherits from the shared template:
 
@@ -38,7 +37,7 @@ Every component folder must contain:
 - `kustomization.yaml` as the only ArgoCD entry point;
 - one retained upstream bundle under `vendor/<version>/` for `prometheus`
   only (`kube-prometheus` ships a genuine tagged-release manifest artifact);
-  `grafana`, `loki`, `jaeger`, and `otel-collector` are hand-authored/
+  `grafana`, `loki`, and `jaeger` are hand-authored/
   first-party — no upstream raw-YAML bundle exists for any of them outside
   Helm or an operator, which this project's no-Helm convention avoids — and
   are exempt from the vendor-bundle requirement, matching the precedent
