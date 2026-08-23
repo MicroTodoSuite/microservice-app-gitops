@@ -340,18 +340,22 @@ require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
   'provider:' \
   "shared canary health gate lacks a metric provider"
+# Superseded 2026-08-23 by specs/006-observability-platform-foundation User
+# Story 2: the synthetic curl/Job probe is replaced by a real Prometheus
+# error-rate query per the feature's own Assumptions ("the curl-based
+# template is superseded... not kept as a parallel, ambiguous gate").
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
-  'job:' \
-  "shared canary health gate is not backed by a bounded Job metric"
+  'prometheus:' \
+  "shared canary health gate is not backed by the Prometheus provider"
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
   'failureLimit: 0' \
   "shared canary health gate does not fail on its first failed measurement"
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
-  'runAsUser: 100' \
-  "shared canary health gate lacks the curl image's verified numeric UID"
+  'workload:http_errors:ratio5m' \
+  "shared canary health gate does not query the golden-signal error-rate recording rule"
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
-  'runAsGroup: 101' \
-  "shared canary health gate lacks the curl image's verified numeric GID"
+  'revision="canary"' \
+  "shared canary health gate does not scope its query to the canary revision"
 
 render_kustomize "$ROOT/infrastructure/argo-rollouts" >"$TMP_DIR/argo-rollouts.yaml" \
   || fail "Kustomize render failed for argo-rollouts"
