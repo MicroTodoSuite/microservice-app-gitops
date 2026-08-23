@@ -29,6 +29,6 @@ spec:
               - templateName: microtodosuite-canary-health
                 clusterScope: true
             args:
-              - name: target-url
-                value: http://auth-api-canary:8000/version
+              - name: workload
+                value: auth-api
         - setWeight: 100

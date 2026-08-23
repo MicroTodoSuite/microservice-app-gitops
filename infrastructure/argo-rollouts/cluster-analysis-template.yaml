@@ -6,69 +6,25 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   args:
-    - name: target-url
+    - name: workload
   metrics:
-    - name: canary-http-health
+    # Replaces the earlier curl-based connectivity probe with a real business
+    # signal: the canary revision's own HTTP 5xx error-rate ratio, sourced
+    # from the workload:http_errors:ratio5m recording rule in
+    # infrastructure/prometheus/rules/golden-signals.yaml, scoped to
+    # revision="canary" by the ServiceMonitors in
+    # infrastructure/prometheus/servicemonitors/canary-workloads.yaml.
+    # Decided in specs/006-observability-platform-foundation's Clarifications
+    # session: fail when the ratio exceeds 5% over the recording rule's own
+    # 5-minute window.
+    - name: canary-error-rate
       failureLimit: 0
+      interval: 30s
+      count: 3
       provider:
-        job:
-          metadata:
-            labels:
-              app.kubernetes.io/name: canary-health-analysis
-              app.kubernetes.io/part-of: microtodosuite
-              app.kubernetes.io/component: release-analysis
-          spec:
-            activeDeadlineSeconds: 90
-            backoffLimit: 0
-            ttlSecondsAfterFinished: 300
-            template:
-              metadata:
-                labels:
-                  app.kubernetes.io/name: canary-health-analysis
-                  app.kubernetes.io/part-of: microtodosuite
-                  app.kubernetes.io/component: release-analysis
-              spec:
-                automountServiceAccountToken: false
-                restartPolicy: Never
-                securityContext:
-                  runAsNonRoot: true
-                  runAsUser: 100
-                  runAsGroup: 101
-                  seccompProfile:
-                    type: RuntimeDefault
-                containers:
-                  - name: canary-health
-                    image: curlimages/curl@sha256:935d9100e9ba842cdb060de42472c7ca90cfe9a7c96e4dacb55e79e560b3ff40
-                    command:
-                      - /bin/sh
-                      - -ec
-                    args:
-                      - |
-                        attempt=1
-                        while [ "$attempt" -le 12 ]; do
-                          if curl --fail --silent --show-error --max-time 5 "{{ args.target-url }}" >/dev/null; then
-                            exit 0
-                          fi
-                          attempt=$((attempt + 1))
-                          sleep 5
-                        done
-                        exit 1
-                    resources:
-                      requests:
-                        cpu: 10m
-                        memory: 16Mi
-                      limits:
-                        cpu: 50m
-                        memory: 32Mi
-                    livenessProbe:
-                      exec:
-                        command: [/bin/sh, -ec, test -x /usr/bin/curl]
-                      periodSeconds: 10
-                    readinessProbe:
-                      exec:
-                        command: [/bin/sh, -ec, test -x /usr/bin/curl]
-                      periodSeconds: 5
-                    securityContext:
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop: [ALL]
+        prometheus:
+          address: http://prometheus-k8s.observability.svc:9090
+          query: |
+            workload:http_errors:ratio5m{workload="{{ args.workload }}", revision="canary"}
+      successCondition: result[0] <= 0.05
+      failureCondition: result[0] > 0.05

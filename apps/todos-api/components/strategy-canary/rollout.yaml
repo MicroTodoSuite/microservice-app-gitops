@@ -23,5 +23,5 @@ spec:
             templates:
               - {templateName: microtodosuite-canary-health, clusterScope: true}
             args:
-              - {name: target-url, value: "http://todos-api-canary:8082/metrics"}
+              - {name: workload, value: "todos-api"}
         - setWeight: 100
