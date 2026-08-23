@@ -1,0 +1,108 @@
+# Falco 9.1.0 (image tag 0.44.1) with the modern eBPF driver in its
+# least-privileged mode - verified against the real Helm chart's
+# falco.securityContext helper: modern_ebpf + modernEbpf.leastPrivileged
+# grants exactly [BPF, SYS_RESOURCE, PERFMON, SYS_PTRACE], never
+# `privileged: true` (that combination is only used for the kmod/auto
+# drivers this feature does not use, per the Clarifications session).
+# No ClusterRole/ClusterRoleBinding is needed: the real chart only adds one
+# for `driver.kind: auto`'s dynamic config-map fallback, not for an explicit
+# `modern_ebpf` choice - base Falco gets container context from the host
+# mounts below, not the Kubernetes API.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: falco
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: falco
+  labels:
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: falco
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: falco
+    spec:
+      serviceAccountName: falco
+      automountServiceAccountToken: false
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: falco
+          image: falcosecurity/falco@sha256:d0cfe422d6ac0e0f20857798f46c7d7273210e1b064b22821e4e6e7f843cde6b
+          args:
+            - /usr/bin/falco
+            - --modern-bpf
+          securityContext:
+            capabilities:
+              add: ["BPF", "SYS_RESOURCE", "PERFMON", "SYS_PTRACE"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          env:
+            - name: HOST_ROOT
+              value: /host
+            - name: FALCO_K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: /root/.falco
+              name: root-falco-fs
+            - mountPath: /host/proc
+              name: proc-fs
+              readOnly: true
+            - mountPath: /host/boot
+              name: boot-fs
+              readOnly: true
+            - mountPath: /host/lib/modules
+              name: lib-modules
+              readOnly: true
+            - mountPath: /host/usr
+              name: usr-fs
+              readOnly: true
+            - mountPath: /host/etc
+              name: etc-fs
+              readOnly: true
+            - mountPath: /etc/falco/falco.yaml
+              name: falco-config
+              subPath: falco.yaml
+      volumes:
+        - name: root-falco-fs
+          emptyDir: {}
+        - name: proc-fs
+          hostPath:
+            path: /proc
+        - name: boot-fs
+          hostPath:
+            path: /boot
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        - name: usr-fs
+          hostPath:
+            path: /usr
+        - name: etc-fs
+          hostPath:
+            path: /etc
+        - name: falco-config
+          configMap:
+            name: falco-config
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
