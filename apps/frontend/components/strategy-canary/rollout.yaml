@@ -23,5 +23,5 @@ spec:
             templates:
               - {templateName: microtodosuite-canary-health, clusterScope: true}
             args:
-              - {name: target-url, value: "http://frontend-canary:8080/"}
+              - {name: workload, value: "frontend"}
         - setWeight: 100

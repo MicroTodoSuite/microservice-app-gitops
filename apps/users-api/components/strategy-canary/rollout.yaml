@@ -23,5 +23,5 @@ spec:
             templates:
               - {templateName: microtodosuite-canary-health, clusterScope: true}
             args:
-              - {name: target-url, value: "http://users-api-canary:8083/prometheus"}
+              - {name: workload, value: "users-api"}
         - setWeight: 100

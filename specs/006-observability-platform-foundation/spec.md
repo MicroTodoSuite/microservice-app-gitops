@@ -340,8 +340,13 @@ and structured, not raw unparsed text.
 - This feature targets the live `eks-dev` cluster and the `dev` namespace's
   business workloads first, mirroring how platform add-ons were first proven
   on a single environment before wider rollout; extending golden-signal
-  coverage and alert routing to `staging`/`prod` namespaces is explicit
-  follow-up work, not part of this feature's success criteria.
+  *dashboards* and alert routing to `staging`/`prod` namespaces is explicit
+  follow-up work, not part of this feature's success criteria. The single
+  narrow exception is User Story 2: the metric-gated canary strategy only
+  exists in the `prod` overlay today (`apps/*/components/strategy-canary`),
+  so scraping the `prod` `*-canary` Services with a `revision=canary` label
+  is in scope for the canary gate specifically, even though `prod` is a
+  structurally disabled scaffold (`replicas: 0`) with no live series yet.
 - `auth-api` is the sole OpenTelemetry pilot service for this feature. The
   remaining four business workloads continue emitting whatever telemetry
   they emit today (Zipkin or none) until a follow-up feature instruments

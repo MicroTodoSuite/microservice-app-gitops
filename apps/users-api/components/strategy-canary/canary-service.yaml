@@ -1,6 +1,11 @@
 apiVersion: v1
 kind: Service
-metadata: {name: users-api-canary}
+metadata:
+  name: users-api-canary
+  labels:
+    app.kubernetes.io/name: users-api
+    app.kubernetes.io/part-of: microtodosuite
+    app.kubernetes.io/component: business-service
 spec:
   type: ClusterIP
   selector:

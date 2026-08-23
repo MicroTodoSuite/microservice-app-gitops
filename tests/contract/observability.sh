@@ -98,8 +98,33 @@ require_resource "$TMP_DIR/prometheus.yaml" Alertmanager main
 require_resource "$TMP_DIR/prometheus.yaml" Deployment prometheus-operator
 for wl in auth-api todos-api users-api log-message-processor frontend; do
   require_resource "$TMP_DIR/prometheus.yaml" ServiceMonitor "$wl"
+  require_resource "$TMP_DIR/prometheus.yaml" ServiceMonitor "$wl-canary"
 done
 require_resource "$TMP_DIR/prometheus.yaml" PrometheusRule business-workload-golden-signals
+require_resource "$TMP_DIR/prometheus.yaml" AlertmanagerConfig slack-golden-signals
+require_resource "$TMP_DIR/prometheus.yaml" ExternalSecret alertmanager-slack-webhook
+require_resource "$TMP_DIR/prometheus.yaml" SecretStore aws-secrets-manager
+
+# --- Canary gate ---
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'prometheus:' \
+  "canary analysis must use the Prometheus provider, not the old curl Job"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'revision="canary"' \
+  "canary analysis must scope its query to the canary revision"
+for svc in auth-api todos-api users-api frontend log-message-processor; do
+  require_text "apps/$svc/components/strategy-canary/rollout.yaml" \
+    'name: workload' \
+    "$svc's canary analysis args must pass the workload arg the template now expects"
+  reject_text "apps/$svc/components/strategy-canary/rollout.yaml" \
+    'target-url' \
+    "$svc's canary analysis still passes the retired target-url arg"
+done
+
+# --- Secret hygiene: no committed Slack webhook value ---
+reject_text infrastructure/prometheus/alertmanager-config.yaml \
+  'hooks\.slack\.com/services' \
+  "Slack webhook URL must never be a literal value in Git"
 
 # --- Grafana resources ---
 require_resource "$TMP_DIR/grafana.yaml" Deployment grafana

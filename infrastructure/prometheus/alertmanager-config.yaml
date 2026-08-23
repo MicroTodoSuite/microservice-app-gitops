@@ -1,0 +1,76 @@
+# Cross-namespace mirror of environments/base's AWS Secrets Manager pattern
+# (SecretStore is namespace-scoped, so the observability namespace needs its
+# own copy). Its IRSA role ARN is the same kind of explicit, clearly-marked
+# placeholder already used there (arn:...:000000000000:role/replace-...) -
+# not a real role yet, exactly like environments/base/external-secrets-
+# serviceaccount.yaml. Do not treat this as live until microservice-app-ops
+# provisions the real IAM role.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: observability-external-secrets-jwt
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::000000000000:role/replace-environment-observability-secrets-reader
+automountServiceAccountToken: false
+---
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: aws-secrets-manager
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: us-east-1
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: observability-external-secrets-jwt
+---
+# The Slack incoming webhook itself is provisioned out-of-band by a human
+# operator in Slack's own admin UI (specs/006-observability-platform-
+# foundation/spec.md Assumptions); this only wires the already-provisioned
+# value through External Secrets Operator. No webhook value is ever
+# committed to Git.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: alertmanager-slack-webhook
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: SecretStore
+    name: aws-secrets-manager
+  target:
+    name: alertmanager-slack-webhook
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: SLACK_WEBHOOK_URL
+      remoteRef:
+        key: replace/environment/alertmanager-slack-webhook
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: slack-golden-signals
+  labels:
+    # Matches alertmanager-alertmanager.yaml's alertmanagerConfigSelector: {}
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  route:
+    groupBy: ["workload", "alertname"]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 4h
+    receiver: slack-microtodosuite
+  receivers:
+    - name: slack-microtodosuite
+      slackConfigs:
+        - apiURL:
+            name: alertmanager-slack-webhook
+            key: SLACK_WEBHOOK_URL
+          channel: "#microtodosuite-alerts"
+          sendResolved: true
+          title: '{{ .CommonLabels.alertname }}: {{ .CommonLabels.workload }}'
+          text: '{{ .CommonAnnotations.description }}'
