@@ -14,7 +14,7 @@ the managed cluster.
 ```
 
 Expected: all five Kustomize roots (`prometheus`, `grafana`, `loki`, `jaeger`,
-`otel-collector`) render, vendor bundle checksums match where a bundle
+`jaeger`) render, vendor bundle checksums match where a bundle
 exists, every rendered image is pinned by digest, the infrastructure
 ApplicationSet's activation list contains exactly the five expected new
 elements at namespace `observability`, no `Ingress`/`Certificate` resource
@@ -25,7 +25,7 @@ exists for any observability UI, and no `Elasticsearch`/`Logstash`/`Kibana`/
 Optional schema validation when `kubeconform` is installed:
 
 ```bash
-for addon in prometheus grafana loki jaeger otel-collector; do
+for addon in prometheus grafana loki jaeger; do
   kustomize build "infrastructure/$addon" |
     kubeconform -strict -ignore-missing-schemas -summary
 done
@@ -48,10 +48,9 @@ git checkout -b feat/observability-platform-foundation
 #   1. infrastructure/prometheus (Operator + Prometheus + Alertmanager CRs, ServiceMonitors, rules)
 #   2. infrastructure/grafana (datasources, golden-signal dashboards)
 #   3. infrastructure/loki (Loki + Alloy)
-#   4. infrastructure/jaeger (all-in-one, Badger storage)
-#   5. infrastructure/otel-collector
-#   6. clusters/eks-dev/activation-infrastructure.yaml (append the five entries)
-#   7. infrastructure/argo-rollouts/cluster-analysis-template.yaml (Prometheus provider)
+#   4. infrastructure/jaeger (all-in-one, Badger storage, OTLP-native)
+#   5. clusters/eks-dev/activation-infrastructure.yaml (append the four entries)
+#   6. infrastructure/argo-rollouts/cluster-analysis-template.yaml (Prometheus provider)
 git push -u origin feat/observability-platform-foundation
 gh pr create --fill --base main
 ```

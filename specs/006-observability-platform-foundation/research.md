@@ -99,21 +99,33 @@ ingester) deployment model exist to scale traces independently at a volume
 this single-pilot-service feature does not have; all-in-one is the
 documented, supported Jaeger deployment mode for exactly this scale.
 
-## Trace/metrics bridge: OpenTelemetry Collector
+## Trace bridge: direct to Jaeger, no separate Collector
 
-**Decision**: One OpenTelemetry Collector Contrib 0.135.0 `Deployment` in the
-`observability` namespace receiving OTLP from `auth-api`, exporting traces to
-Jaeger (native OTLP receiver) and metrics via a Prometheus exporter scraped by
-a `ServiceMonitor`.
+**Decision (amended during implementation)**: `auth-api` exports OTLP
+directly to Jaeger's own OTLP receiver; no standalone OpenTelemetry Collector
+`Deployment` is introduced.
 
-**Rationale**: A Collector in front of the backends is the standard
-OpenTelemetry-recommended topology — it decouples `auth-api` from any
-specific backend's wire format, so a later service's OTel cutover only needs
-to point at the same Collector, not learn a new export path. Sending spans
-directly from the SDK to Jaeger and metrics directly to a `/metrics` endpoint
-without a Collector was considered and rejected: it works for one service
-today but re-creates per-service backend coupling that the Collector exists
-specifically to remove before more services migrate off Zipkin.
+**Original plan and why it changed**: The initial design (above sections)
+called for a Collector in front of Jaeger, on the standard argument that it
+decouples services from any one backend's wire format. Checking Jaeger's
+actual current release during implementation (`docker buildx imagetools
+inspect jaegertracing/jaeger:2.20.0`, and its real Dockerfile/config from the
+`v2.20.0` tag) showed that Jaeger 2.x **is itself built on the OpenTelemetry
+Collector core** and receives OTLP natively (`receivers: [otlp]` in its own
+config) - the exact decoupling a separate Collector would add is already
+inside Jaeger. Adding another Collector in front of it would just be an
+OTLP-to-OTLP hop with no behavior difference, which contradicts the
+economical profile's bias toward fewer components. Metrics do not need a
+Collector either: `auth-api`'s `/metrics` endpoint is already scraped
+directly by a `ServiceMonitor`, independent of the tracing path (see the
+metrics-stack sections above), so nothing was bridging metrics through OTLP
+in the first place.
+
+**Future-service note**: if a later service's runtime cannot easily export
+OTLP directly (e.g. it can only speak Zipkin natively, or several services
+need shared sampling/redaction processing), reintroducing a Collector at
+that point is a small, additive change - it does not require touching this
+feature's Jaeger deployment.
 
 ## Canary gate: HTTP 5xx error-rate query
 
@@ -137,8 +149,8 @@ not easier.
 ## Namespace and registration model
 
 **Decision**: One new `observability` namespace hosts every component from
-this feature; five separate ArgoCD Applications (`prometheus`, `grafana`,
-`loki`, `jaeger`, `otel-collector`) are appended to `clusters/eks-dev/
+this feature; four separate ArgoCD Applications (`prometheus`, `grafana`,
+`loki`, `jaeger`) are appended to `clusters/eks-dev/
 activation-infrastructure.yaml`'s explicit element list.
 
 **Rationale**: A single namespace keeps RBAC/NetworkPolicy surface small,

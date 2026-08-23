@@ -9,10 +9,10 @@ Represents one GitOps-managed platform capability from this feature.
 
 | Field | Meaning | Validation |
 | --- | --- | --- |
-| `name` | Stable folder and application identity | One of `prometheus`, `grafana`, `loki`, `jaeger`, `otel-collector` |
+| `name` | Stable folder and application identity | One of `prometheus`, `grafana`, `loki`, `jaeger` |
 | `namespace` | Shared platform namespace | Equal to `observability` for all five |
 | `release` | Pinned upstream version | Concrete version; no range or floating alias (see `plan.md` Technical Context for the five pins) |
-| `bundlePath` | Retained install manifest, where a genuine upstream bundle exists | Under `infrastructure/prometheus/vendor/<release>/` only; `grafana`, `loki`, `jaeger`, and `otel-collector` are hand-authored (no upstream raw-YAML bundle exists for any of them outside Helm/an operator) and carry a provenance-only `vendor/<release>/README.md` instead |
+| `bundlePath` | Retained install manifest, where a genuine upstream bundle exists | Under `infrastructure/prometheus/vendor/<release>/` only; `grafana`, `loki`, and `jaeger` are hand-authored (no upstream raw-YAML bundle exists for any of them outside Helm/an operator) and carry a provenance-only `vendor/<release>/README.md` instead |
 | `bundleChecksum` | Download/render integrity, where a bundle exists | Lowercase SHA-256 matching the retained bytes (`prometheus` only) |
 | `images` | Runtime artifacts | Every rendered image is pinned by immutable SHA-256 digest |
 | `controllers` | Expected Deployments/StatefulSets/DaemonSets | Non-empty and fully Available at acceptance |
@@ -101,7 +101,7 @@ repository's code but observed here through the tracing backend.
 | `traceId`/`spanId` | OpenTelemetry identifiers | Present in both the Jaeger-rendered trace and the corresponding structured log line |
 | `spanName` | Per OpenTelemetry Semantic Conventions | e.g. `GET /login`, not a raw internal function name |
 | `attributes` | Semantic Convention attributes only | No unbounded-cardinality values (user/todo/request IDs); see FR edge case on cardinality |
-| `exportPath` | Where the span travels | `auth-api` SDK → OTLP → OpenTelemetry Collector → Jaeger |
+| `exportPath` | Where the span travels | `auth-api` SDK → OTLP → Jaeger (received natively; Jaeger 2.x is itself built on the OpenTelemetry Collector core, no separate Collector needed) |
 
 ## ReconciliationEvidence
 
