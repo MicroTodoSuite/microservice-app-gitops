@@ -13,7 +13,11 @@ data:
         url: http://prometheus-k8s.observability.svc:9090
         isDefault: true
         editable: false
-      # Loki and Jaeger datasources are added by this feature's User Story 5
-      # and User Story 4 tasks respectively (tasks.md T033/T043), once those
-      # components exist; adding them here now would point at a Service that
-      # does not exist yet.
+      - name: Jaeger
+        type: jaeger
+        access: proxy
+        url: http://jaeger-query.observability.svc:16686
+        editable: false
+      # Loki is added by this feature's User Story 5 task (tasks.md T043),
+      # once that component exists; adding it here now would point at a
+      # Service that does not exist yet.
