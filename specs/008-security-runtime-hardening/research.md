@@ -23,8 +23,12 @@ specifically solves.
 
 ## Falco deployment shape: DaemonSet, genuinely needed here (unlike Alloy)
 
-**Decision**: Falco runs as a `DaemonSet`, one pod per node, with `hostPID:
-true` and the specific Linux capabilities its eBPF driver needs.
+**Decision**: Falco runs as a `DaemonSet`, one pod per node, with the
+specific Linux capabilities its modern eBPF driver needs
+(`[BPF, SYS_RESOURCE, PERFMON, SYS_PTRACE]`) and read-only host mounts for
+`/proc`, `/boot`, `/lib/modules`, `/usr`, `/etc` - not `hostPID` and not a
+fully `privileged` container (verified against the real Falco Helm chart's
+`pod-template.tpl`, which sets neither for this driver choice).
 
 **Rationale**: This is the one place in this suite's observability/security
 work where a DaemonSet is actually correct, in contrast to spec 006's
@@ -91,8 +95,8 @@ than fanning out to every node like Falco must.
 **Decision**: A new, dedicated `security` namespace hosts all three
 components, separate from spec 006's `observability` namespace.
 
-**Rationale**: Falco's DaemonSet needs `hostPID` and elevated Linux
-capabilities that nothing in `observability` needs; keeping that trust
+**Rationale**: Falco's DaemonSet needs Linux capabilities and host mounts
+that nothing in `observability` needs; keeping that trust
 boundary in its own namespace with its own scoped RBAC/NetworkPolicy keeps
 the blast radius of a Falco misconfiguration from touching the metrics/
 logs/traces stack, and vice versa. This mirrors the existing convention of
