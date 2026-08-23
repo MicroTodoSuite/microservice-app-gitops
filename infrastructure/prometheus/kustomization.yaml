@@ -1,0 +1,111 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Scoped kube-prometheus v0.18.0 subset: Prometheus Operator + Prometheus +
+# Alertmanager only. See vendor/v0.18.0/README.md for what was excluded and
+# why (this feature's golden signals are workload-level, not node/cluster).
+resources:
+  - vendor/v0.18.0/setup/0alertmanagerConfigCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0alertmanagerCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0podmonitorCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0probeCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0prometheusagentCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0prometheusCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0prometheusruleCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0scrapeconfigCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0servicemonitorCustomResourceDefinition.yaml
+  - vendor/v0.18.0/setup/0thanosrulerCustomResourceDefinition.yaml
+  - vendor/v0.18.0/prometheusOperator-clusterRoleBinding.yaml
+  - vendor/v0.18.0/prometheusOperator-clusterRole.yaml
+  - vendor/v0.18.0/prometheusOperator-deployment.yaml
+  - vendor/v0.18.0/prometheusOperator-networkPolicy.yaml
+  - vendor/v0.18.0/prometheusOperator-prometheusRule.yaml
+  - vendor/v0.18.0/prometheusOperator-serviceAccount.yaml
+  - vendor/v0.18.0/prometheusOperator-serviceMonitor.yaml
+  - vendor/v0.18.0/prometheusOperator-service.yaml
+  - vendor/v0.18.0/prometheus-clusterRoleBinding.yaml
+  - vendor/v0.18.0/prometheus-clusterRole.yaml
+  - vendor/v0.18.0/prometheus-networkPolicy.yaml
+  - vendor/v0.18.0/prometheus-podDisruptionBudget.yaml
+  - vendor/v0.18.0/prometheus-prometheusRule.yaml
+  - vendor/v0.18.0/prometheus-prometheus.yaml
+  - vendor/v0.18.0/prometheus-roleBindingConfig.yaml
+  - vendor/v0.18.0/prometheus-roleConfig.yaml
+  - vendor/v0.18.0/prometheus-serviceAccount.yaml
+  - vendor/v0.18.0/prometheus-serviceMonitor.yaml
+  - vendor/v0.18.0/prometheus-service.yaml
+  - vendor/v0.18.0/alertmanager-alertmanager.yaml
+  - vendor/v0.18.0/alertmanager-networkPolicy.yaml
+  - vendor/v0.18.0/alertmanager-podDisruptionBudget.yaml
+  - vendor/v0.18.0/alertmanager-prometheusRule.yaml
+  - vendor/v0.18.0/alertmanager-secret.yaml
+  - vendor/v0.18.0/alertmanager-serviceAccount.yaml
+  - vendor/v0.18.0/alertmanager-serviceMonitor.yaml
+  - vendor/v0.18.0/alertmanager-service.yaml
+  - servicemonitors/business-workloads.yaml
+  - rules/golden-signals.yaml
+
+# Upstream ships everything at namespace: monitoring; this cluster's
+# convention is one observability namespace, not a per-tool one.
+namespace: observability
+
+# Prometheus and Alertmanager images are NOT listed here: their operator CRs
+# read a custom `.spec.image` field the images: transformer does not reach
+# (verified by rendering); they are digest-pinned by the explicit JSON6902
+# patches below instead. Only genuine Pod-spec container images (the
+# Operator's own Deployment) belong in this transformer.
+images:
+  - name: quay.io/prometheus-operator/prometheus-operator
+    newTag: v0.92.0
+    digest: sha256:3db296f8aca7b3abbcbb79afac165abfe08212ad54f4301c88f68f079ec9d9b7
+  - name: quay.io/brancz/kube-rbac-proxy
+    newTag: v0.22.0
+    digest: sha256:53d5a3911ac076d000c92362d4939a3147ba21f231edf82926c82d16dbdd8850
+
+patches:
+  # Economical profile: one replica each, not the upstream HA default of two.
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: Prometheus
+      name: k8s
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: add
+        path: /spec/retention
+        value: 15d
+      - op: add
+        path: /spec/resources/limits
+        value:
+          memory: 800Mi
+      - op: add
+        path: /spec/storage
+        value:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: gp3
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+      # Kustomize's `images:` transformer only rewrites well-known Pod-spec
+      # image fields; the Prometheus CR's `.spec.image` is a custom field
+      # the operator reads directly, so it needs its own explicit patch
+      # (verified by rendering: the images: transform silently missed it).
+      - op: replace
+        path: /spec/image
+        value: quay.io/prometheus/prometheus@sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: Alertmanager
+      name: main
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: replace
+        path: /spec/image
+        value: quay.io/prometheus/alertmanager@sha256:af26fbe4dd1886ac0efd7bd55cd9027da262e105b137a376522b7c14c3626e4a

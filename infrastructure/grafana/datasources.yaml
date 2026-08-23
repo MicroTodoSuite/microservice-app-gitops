@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: observability
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-k8s.observability.svc:9090
+        isDefault: true
+        editable: false
+      # Loki and Jaeger datasources are added by this feature's User Story 5
+      # and User Story 4 tasks respectively (tasks.md T033/T043), once those
+      # components exist; adding them here now would point at a Service that
+      # does not exist yet.

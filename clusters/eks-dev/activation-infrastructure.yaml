@@ -16,3 +16,9 @@
     - name: argo-rollouts
       path: infrastructure/argo-rollouts
       namespace: argo-rollouts
+    - name: prometheus
+      path: infrastructure/prometheus
+      namespace: observability
+    - name: grafana
+      path: infrastructure/grafana
+      namespace: observability

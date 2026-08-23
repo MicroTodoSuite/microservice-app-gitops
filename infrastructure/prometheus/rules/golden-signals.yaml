@@ -1,0 +1,73 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: business-workload-golden-signals
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+    app.kubernetes.io/component: observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  groups:
+    - name: microtodosuite.golden-signals.traffic-and-errors
+      rules:
+        # Traffic: real Counters that already exist in each service today.
+        - record: workload:http_requests:rate5m
+          expr: |
+            sum by (workload) (
+              label_replace(rate(auth_api_requests_total[5m]), "workload", "auth-api", "", "")
+              or label_replace(rate(todo_api_requests_total[5m]), "workload", "todos-api", "", "")
+              or label_replace(rate(http_server_requests_seconds_count{job="users-api"}[5m]), "workload", "users-api", "", "")
+              or label_replace(rate(log_messages_processed_total[5m]) + rate(log_messages_failed_total[5m]), "workload", "log-message-processor", "", "")
+              or label_replace(rate(nginx_http_requests_total{job="frontend"}[5m]), "workload", "frontend", "", "")
+            )
+        # Errors: ratio of failed to total, per workload. auth-api/todos-api
+        # already label status on their existing Counter; users-api's status
+        # comes from Micrometer's default tag; log-message-processor already
+        # separates processed vs failed Counters; frontend's ratio comes from
+        # the nginx-prometheus-exporter sidecar's status-code label.
+        - record: workload:http_errors:ratio5m
+          expr: |
+            sum by (workload) (
+              label_replace(rate(auth_api_requests_total{status=~"5.."}[5m]), "workload", "auth-api", "", "")
+              or label_replace(rate(todo_api_requests_total{status=~"5.."}[5m]), "workload", "todos-api", "", "")
+              or label_replace(rate(http_server_requests_seconds_count{job="users-api",status=~"5.."}[5m]), "workload", "users-api", "", "")
+              or label_replace(rate(log_messages_failed_total[5m]), "workload", "log-message-processor", "", "")
+              or label_replace(rate(nginx_http_requests_total{job="frontend",status=~"5.."}[5m]), "workload", "frontend", "", "")
+            )
+            /
+            workload:http_requests:rate5m
+    - name: microtodosuite.golden-signals.latency
+      rules:
+        # Latency: average request duration. users-api (Micrometer Summary)
+        # and log-message-processor (Histogram) already provide this. auth-api
+        # and todos-api need the Histogram added by this feature's Story 1
+        # tasks (T016/T017) before this series has data for them; until then
+        # this recording rule correctly returns no data for those two,
+        # rather than a fabricated value.
+        - record: workload:http_request_duration_seconds:avg5m
+          expr: |
+            sum by (workload) (
+              label_replace(rate(auth_api_request_duration_seconds_sum[5m]), "workload", "auth-api", "", "")
+              or label_replace(rate(todo_api_request_duration_seconds_sum[5m]), "workload", "todos-api", "", "")
+              or label_replace(rate(http_server_requests_seconds_sum{job="users-api"}[5m]), "workload", "users-api", "", "")
+              or label_replace(rate(log_message_processing_duration_seconds_sum[5m]), "workload", "log-message-processor", "", "")
+            )
+            /
+            sum by (workload) (
+              label_replace(rate(auth_api_request_duration_seconds_count[5m]), "workload", "auth-api", "", "")
+              or label_replace(rate(todo_api_request_duration_seconds_count[5m]), "workload", "todos-api", "", "")
+              or label_replace(rate(http_server_requests_seconds_count{job="users-api"}[5m]), "workload", "users-api", "", "")
+              or label_replace(rate(log_message_processing_duration_seconds_count[5m]), "workload", "log-message-processor", "", "")
+            )
+    # Saturation is intentionally NOT defined here yet. Computing it needs
+    # either kube-state-metrics (container resource requests/limits as a
+    # series) or a kubelet-cAdvisor ServiceMonitor (raw usage) - both were
+    # scoped out of the vendored kube-prometheus subset (vendor/v0.18.0/
+    # README.md) because this feature's environment has no live eks-dev
+    # access to verify a kubelet scrape actually succeeds there (EKS does
+    # not expose a pre-created `kubelet` Service the way kubeadm clusters
+    # do). Disclosed gap, not a silent omission: see
+    # specs/006-observability-platform-foundation/tasks.md follow-up note.
+    # Re-add this group only after live-verifying the scrape target on
+    # eks-dev.

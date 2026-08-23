@@ -97,8 +97,8 @@ infrastructure_root_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
   infrastructure_root_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#infrastructure_root_names[@]}" == "7" ]] \
-  || fail "expected exactly seven infrastructure roots, found ${#infrastructure_root_names[@]}"
+[[ "${#infrastructure_root_names[@]}" == "9" ]] \
+  || fail "expected exactly nine infrastructure roots, found ${#infrastructure_root_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
   [[ " ${infrastructure_root_names[*]} " == *" $addon "* ]] \
@@ -363,10 +363,10 @@ for crd in rollouts.argoproj.io analysisruns.argoproj.io analysistemplates.argop
   require_resource "$TMP_DIR/argo-rollouts.yaml" CustomResourceDefinition "$crd"
 done
 
-if [[ "$(rg -c '^    - name:' "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" || true)" != 5 ]]; then
-  fail "shared EKS infrastructure activation must contain exactly five final controllers"
+if [[ "$(rg -c '^    - name:' "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" || true)" != 7 ]]; then
+  fail "shared EKS infrastructure activation must contain exactly seven final controllers"
 fi
-for addon in keda cert-manager external-secrets kyverno argo-rollouts; do
+for addon in keda cert-manager external-secrets kyverno argo-rollouts prometheus grafana; do
   require_text clusters/eks-dev/activation-infrastructure.yaml \
     "name: $addon" "shared EKS infrastructure activation omits $addon"
 done

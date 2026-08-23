@@ -1,0 +1,98 @@
+# One ServiceMonitor per business workload, targeting the metrics endpoint
+# each one already exposes (or will expose after this feature's tasks.md
+# T016-T018) in the `microtodo-dev` namespace. Prometheus's serviceMonitor
+# Selector is `{}` (see vendor/v0.18.0/prometheus-prometheus.yaml), so no
+# extra label is required for discovery beyond living in a watched namespace.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: auth-api
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["microtodo-dev"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: auth-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todos-api
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["microtodo-dev"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: todos-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: users-api
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["microtodo-dev"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: users-api
+  endpoints:
+    # Spring Boot Actuator's web base-path is overridden to "/" in
+    # application.properties, so the Prometheus endpoint is /prometheus, not
+    # the default /actuator/prometheus.
+    - port: http
+      path: /prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: log-message-processor
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["microtodo-dev"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: log-message-processor
+  endpoints:
+    # Dedicated metrics port (9090) already declared in this service's
+    # gitops Service, separate from any application traffic port.
+    - port: metrics
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: frontend
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["microtodo-dev"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+  endpoints:
+    # Requires tasks.md T018 (nginx-prometheus-exporter sidecar + a "metrics"
+    # Service port in the frontend repo's overlay) to actually have data;
+    # this ServiceMonitor is written ahead of that so Prometheus starts
+    # scraping the moment the sidecar lands, with no further gitops change.
+    - port: metrics
+      path: /metrics
+      interval: 30s

@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-golden-signals
+  namespace: observability
+data:
+  golden-signals.json: |
+    {
+      "title": "MicroTodoSuite - Business Workload Golden Signals",
+      "uid": "microtodosuite-golden-signals",
+      "tags": ["microtodosuite", "golden-signals"],
+      "timezone": "utc",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-1h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "workload",
+            "type": "custom",
+            "label": "Business workload",
+            "query": "auth-api,todos-api,users-api,frontend,log-message-processor",
+            "current": { "text": "auth-api", "value": "auth-api" },
+            "includeAll": false
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Traffic (requests/sec)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "targets": [
+            {
+              "expr": "workload:http_requests:rate5m{workload=\"$workload\"}",
+              "legendFormat": "$workload"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Error rate (5xx ratio)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "percentunit", "max": 1, "min": 0 }
+          },
+          "targets": [
+            {
+              "expr": "workload:http_errors:ratio5m{workload=\"$workload\"}",
+              "legendFormat": "$workload"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Latency (avg request duration, seconds)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "s" }
+          },
+          "targets": [
+            {
+              "expr": "workload:http_request_duration_seconds:avg5m{workload=\"$workload\"}",
+              "legendFormat": "$workload"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Saturation - deferred",
+          "type": "text",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "options": {
+            "mode": "markdown",
+            "content": "Saturation is a disclosed gap in this MVP: it needs a live-verified kubelet-cAdvisor or kube-state-metrics scrape target on `eks-dev`, which this environment could not verify. See `specs/006-observability-platform-foundation/tasks.md` T014a."
+          }
+        }
+      ]
+    }
