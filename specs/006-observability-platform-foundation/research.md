@@ -68,8 +68,9 @@ digest-pinned convention, and is exactly the same shape already used for
 
 ## Logs: Loki, not ELK
 
-**Decision**: Loki 3.6.0 in single-binary (monolithic) mode, with Grafana
-Alloy as the log-shipping DaemonSet, and Grafana (already deployed for
+**Decision**: Loki 3.7.6 in single-binary (monolithic) mode, with Grafana
+Alloy 1.18.1 as the log shipper (a single Deployment, not a DaemonSet - see
+below), and Grafana (already deployed for
 metrics) reused as the log viewer.
 
 **Rationale**: Resolved directly by the Clarifications session against
@@ -86,9 +87,18 @@ choice for a project that already treats "verify against what's actually
 current" as a hard rule (see the Dockerfile-hardening table's repeated
 "documented version didn't build/run" findings).
 
+Alloy also runs as a single `Deployment`, not the traditional DaemonSet:
+Alloy's `loki.source.kubernetes` component tails pod logs through the
+Kubernetes API (verified against Alloy's own component reference docs), so
+it needs no hostPath mount, no privileged container, and no per-node
+placement, unlike Promtail's classic pattern. This was decided while writing
+the manifests, not assumed - the docs explicitly note "one Alloy could
+collect logs for the whole cluster" this way, which is a smaller-footprint,
+lower-privilege choice than a DaemonSet on every node.
+
 ## Traces: Jaeger with embedded storage, not Elasticsearch
 
-**Decision**: Jaeger 1.65.0 deployed all-in-one (collector, query, and UI in
+**Decision**: Jaeger 2.20.0 deployed all-in-one (collector, query, and UI in
 one process), using Badger embedded storage on a PVC, not the Jaeger Operator
 and not an Elasticsearch storage backend.
 

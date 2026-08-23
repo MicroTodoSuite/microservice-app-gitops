@@ -264,27 +264,30 @@ trace.
 
 ### Tests for User Story 5
 
-- [ ] T040 [P] [US5] Add DaemonSet-coverage, 3-day-retention, and
+- [x] T040 [P] [US5] Add controller-coverage, 3-day-retention, and
   no-unbounded-cardinality-label assertions to `tests/contract/observability.sh`
   for `infrastructure/loki/`
 
 ### Implementation for User Story 5
 
-- [ ] T041 [US5] Add the Loki single-binary StatefulSet, 3-day retention
+- [x] T041 [US5] Add the Loki single-binary StatefulSet, 3-day retention
   configuration, PVC, and immutable image transform in
   `infrastructure/loki/loki.yaml`
-- [ ] T042 [US5] Add the Grafana Alloy DaemonSet shipping business-workload
-  pod logs to Loki, with immutable image transform, in
-  `infrastructure/loki/alloy.yaml`
-- [ ] T043 [US5] Add the Loki datasource to Grafana (reusing the existing
+- [x] T042 [US5] Add the Grafana Alloy log shipper (a single Deployment,
+  not a DaemonSet: `loki.source.kubernetes` tails pods via the Kubernetes
+  API, needing no hostPath/privileged access, see research.md) shipping
+  business-workload pod logs to Loki, with immutable image transform, in
+  `infrastructure/loki/alloy.yaml`. `trace_id`/`span_id` are attached as
+  Loki structured metadata, never as labels, to avoid unbounded cardinality.
+- [x] T043 [US5] Add the Loki datasource to Grafana (reusing the existing
   Grafana instance as the log viewer, per the Clarifications decision) in
   `infrastructure/grafana/datasources.yaml`
 - [ ] T044 [US5] Complete log-search and trace/log-correlation evidence
-  capture in `scripts/managed/verify-observability.sh`
-- [ ] T045 [US5] Publish the Loki installation commit on
-  `feat/observability-platform-foundation`, wait for it to sync, and confirm
-  a real log line is searchable and correlates by `trace_id` with its Jaeger
-  trace
+  capture in `scripts/managed/verify-observability.sh` (live eks-dev step,
+  not run from this environment)
+- [ ] T045 [US5] Publish the Loki installation commit, wait for it to sync
+  on the live cluster, and confirm a real log line is searchable and
+  correlates by `trace_id` with its Jaeger trace
 
 **Checkpoint**: An operator can search real logs and pivot to a trace without
 leaving Grafana.

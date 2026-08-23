@@ -33,7 +33,8 @@ matching its own `go.mod`)
 v0.92.0, Prometheus v3.12.0, Alertmanager v0.33.0 - real current releases,
 verified via the GitHub API and `docker buildx imagetools inspect`), Grafana
 13.2.0, Loki 3.7.6 (single-binary/monolithic mode), Grafana Alloy 1.18.1 (log
-shipper, DaemonSet), Jaeger 2.20.0 (all-in-one, Badger embedded storage,
+shipper, single Deployment - loki.source.kubernetes tails pods via the
+Kubernetes API, no DaemonSet/hostPath needed), Jaeger 2.20.0 (all-in-one, Badger embedded storage,
 OTLP-native), OpenTelemetry Go SDK 1.45.0 + `otelecho`/`otelhttp` (contrib
 v0.70.0)
 
@@ -153,7 +154,7 @@ infrastructure/
 ├── loki/
 │   ├── kustomization.yaml
 │   ├── loki.yaml                     # single-binary StatefulSet, image pinned by digest
-│   ├── alloy.yaml                    # DaemonSet log shipper, image pinned by digest
+│   ├── alloy.yaml                    # Deployment log shipper (API-based tailing), image pinned by digest
 │   └── vendor/v3.7.6/README.md       # image source/digest provenance only, no bundle
 └── jaeger/
     ├── kustomization.yaml

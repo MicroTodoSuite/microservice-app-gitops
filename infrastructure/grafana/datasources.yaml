@@ -18,6 +18,8 @@ data:
         access: proxy
         url: http://jaeger-query.observability.svc:16686
         editable: false
-      # Loki is added by this feature's User Story 5 task (tasks.md T043),
-      # once that component exists; adding it here now would point at a
-      # Service that does not exist yet.
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.observability.svc:3100
+        editable: false
