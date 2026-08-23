@@ -43,7 +43,9 @@ resources:
   - vendor/v0.18.0/alertmanager-serviceMonitor.yaml
   - vendor/v0.18.0/alertmanager-service.yaml
   - servicemonitors/business-workloads.yaml
+  - servicemonitors/canary-workloads.yaml
   - rules/golden-signals.yaml
+  - alertmanager-config.yaml
 
 # Upstream ships everything at namespace: monitoring; this cluster's
 # convention is one observability namespace, not a per-tool one.

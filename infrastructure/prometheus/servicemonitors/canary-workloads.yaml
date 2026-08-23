@@ -1,17 +1,26 @@
-# One ServiceMonitor per business workload, targeting the metrics endpoint
-# each one already exposes (or will expose after this feature's tasks.md
-# T016-T018) in the `microtodo-dev` namespace. Prometheus's serviceMonitor
-# Selector is `{}` (see vendor/v0.18.0/prometheus-prometheus.yaml), so no
-# extra label is required for discovery beyond living in a watched namespace.
+# Canary-only counterparts to business-workloads.yaml, targeting the
+# `<workload>-canary` Service each apps/*/components/strategy-canary already
+# defines. Argo Rollouts manages that Service's live pod selector to route
+# only to the canary ReplicaSet; the "revision: canary" relabeling below lets
+# the golden-signal recording rules (rules/golden-signals.yaml) tell canary
+# traffic apart from stable traffic with the same metric name.
+#
+# The canary strategy is only composed in the `prod` overlay today (`staging`
+# and `dev` roll normally, per constitution principle 7), so this targets
+# microtodo-prod, not microtodo-dev like business-workloads.yaml. `prod` is a
+# structurally disabled scaffold right now (replicas: 0), so these targets
+# have no live series until it activates - that activation is out of this
+# feature's scope, but the canary gate this feature builds needs this wiring
+# to be ready for the moment it does.
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: auth-api
+  name: auth-api-canary
   labels:
     app.kubernetes.io/part-of: microtodosuite
 spec:
   namespaceSelector:
-    matchNames: ["microtodo-dev"]
+    matchNames: ["microtodo-prod"]
   selector:
     matchLabels:
       app.kubernetes.io/name: auth-api
@@ -21,17 +30,17 @@ spec:
       interval: 30s
       relabelings:
         - targetLabel: revision
-          replacement: stable
+          replacement: canary
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: todos-api
+  name: todos-api-canary
   labels:
     app.kubernetes.io/part-of: microtodosuite
 spec:
   namespaceSelector:
-    matchNames: ["microtodo-dev"]
+    matchNames: ["microtodo-prod"]
   selector:
     matchLabels:
       app.kubernetes.io/name: todos-api
@@ -41,73 +50,64 @@ spec:
       interval: 30s
       relabelings:
         - targetLabel: revision
-          replacement: stable
+          replacement: canary
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: users-api
+  name: users-api-canary
   labels:
     app.kubernetes.io/part-of: microtodosuite
 spec:
   namespaceSelector:
-    matchNames: ["microtodo-dev"]
+    matchNames: ["microtodo-prod"]
   selector:
     matchLabels:
       app.kubernetes.io/name: users-api
   endpoints:
-    # Spring Boot Actuator's web base-path is overridden to "/" in
-    # application.properties, so the Prometheus endpoint is /prometheus, not
-    # the default /actuator/prometheus.
     - port: http
       path: /prometheus
       interval: 30s
       relabelings:
         - targetLabel: revision
-          replacement: stable
+          replacement: canary
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: log-message-processor
+  name: log-message-processor-canary
   labels:
     app.kubernetes.io/part-of: microtodosuite
 spec:
   namespaceSelector:
-    matchNames: ["microtodo-dev"]
+    matchNames: ["microtodo-prod"]
   selector:
     matchLabels:
       app.kubernetes.io/name: log-message-processor
   endpoints:
-    # Dedicated metrics port (9090) already declared in this service's
-    # gitops Service, separate from any application traffic port.
     - port: metrics
       path: /metrics
       interval: 30s
       relabelings:
         - targetLabel: revision
-          replacement: stable
+          replacement: canary
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: frontend
+  name: frontend-canary
   labels:
     app.kubernetes.io/part-of: microtodosuite
 spec:
   namespaceSelector:
-    matchNames: ["microtodo-dev"]
+    matchNames: ["microtodo-prod"]
   selector:
     matchLabels:
       app.kubernetes.io/name: frontend
   endpoints:
-    # Requires tasks.md T018 (nginx-prometheus-exporter sidecar + a "metrics"
-    # Service port in the frontend repo's overlay) to actually have data;
-    # this ServiceMonitor is written ahead of that so Prometheus starts
-    # scraping the moment the sidecar lands, with no further gitops change.
     - port: metrics
       path: /metrics
       interval: 30s
       relabelings:
         - targetLabel: revision
-          replacement: stable
+          replacement: canary

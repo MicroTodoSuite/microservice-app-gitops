@@ -12,9 +12,12 @@ spec:
     - name: microtodosuite.golden-signals.traffic-and-errors
       rules:
         # Traffic: real Counters that already exist in each service today.
+        # Grouped by revision too ("stable" or "canary", set by the
+        # ServiceMonitors in servicemonitors/) so the canary gate can compare
+        # a canary revision's signal against the stable baseline.
         - record: workload:http_requests:rate5m
           expr: |
-            sum by (workload) (
+            sum by (workload, revision) (
               label_replace(rate(auth_api_requests_total[5m]), "workload", "auth-api", "", "")
               or label_replace(rate(todo_api_requests_total[5m]), "workload", "todos-api", "", "")
               or label_replace(rate(http_server_requests_seconds_count{job="users-api"}[5m]), "workload", "users-api", "", "")
@@ -28,7 +31,7 @@ spec:
         # the nginx-prometheus-exporter sidecar's status-code label.
         - record: workload:http_errors:ratio5m
           expr: |
-            sum by (workload) (
+            sum by (workload, revision) (
               label_replace(rate(auth_api_requests_total{status=~"5.."}[5m]), "workload", "auth-api", "", "")
               or label_replace(rate(todo_api_requests_total{status=~"5.."}[5m]), "workload", "todos-api", "", "")
               or label_replace(rate(http_server_requests_seconds_count{job="users-api",status=~"5.."}[5m]), "workload", "users-api", "", "")
@@ -60,6 +63,31 @@ spec:
               or label_replace(rate(http_server_requests_seconds_count{job="users-api"}[5m]), "workload", "users-api", "", "")
               or label_replace(rate(log_message_processing_duration_seconds_count[5m]), "workload", "log-message-processor", "", "")
             )
+    - name: microtodosuite.golden-signals.alerts
+      rules:
+        # Decided in the Clarifications session: 5xx ratio above 5% sustained
+        # for 5 minutes, scoped to stable production traffic (not the
+        # transient canary window, which Argo Rollouts' own analysis run
+        # already gates separately).
+        - alert: WorkloadHighErrorRate
+          expr: workload:http_errors:ratio5m{revision="stable"} > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.workload }} error rate above 5%"
+            description: "{{ $labels.workload }} has a 5xx ratio of {{ $value | humanizePercentage }} over the last 5 minutes."
+        # Latency threshold is a starting default, not a measured baseline
+        # (this environment has no live traffic to derive one from); tune it
+        # once real eks-dev traffic data exists.
+        - alert: WorkloadHighLatency
+          expr: workload:http_request_duration_seconds:avg5m{revision="stable"} > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.workload }} average latency above 1s"
+            description: "{{ $labels.workload }} average request duration is {{ $value | humanizeDuration }} over the last 5 minutes."
     # Saturation is intentionally NOT defined here yet. Computing it needs
     # either kube-state-metrics (container resource requests/limits as a
     # series) or a kubelet-cAdvisor ServiceMonitor (raw usage) - both were
