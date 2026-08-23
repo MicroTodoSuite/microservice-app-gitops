@@ -1,0 +1,91 @@
+# Real Alloy component pattern for Kubernetes logs (verified against
+# Alloy 1.18.1's own component reference docs): loki.source.kubernetes tails
+# pod logs via the Kubernetes API, needing no privileged DaemonSet, no root,
+# and no node filesystem access - unlike the classic Promtail hostPath
+# pattern. One Alloy Deployment can cover the whole cluster this way.
+#
+# trace_id/span_id from auth-api's JSON logs (main.go's requestLoggerMiddleware
+# and logWithTrace) are attached as Loki *structured metadata*, not labels -
+# promoting a per-request-unique value to a label would be exactly the
+# unbounded-cardinality mistake this feature's own edge cases forbid.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-config
+data:
+  config.alloy: |
+    logging {
+      level  = "info"
+      format = "json"
+    }
+
+    discovery.kubernetes "business_pods" {
+      role = "pod"
+      namespaces {
+        names = ["microtodo-dev"]
+      }
+      selectors {
+        role  = "pod"
+        label = "app.kubernetes.io/part-of=microtodosuite"
+      }
+    }
+
+    discovery.relabel "business_pods" {
+      targets = discovery.kubernetes.business_pods.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label  = "namespace"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label  = "pod"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+        target_label  = "workload"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label  = "container"
+      }
+    }
+
+    loki.source.kubernetes "business_pods" {
+      targets    = discovery.relabel.business_pods.output
+      forward_to = [loki.process.business_pods.receiver]
+    }
+
+    loki.process "business_pods" {
+      forward_to = [loki.write.default.receiver]
+
+      stage.json {
+        expressions = {
+          trace_id = "trace_id",
+          span_id  = "span_id",
+          level    = "level",
+        }
+      }
+
+      # Low-cardinality only: level is one of a handful of values, safe as a
+      # label. trace_id/span_id are per-request-unique and must never become
+      # labels (see the comment above this ConfigMap).
+      stage.labels {
+        values = {
+          level = "",
+        }
+      }
+
+      stage.structured_metadata {
+        values = {
+          trace_id = "",
+          span_id  = "",
+        }
+      }
+    }
+
+    loki.write "default" {
+      endpoint {
+        url = "http://loki.observability.svc:3100/loki/api/v1/push"
+      }
+    }
