@@ -25,3 +25,6 @@
     - name: jaeger
       path: infrastructure/jaeger
       namespace: observability
+    - name: loki
+      path: infrastructure/loki
+      namespace: observability
