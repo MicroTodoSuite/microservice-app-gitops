@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Static contract for the observability platform foundation (feature 006).
-# Scope so far: prometheus, grafana (User Story 1). loki, jaeger are added by
-# later tasks in specs/006-observability-platform-foundation/tasks.md.
+# Covers all five user stories: prometheus + grafana (US1), the canary gate
+# and Slack alerting (US2/US3), Jaeger (US4), and Loki/Alloy (US5).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -83,9 +83,10 @@ require_file "infrastructure/prometheus/vendor/v0.18.0/SHA256SUMS"
 check_checksum "infrastructure/prometheus/vendor/v0.18.0"
 require_file "infrastructure/grafana/vendor/v13.2.0/README.md"
 require_file "infrastructure/jaeger/vendor/v2.20.0/README.md"
+require_file "infrastructure/loki/vendor/v3.7.6/README.md"
 
 # --- Render check ---
-for component in prometheus grafana jaeger; do
+for component in prometheus grafana jaeger loki; do
   render="$TMP_DIR/$component.yaml"
   render_kustomize "$ROOT/infrastructure/$component" >"$render" \
     || fail "Kustomize render failed for $component"
@@ -120,9 +121,34 @@ require_text infrastructure/jaeger/config.yaml 'spans: 72h' \
 reject_text infrastructure/jaeger/jaeger-allinone.yaml 'kind: Ingress' \
   "Jaeger must not add a public Ingress (FR-017: port-forward only)"
 
-# --- Grafana wired to Jaeger ---
+# --- Loki + Alloy resources ---
+require_resource "$TMP_DIR/loki.yaml" StatefulSet loki
+require_resource "$TMP_DIR/loki.yaml" Deployment alloy
+require_resource "$TMP_DIR/loki.yaml" ClusterRole microtodosuite-alloy-log-reader
+require_text infrastructure/loki/config.yaml 'retention_enabled: true' \
+  "Loki must have retention enabled, not unbounded storage"
+require_text infrastructure/loki/config.yaml 'retention_period: 72h' \
+  "Loki retention must match the Clarifications session's 3-day decision"
+require_text infrastructure/loki/config.yaml 'reporting_enabled: false' \
+  "Loki must not phone home anonymous usage analytics"
+require_text infrastructure/loki/alloy-config.yaml 'stage.structured_metadata' \
+  "trace_id/span_id must be structured metadata, not labels"
+# trace_id/span_id must appear only inside stage.structured_metadata, never
+# inside stage.labels (that would be an unbounded-cardinality Loki label).
+if awk '/stage\.labels \{/{f=1} f && /trace_id/{found=1} f && /^\s*\}\s*$/{f=0} END{exit !found}' \
+    "$ROOT/infrastructure/loki/alloy-config.yaml"; then
+  fail "trace_id must never be promoted to a Loki label (unbounded cardinality)"
+fi
+for f in infrastructure/loki/loki.yaml infrastructure/loki/alloy.yaml; do
+  reject_text "$f" 'kind: Ingress' \
+    "$f must not add a public Ingress (FR-017: port-forward only)"
+done
+
+# --- Grafana wired to Jaeger and Loki ---
 require_text infrastructure/grafana/datasources.yaml 'type: jaeger' \
   "Grafana must have a Jaeger datasource once Jaeger exists"
+require_text infrastructure/grafana/datasources.yaml 'type: loki' \
+  "Grafana must have a Loki datasource once Loki exists"
 
 # --- auth-api OTLP wiring points at Jaeger directly ---
 require_text apps/auth-api/overlays/dev/kustomization.yaml \
@@ -195,4 +221,4 @@ reject_text infrastructure/grafana/admin-secret.yaml \
   'GF_SECURITY_ADMIN_PASSWORD: [^"{]' \
   "Grafana admin password must be ESO-generated, never a literal value"
 
-pass "observability platform static contract (prometheus, grafana, jaeger)"
+pass "observability platform static contract (prometheus, grafana, jaeger, loki)"
