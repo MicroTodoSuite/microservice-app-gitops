@@ -140,21 +140,26 @@ disruption to any running business workload.
 
 ### Tests for User Story 3
 
-- [ ] T019 [P] [US3] Add internal-mode, read-only-RBAC, and
-  `ttlSecondsAfterFinished`-cleanup assertions to `tests/contract/security.sh`
-  for `infrastructure/kube-hunter/`
+- [x] T019 [P] [US3] Add internal-mode (`--pod`, never `--active`),
+  no-ClusterRole, and `ttlSecondsAfterFinished`-cleanup assertions to
+  `tests/contract/security.sh` for `infrastructure/kube-hunter/`
 
 ### Implementation for User Story 3
 
-- [ ] T020 [P] [US3] Add the kube-hunter `CronJob` (`--pod` internal mode,
-  image pinned by digest, `ttlSecondsAfterFinished`) and its read-only
-  ServiceAccount/ClusterRole/ClusterRoleBinding in
-  `infrastructure/kube-hunter/cronjob.yaml`
-- [ ] T021 [P] [US3] Record kube-hunter 0.6.8 image source/digest
+- [x] T020 [P] [US3] Add the kube-hunter `CronJob` (`--pod` internal mode,
+  image pinned by digest, `ttlSecondsAfterFinished`) in
+  `infrastructure/kube-hunter/cronjob.yaml`. Adapted directly from
+  kube-hunter's own real `job.yaml`, which needs no `ServiceAccount`/
+  `ClusterRole`, no `hostPID`, and no elevated capabilities; running as
+  non-root with capabilities dropped is explicitly suggested as safe by
+  kube-hunter's own README, not an unverified guess.
+- [x] T021 [P] [US3] Record kube-hunter 0.6.8 image source/digest
   provenance in `infrastructure/kube-hunter/vendor/v0.6.8/README.md` (no
   bundle to checksum)
-- [ ] T022 [US3] Complete kube-hunter report-capture evidence in
-  `scripts/managed/verify-security.sh`
+- [x] T022 [US3] Complete kube-hunter report-capture evidence in
+  `scripts/managed/verify-security.sh` (triggers a manual Job; log capture
+  is a follow-up manual step, same pattern as kube-bench's T017 - not yet
+  run against a live cluster from this environment)
 - [ ] T023 [US3] Publish the kube-hunter installation commit, wait for it to
   sync, manually trigger one Job run, and record its full report plus a
   remediation-or-exception disposition for every finding, confirming zero
@@ -167,9 +172,10 @@ non-destructively.
 
 ## Phase 6: Polish & Cross-Cutting Validation
 
-- [ ] T024 Run `kustomize build` and `kubeconform` (when available) for all
-  three components plus the updated `eks-dev` registration, run
-  `tests/contract/security.sh`, and run `git diff --check`
+- [x] T024 Run `kustomize build` for all three components plus the updated
+  `eks-dev` registration, run `tests/contract/security.sh`, and run `git
+  diff --check` (all PASS/clean; `kubeconform` was not installed in this
+  environment, so it was not run and is not claimed)
 - [ ] T025 Run `scripts/managed/verify-security.sh --context eks-dev`,
   inspect ArgoCD application conditions and component logs for hidden
   degradation, and retain the final evidence set under
