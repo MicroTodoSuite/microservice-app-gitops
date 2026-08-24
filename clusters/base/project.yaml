@@ -61,6 +61,8 @@ spec:
       namespace: argo-rollouts
     - server: https://kubernetes.default.svc
       namespace: observability
+    - server: https://kubernetes.default.svc
+      namespace: security
     # Full upstream KEDA and cert-manager renders include narrowly named
     # authentication-reader and leader-election RBAC objects here.
     - server: https://kubernetes.default.svc

@@ -1,0 +1,41 @@
+# Adapted from Falco 9.1.0's real Helm chart default falco.yaml (verified
+# against https://raw.githubusercontent.com/falcosecurity/charts/falco-9.1.0/
+# charts/falco/values.yaml): default/community rules_files kept as-is,
+# json_output and http_output enabled to forward findings to Falcosidekick
+# (the "when using falcosidekick, json_output must be true" note in that
+# same values.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-config
+data:
+  falco.yaml: |
+    rules_files:
+      - /etc/falco/falco_rules.yaml
+      - /etc/falco/falco_rules.local.yaml
+      - /etc/falco/rules.d
+
+    json_output: true
+    json_include_output_property: true
+
+    http_output:
+      enabled: true
+      url: "http://falcosidekick:2801/"
+
+    log_stderr: true
+    log_syslog: false
+    log_level: info
+
+    priority: debug
+
+    buffered_outputs: false
+
+    syscall_event_drops:
+      actions:
+        - log
+        - alert
+      rate: 0.03333
+      max_burst: 1
+
+    metrics:
+      enabled: false

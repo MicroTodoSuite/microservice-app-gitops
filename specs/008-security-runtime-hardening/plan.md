@@ -79,7 +79,7 @@ service-repo changes.
 | Progressive and Reversible Releases | PASS | Each component lands as its own commit; Falco stays Audit-only (detection, not blocking), so no release path is put at risk. |
 | Quality and Supply-Chain Gates | PASS | All images are digest-pinned; provenance is recorded even where no genuine upstream bundle exists to checksum. |
 | Observable and Resilient Operations | PASS | This feature closes constitution principle 10's own disclosed gap for these three tools; Istio remains untouched and unused. |
-| Least Privilege and Secret Hygiene | PASS | kube-bench/kube-hunter RBAC is read-only and Job-scoped (no standing privilege); Falco's Slack webhook is ESO-delivered, never committed. Falco's DaemonSet itself needs host-level access (hostPID, privileged securityContext) to read node syscalls - this is inherent to what a runtime detector is, not a violation, and is scoped to Falco's own ServiceAccount only. |
+| Least Privilege and Secret Hygiene | PASS | kube-bench/kube-hunter RBAC is read-only and Job-scoped (no standing privilege); Falco's Slack webhook is ESO-delivered, never committed. Falco's DaemonSet needs specific Linux capabilities (`BPF`, `SYS_RESOURCE`, `PERFMON`, `SYS_PTRACE`) and read-only host mounts (`/proc`, `/boot`, `/lib/modules`, `/usr`, `/etc`) to read node syscalls via the modern eBPF driver - verified against the real Falco Helm chart, this needs neither `hostPID` nor a fully `privileged` container, and is scoped to Falco's own ServiceAccount only. |
 | Declarative and Policy-Controlled Platform | PASS | All three components are ArgoCD-owned under `infrastructure/`, added to the existing `eks-dev` activation list. |
 | Proven DR and Disclosed Data Loss | PASS | No DR claim is made; this feature has no persistent state to lose. |
 
@@ -151,7 +151,9 @@ different trust boundary than anything in `observability`.
 ## Complexity Tracking
 
 No constitution violation or exception is required. Falco's host-level
-access (hostPID, elevated securityContext) is inherent to a runtime syscall
-detector's function, not a design choice to justify away; it is scoped to
-Falco's own ServiceAccount/DaemonSet only, and does not extend to
-kube-bench/kube-hunter's Job RBAC, which stays read-only.
+access (specific Linux capabilities plus read-only host mounts, not
+`hostPID` or `privileged: true` - verified against the real Falco Helm
+chart) is inherent to a runtime syscall detector's function, not a design
+choice to justify away; it is scoped to Falco's own ServiceAccount/
+DaemonSet only, and does not extend to kube-bench/kube-hunter's Job RBAC,
+which stays read-only.

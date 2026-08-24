@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - falco-daemonset.yaml
+  - falco-config.yaml
+  - falcosidekick.yaml
+  - falcosidekick-slack-secret.yaml
+
+namespace: security

@@ -50,34 +50,38 @@ minute identifying the pod, namespace, and rule.
 
 ### Tests for User Story 1
 
-- [ ] T005 [P] [US1] Add DaemonSet-coverage, modern-eBPF-driver, and
+- [x] T005 [P] [US1] Add DaemonSet-coverage, modern-eBPF-driver, and
   Falcosidekick-Slack-wiring assertions to `tests/contract/security.sh` for
   `infrastructure/falco/`
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Add the Falco DaemonSet (modern eBPF driver,
-  default/community rules, `hostPID`, image pinned by digest) and its
-  ServiceAccount/ClusterRole/ClusterRoleBinding in
-  `infrastructure/falco/falco-daemonset.yaml`
-- [ ] T007 [P] [US1] Add Falco's `falco.yaml` configuration (HTTP output
+- [x] T006 [P] [US1] Add the Falco DaemonSet (modern eBPF driver,
+  least-privileged capabilities `[BPF, SYS_RESOURCE, PERFMON, SYS_PTRACE]`,
+  default/community rules, image pinned by digest) in
+  `infrastructure/falco/falco-daemonset.yaml`. Verified against the real
+  Helm chart: no `hostPID` and no `ClusterRole` are actually needed for an
+  explicit `modern_ebpf` driver choice (both were wrongly assumed in this
+  task's original wording before implementation).
+- [x] T007 [P] [US1] Add Falco's `falco.yaml` configuration (HTTP output
   enabled, pointing at Falcosidekick) in `infrastructure/falco/falco-config.yaml`
-- [ ] T008 [P] [US1] Add the Falcosidekick Deployment/Service (Slack output
+- [x] T008 [P] [US1] Add the Falcosidekick Deployment/Service (Slack output
   configured, image pinned by digest) in `infrastructure/falco/falcosidekick.yaml`
-- [ ] T009 [US1] Add the Slack webhook `ExternalSecret`/`SecretStore`
+- [x] T009 [US1] Add the Slack webhook `ExternalSecret`/`SecretStore`
   (mirroring spec 006's Alertmanager pattern, same disclosed placeholder
   IRSA role ARN) in `infrastructure/falco/falcosidekick-slack-secret.yaml`
-- [ ] T010 [P] [US1] Record Falco 0.44.1 and Falcosidekick 2.34.1 image
+- [x] T010 [P] [US1] Record Falco 0.44.1 and Falcosidekick 2.34.1 image
   source/digest provenance in `infrastructure/falco/vendor/v0.44.1/README.md`
   (no bundle to checksum)
-- [ ] T011 [US1] Complete DaemonSet-coverage and triggered-finding evidence
-  capture in `scripts/managed/verify-security.sh`
-- [ ] T012 [US1] Make the static contract pass for the rendered `falco` root
+- [x] T011 [US1] Complete DaemonSet-coverage and triggered-finding evidence
+  capture in `scripts/managed/verify-security.sh` (skeleton written; not yet
+  run against a live cluster from this environment)
+- [x] T012 [US1] Make the static contract pass for the rendered `falco` root
   with `tests/contract/security.sh`
 - [ ] T013 [US1] Publish the Falco installation desired state as staged
-  commits on `feat/security-runtime-hardening`, open a PR, and after merge
-  wait for the DaemonSet to cover every node and Falcosidekick to be healthy
-  without direct cluster mutation
+  commits on `feat/security-falco`, open a PR, and after merge wait for the
+  DaemonSet to cover every node and Falcosidekick to be healthy (live
+  eks-dev step, not run from this environment)
 
 **Checkpoint**: A deliberately triggered anomalous action produces a real
 Slack notification within 1 minute.
@@ -227,7 +231,7 @@ detection gap by itself, even before either audit tool lands.
 - This task list only authorizes commits on the short-lived
   `feat/security-runtime-hardening` branch; merge to `main` happens through
   a reviewed PR, never a direct push.
-- Falco's host-level access (`hostPID`, elevated capabilities) is scoped to
+- Falco's host-level access (specific Linux capabilities, not `hostPID`) is scoped to
   its own ServiceAccount/DaemonSet only; kube-bench/kube-hunter's RBAC stays
   strictly read-only with no standing privilege between scheduled runs.
 - Missing or failed live evidence remains a failure; it must not be

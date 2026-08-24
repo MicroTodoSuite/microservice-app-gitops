@@ -28,3 +28,6 @@
     - name: loki
       path: infrastructure/loki
       namespace: observability
+    - name: falco
+      path: infrastructure/falco
+      namespace: security
