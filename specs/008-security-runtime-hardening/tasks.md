@@ -68,8 +68,13 @@ minute identifying the pod, namespace, and rule.
 - [x] T008 [P] [US1] Add the Falcosidekick Deployment/Service (Slack output
   configured, image pinned by digest) in `infrastructure/falco/falcosidekick.yaml`
 - [x] T009 [US1] Add the Slack webhook `ExternalSecret`/`SecretStore`
-  (mirroring spec 006's Alertmanager pattern, same disclosed placeholder
-  IRSA role ARN) in `infrastructure/falco/falcosidekick-slack-secret.yaml`
+  (mirroring spec 006's Alertmanager pattern) in
+  `infrastructure/falco/falcosidekick-slack-secret.yaml`. Now trusts the real
+  `microtodosuite-security-secrets-reader` IRSA role
+  (`microservice-app-ops/aws/modules/environment-foundation/security-irsa.tf`)
+  and reads the real `microtodosuite/security/falcosidekick-slack-webhook`
+  secret path; the webhook value itself is still provisioned out-of-band by
+  a human in Slack's own admin UI.
 - [x] T010 [P] [US1] Record Falco 0.44.1 and Falcosidekick 2.34.1 image
   source/digest provenance in `infrastructure/falco/vendor/v0.44.1/README.md`
   (no bundle to checksum)
