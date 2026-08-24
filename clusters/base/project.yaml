@@ -89,6 +89,8 @@ spec:
       kind: ClusterPolicy
     - group: argoproj.io
       kind: ClusterAnalysisTemplate
+    - group: storage.k8s.io
+      kind: StorageClass
   # Prometheus Operator's CRDs (Prometheus, Alertmanager, ServiceMonitor,
   # PrometheusRule, AlertmanagerConfig, etc.) are all Namespaced-scope (see
   # infrastructure/prometheus/vendor/v0.18.0/setup/*.yaml), so they need no
