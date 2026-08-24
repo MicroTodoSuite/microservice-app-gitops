@@ -65,6 +65,14 @@ spec:
               readOnly: true
             - name: storage
               mountPath: /var/lib/grafana
+            # readOnlyRootFilesystem leaves every backend datasource plugin
+            # (prometheus, loki, jaeger) unable to start: each one is spawned
+            # as a subprocess via a temp file under /tmp (Grafana's
+            # go-plugin handshake), which failed with "read-only file
+            # system" on every one - not a missing datasource config, a
+            # missing scratch volume.
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
@@ -102,6 +110,8 @@ spec:
         - name: storage
           persistentVolumeClaim:
             claimName: grafana-storage
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
