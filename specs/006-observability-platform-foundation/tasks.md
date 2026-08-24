@@ -72,21 +72,21 @@ values.
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Extend `tests/contract/observability.sh` with expected
+- [x] T011 [P] [US1] Extend `tests/contract/observability.sh` with expected
   Deployment/StatefulSet, image digest, and `ServiceMonitor` assertions for
   `prometheus` and `grafana`
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Add the complete Prometheus Operator install, `Prometheus`
+- [x] T012 [P] [US1] Add the complete Prometheus Operator install, `Prometheus`
   and namespace-scoped RBAC resources, and immutable image transforms in
   `infrastructure/prometheus/kustomization.yaml` and
   `infrastructure/prometheus/prometheus.yaml`
-- [ ] T013 [P] [US1] Add one `ServiceMonitor` per business workload
+- [x] T013 [P] [US1] Add one `ServiceMonitor` per business workload
   (`auth-api`, `todos-api`, `users-api`, `frontend`, `log-message-processor`)
   targeting their existing/added metrics endpoints in
   `infrastructure/prometheus/servicemonitors/business-workloads.yaml`
-- [ ] T014 [P] [US1] Add a `PrometheusRule` defining traffic/error-rate/
+- [x] T014 [P] [US1] Add a `PrometheusRule` defining traffic/error-rate/
   latency recording rules per business workload in
   `infrastructure/prometheus/rules/golden-signals.yaml`
 - [ ] T014a [US1] Add saturation recording rules once a kubelet-cAdvisor or
@@ -94,23 +94,33 @@ values.
   environment has no live cluster access to confirm EKS exposes a scrapeable
   kubelet endpoint the way `kube-prometheus`'s bundled ServiceMonitor
   assumes); until then, saturation is a disclosed gap in the golden-signal
-  dashboards, not silently approximated
-- [ ] T015 [P] [US1] Add the Grafana Deployment/Service/ConfigMap, Prometheus
+  dashboards, not silently approximated. Still open.
+- [x] T015 [P] [US1] Add the Grafana Deployment/Service/ConfigMap, Prometheus
   datasource, and one golden-signal dashboard per business workload
   (image pinned by digest) in `infrastructure/grafana/`
-- [ ] T016 [US1] [in `auth-api` repo] Add a request-duration Histogram
+- [x] T016 [US1] [in `auth-api` repo] Add a request-duration Histogram
   alongside the existing `auth_api_requests_total` Counter in `main.go`,
-  exposed on the existing `/metrics` endpoint
-- [ ] T017 [US1] [in `todos-api` repo] Add a request-duration Histogram
+  exposed on the existing `/metrics` endpoint (shipped together with the
+  OTel cutover in `feat/otel-instrumentation`, PR #13)
+- [x] T017 [US1] [in `todos-api` repo] Add a request-duration Histogram
   alongside the existing `todo_api_requests_total` Counter in `server.js`,
-  exposed on the existing `/metrics` endpoint
-- [ ] T018 [US1] [in `frontend` repo] Add an `nginx-prometheus-exporter`
-  sidecar container to the Deployment overlay, without modifying the
-  hardened `Dockerfile` or `nginx.conf.template` from the prior hardening work
-- [ ] T019 [US1] Complete wait loops, dashboard-query evidence capture, and
+  exposed on the existing `/metrics` endpoint. Verified live: real unit
+  tests pass, and a real local Redis-backed run shows populated
+  `todo_api_request_duration_seconds_bucket` series.
+- [x] T018 [US1] [in `frontend` repo, and this repo's own
+  `apps/frontend/base/`] Add an `nginx-prometheus-exporter` sidecar
+  container (real digest, verified container UID 1001 via `docker
+  inspect`) plus a `metrics` Service port, without modifying the frontend
+  repo's hardened `Dockerfile`. A separate, unrelated security fix
+  (`fix/restrict-nginx-status-to-localhost` in the frontend repo) restricts
+  `/nginx_status` to `127.0.0.1` so only this in-pod sidecar can reach it -
+  verified live with a real nginx + exporter pair sharing a network
+  namespace, confirming both the restriction (denied from outside) and the
+  scrape (`nginx_up 1` from the sidecar).
+- [x] T019 [US1] Complete wait loops, dashboard-query evidence capture, and
   controller/availability checks for `prometheus` and `grafana` in
   `scripts/managed/verify-observability.sh`
-- [ ] T020 [US1] Make the static contract pass for both rendered roots with
+- [x] T020 [US1] Make the static contract pass for both rendered roots with
   `tests/contract/observability.sh`
 - [ ] T021 [US1] Publish the Prometheus and Grafana installation desired
   state as staged commits on `feat/observability-platform-foundation`, open a
