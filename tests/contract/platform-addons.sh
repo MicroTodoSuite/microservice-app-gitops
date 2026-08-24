@@ -201,18 +201,18 @@ require_text infrastructure/kyverno/policies.yaml 'livenessProbe' \
 require_text infrastructure/kyverno/policies.yaml 'readinessProbe' \
   "Kyverno health policy does not require readiness probes"
 require_text infrastructure/kyverno/kustomization.yaml \
-  'eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-kyverno-ecr-verifier' \
+  'eks.amazonaws.com/role-arn: arn:aws:iam::916491575487:role/microtodosuite-kyverno-ecr-verifier' \
   "Kyverno admission ServiceAccount lacks its exact ECR verifier IRSA role"
 require_text infrastructure/kyverno/policies.yaml 'verifyImages:' \
   "Kyverno lacks enforcing signature verification"
 require_text infrastructure/kyverno/policies.yaml \
-  '995253610162\.dkr\.ecr\.us-east-1\.amazonaws\.com/microtodosuite/\*' \
+  '916491575487\.dkr\.ecr\.us-east-1\.amazonaws\.com/microtodosuite/\*' \
   "signature verification is not limited to neutral MicroTodoSuite ECR"
 require_text infrastructure/kyverno/policies.yaml \
   'https://token\.actions\.githubusercontent\.com' \
   "signature verification lacks the approved GitHub OIDC issuer"
 require_text infrastructure/kyverno/policies.yaml \
-  'https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55' \
+  'https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@5c4e133fc528ef6ff596d146150321ca94760721' \
   "signature verification lacks the pinned reusable workflow identity"
 for service in auth-api todos-api users-api frontend log-message-processor; do
   require_text infrastructure/kyverno/policies.yaml \

@@ -31,5 +31,5 @@ patches:
                   limits: {cpu: 250m, memory: 256Mi}
 images:
   - name: todos-api
-    newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
-    digest: sha256:3eaec4619be2c08201a25bc21569e5b00e97e7e00d35270d907b46aa7128c948
+    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
+    digest: sha256:3ff827efe849fe812151c221c3d4c418d7490384e2bcb5c1bb9975fd3f2a4185

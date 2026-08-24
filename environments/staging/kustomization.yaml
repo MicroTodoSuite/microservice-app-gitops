@@ -20,7 +20,7 @@ patches:
       metadata:
         name: external-secrets-jwt
         annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-staging-jwt-reader
+          eks.amazonaws.com/role-arn: arn:aws:iam::916491575487:role/microtodosuite-staging-jwt-reader
   - target:
       group: external-secrets.io
       version: v1
