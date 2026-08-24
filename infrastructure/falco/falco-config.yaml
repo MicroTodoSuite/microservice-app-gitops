@@ -3,7 +3,10 @@
 # charts/falco/values.yaml): default/community rules_files kept as-is,
 # json_output and http_output enabled to forward findings to Falcosidekick
 # (the "when using falcosidekick, json_output must be true" note in that
-# same values.yaml).
+# same values.yaml). engine.kind selects the modern eBPF driver here, in
+# config, not as a falco binary CLI flag: `--modern-bpf` was a
+# docker-entrypoint.sh wrapper convenience, not a real getopt option, and
+# fails with "Option 'modern-bpf' does not exist" against the actual binary.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,6 +17,9 @@ data:
       - /etc/falco/falco_rules.yaml
       - /etc/falco/falco_rules.local.yaml
       - /etc/falco/rules.d
+
+    engine:
+      kind: modern_ebpf
 
     json_output: true
     json_include_output_property: true
