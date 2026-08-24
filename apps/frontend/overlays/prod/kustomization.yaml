@@ -1,27 +1,31 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: microtodo-prod
-resources: [../../topology]
-components: [../../components/strategy-canary]
+resources:
+- ../../topology
+components:
+- ../../components/strategy-canary
 patches:
-  - target: {kind: Deployment, name: frontend}
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: {name: frontend}
-      spec:
-        replicas: 0
-        template:
-          metadata:
-            annotations:
-              release-evidence.microtodosuite.io/exercise: canary-health-gate-v1
-          spec:
-            containers:
-              - name: frontend
-                resources:
-                  requests: {cpu: 25m, memory: 32Mi}
-                  limits: {cpu: 100m, memory: 128Mi}
+- patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata: {name: frontend}
+    spec:
+      replicas: 0
+      template:
+        metadata:
+          annotations:
+            release-evidence.microtodosuite.io/exercise: canary-health-gate-v1
+        spec:
+          containers:
+            - name: frontend
+              resources:
+                requests: {cpu: 25m, memory: 32Mi}
+                limits: {cpu: 100m, memory: 128Mi}
+  target:
+    kind: Deployment
+    name: frontend
 images:
-  - name: frontend
-    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
-    digest: sha256:5fe218db17bb8d71d00458c44d8a88e9d7c9875f7e5a4cfee980eef45de0e728
+- digest: sha256:e8923e48f7c991145bf2515a915c69c94896bba004dce5a323907461119f9c0d
+  name: frontend
+  newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
