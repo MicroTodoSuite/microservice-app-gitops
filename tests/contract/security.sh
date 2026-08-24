@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Static contract for runtime security hardening (feature 008).
-# Covers User Story 1 (Falco + Falcosidekick) and User Story 2 (kube-bench).
-# kube-hunter is added by a later task in specs/008-security-runtime-
-# hardening/tasks.md.
+# Covers all three user stories: Falco + Falcosidekick (US1), kube-bench
+# (US2), and kube-hunter (US3).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -72,9 +71,10 @@ require_resource() {
 # bundle to checksum (all normally installed via Helm chart or example Job) ---
 require_file "infrastructure/falco/vendor/v0.44.1/README.md"
 require_file "infrastructure/kube-bench/vendor/v0.16.0/README.md"
+require_file "infrastructure/kube-hunter/vendor/v0.6.8/README.md"
 
 # --- Render check ---
-for component in falco kube-bench; do
+for component in falco kube-bench kube-hunter; do
   render="$TMP_DIR/$component.yaml"
   render_kustomize "$ROOT/infrastructure/$component" >"$render" \
     || fail "Kustomize render failed for $component"
@@ -130,8 +130,21 @@ reject_text infrastructure/kube-bench/cronjob.yaml 'kind: ClusterRole' \
 reject_text infrastructure/kube-bench/cronjob.yaml '\-\-outputfile' \
   "kube-bench must not write a persisted report file (findings stay in Job logs only)"
 
+# --- kube-hunter resources ---
+require_resource "$TMP_DIR/kube-hunter.yaml" CronJob kube-hunter
+require_text infrastructure/kube-hunter/cronjob.yaml '"--pod"' \
+  "kube-hunter must run in internal/passive --pod mode"
+reject_text infrastructure/kube-hunter/cronjob.yaml '"--active"' \
+  "kube-hunter must never run in active/exploiting mode (FR-006)"
+require_text infrastructure/kube-hunter/cronjob.yaml 'ttlSecondsAfterFinished' \
+  "kube-hunter Job must not leave a standing workload after it completes"
+reject_text infrastructure/kube-hunter/cronjob.yaml 'kind: ClusterRole' \
+  "kube-hunter needs no ClusterRole (verified against the real upstream job)"
+reject_text infrastructure/kube-hunter/cronjob.yaml '^\s*hostPID: true\s*$' \
+  "kube-hunter needs no hostPID (verified against the real upstream job)"
+
 # --- Registration contract ---
-for name in falco kube-bench; do
+for name in falco kube-bench kube-hunter; do
   require_text clusters/eks-dev/activation-infrastructure.yaml "name: $name" \
     "eks-dev infrastructure activation omits $name"
   if [[ "$(rg -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | rg -c 'namespace: security')" -lt 1 ]]; then
@@ -141,4 +154,4 @@ done
 require_text clusters/base/project.yaml 'namespace: security' \
   "AppProject destinations omit the security namespace"
 
-pass "runtime security hardening static contract (falco, kube-bench)"
+pass "runtime security hardening static contract (falco, kube-bench, kube-hunter)"

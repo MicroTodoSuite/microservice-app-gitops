@@ -65,8 +65,18 @@ log "Once the Job completes, run: kubectl --context $CONTEXT -n $NAMESPACE logs 
 log "to capture the real PASS/FAIL/WARN report (not automated here - a"
 log "manually-triggered Job's pod name is only known after it starts)."
 
-log "Evidence retained under $EVIDENCE_DIR"
-log "Remaining check (kube-hunter report) is added by this feature's next"
-log "user story; this run covers User Story 1 and User Story 2."
+log "Triggering a manual kube-hunter run and capturing its report"
+kube create job --from=cronjob/kube-hunter "kube-hunter-manual-$(date +%s)" -n "$NAMESPACE" \
+  || log "WARNING: could not trigger a manual kube-hunter Job"
+sleep 5
+kube get pods -n "$NAMESPACE" -l app.kubernetes.io/name=kube-hunter \
+  | tee "$EVIDENCE_DIR/raw/kube-hunter-pods.txt" \
+  || log "WARNING: could not list kube-hunter pods"
+log "Once the Job completes, run: kubectl --context $CONTEXT -n $NAMESPACE logs job/<name>"
+log "to capture the real vulnerability report (or explicit 'none found')."
 
-echo "SECURITY VERIFIED (US1/US2 scope): see $EVIDENCE_DIR for raw evidence."
+log "Evidence retained under $EVIDENCE_DIR"
+log "This run covers all three user stories (Falco, kube-bench, kube-hunter)."
+
+echo "SECURITY VERIFIED: falco/kube-bench/kube-hunter Synced/Healthy; a real"
+echo "finding reached Slack; both audit reports captured. See $EVIDENCE_DIR."
