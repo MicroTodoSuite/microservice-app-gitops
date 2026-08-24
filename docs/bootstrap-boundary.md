@@ -20,6 +20,18 @@ tracked root Application after an ordinary Git commit has already aligned the
 machine connection values. This remains inside item 3: it changes no child
 Application or workload and is not a deployment recovery path.
 
+For a managed EKS cluster that does not yet contain ArgoCD, the same boundary
+permits exactly two direct mutations, and only after the cluster registration
+and root source revision are merged to the protected `main` branch:
+
+1. server-side apply the checksum-pinned render from `bootstrap/argocd`; and
+2. apply the tracked `clusters/eks-dev/root-app.yaml` object.
+
+The first mutation creates the reconciler. The second gives that reconciler its
+reviewed Git root. Readiness waits and observations between or after those two
+actions are read-only. No child Application, platform add-on, environment
+resource, or business workload may be applied directly.
+
 ## What the bootstrap MUST NOT do
 
 - Create, patch, scale, or configure any `auth-api` (or other business) workload.
@@ -31,6 +43,7 @@ Application or workload and is not a deployment recovery path.
 ## Why the two applies are acceptable
 
 They create only the reconciliation capability and its repository connection,
-not desired application state. The moment desired state exists (a commit), it is
-reconciled — never hand-applied. Cluster destruction (`cleanup.sh`) is
-environment teardown, not a deployment or rollback path.
+not desired application state. The moment desired state exists (a commit), it
+is reconciled — never hand-applied. This reasoning applies equally to the local
+pilot and the managed-cluster two-mutation bootstrap above. Cluster destruction
+(`cleanup.sh`) is environment teardown, not a deployment or rollback path.

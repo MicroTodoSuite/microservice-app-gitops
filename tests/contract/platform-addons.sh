@@ -377,4 +377,21 @@ done
 reject_text clusters/eks-dev/activation-infrastructure.yaml \
   'name: redis' "shared EKS infrastructure activation retains shared Redis"
 
+recovery_profile="clusters/eks-dev-capacity-constrained"
+require_file "$recovery_profile/kustomization.yaml"
+require_file "$recovery_profile/activation-infrastructure.yaml"
+if [[ "$(rg -c '^    - name:' "$ROOT/$recovery_profile/activation-infrastructure.yaml" || true)" != 5 ]]; then
+  fail "capacity-constrained EKS profile must activate exactly five required controllers"
+fi
+for addon in keda cert-manager external-secrets kyverno argo-rollouts; do
+  require_text "$recovery_profile/activation-infrastructure.yaml" \
+    "name: $addon" "capacity-constrained EKS profile omits $addon"
+done
+reject_text "$recovery_profile/activation-infrastructure.yaml" \
+  'name: (prometheus|grafana|jaeger|loki|falco|kube-bench|kube-hunter|redis)' \
+  "capacity-constrained EKS profile activates a deferred controller"
+require_text clusters/eks-dev/root-app.yaml \
+  'path: clusters/eks-dev-capacity-constrained' \
+  "replacement-cluster root does not select the capacity-constrained profile"
+
 pass "platform add-on static contract"

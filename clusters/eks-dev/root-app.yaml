@@ -1,6 +1,9 @@
 # App-of-Apps root for the AWS EKS dev cluster. It targets the in-cluster API,
-# matching the per-cluster ArgoCD topology used by local-kind. This registration
-# change does not apply the root; bootstrap remains a separate audited action.
+# matching the per-cluster ArgoCD topology used by local-kind. The replacement
+# two-node cluster starts with the reviewed capacity-constrained profile; the
+# full platform remains available at clusters/eks-dev after capacity grows.
+# This registration change does not apply the root; bootstrap remains a
+# separate audited action.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -13,7 +16,7 @@ spec:
   source:
     repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
     targetRevision: main
-    path: clusters/eks-dev
+    path: clusters/eks-dev-capacity-constrained
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

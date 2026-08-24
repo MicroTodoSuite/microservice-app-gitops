@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Recovery profile for the replacement two-node EKS cluster. It preserves the
+# reviewed three-environment business release while activating only the five
+# platform controllers required to reconcile secrets, policy, autoscaling, and
+# progressive delivery. The full platform profile remains defined by
+# clusters/eks-dev and can be restored after Terraform-owned capacity grows.
+resources:
+  - ../eks-dev
+
+patches:
+  - path: activation-infrastructure.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: infrastructure

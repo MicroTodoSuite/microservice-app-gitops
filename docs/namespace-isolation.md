@@ -70,14 +70,18 @@ failover, backups, or a continuity guarantee.
 
 - `clusters/local-kind/activation-infrastructure.yaml` retains the local pilot
   entries, including its shared Redis.
-- `clusters/eks-dev/activation-infrastructure.yaml` declares KEDA, cert-manager,
-  External Secrets Operator, Kyverno, and Argo Rollouts.
+- `clusters/eks-dev/activation-infrastructure.yaml` retains the complete
+  twelve-controller target profile.
+- `clusters/eks-dev-capacity-constrained/activation-infrastructure.yaml`
+  is the active replacement-cluster recovery profile and declares only KEDA,
+  cert-manager, External Secrets Operator, Kyverno, and Argo Rollouts.
 - The former shared `infra-redis` Application is absent from the managed list;
   Argo CD prunes it only when the reviewed prerequisite revision reconciles.
 
-The physical EKS name and `clusters/eks-dev` path are historical identifiers.
-They remain unchanged to avoid replacing the live cluster or orphaning its root
-Application; the cluster is the shared target for all three namespaces.
+The physical EKS name and `clusters/eks-dev` registration are historical
+identifiers. The root Application keeps the same object identity but selects a
+sibling capacity profile through reviewed Git. The cluster remains the shared
+target for all three namespaces.
 
 ## Release controls
 

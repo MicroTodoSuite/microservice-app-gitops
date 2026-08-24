@@ -106,7 +106,7 @@
 
 ## Current Status
 
-**NEW-ACCOUNT RECOVERY PREPARED; BOOTSTRAP IS BLOCKED BY LIVE CAPACITY AND THE
+**NEW-ACCOUNT RECOVERY PREPARED; BOOTSTRAP IS BLOCKED ONLY BY THE
 PROTECTED-BRANCH REVIEW GATE.** The earlier operational evidence above belongs
 to the retired AWS account and is retained as historical evidence only. A fresh
 read-only baseline on 2026-08-23 verified the replacement cluster
@@ -123,12 +123,14 @@ keyless signing. The replacement digests are `04af9a4` (auth), `3ff827e`
 and this migration updates all three environments plus Kyverno's exact signer
 identity.
 
-Bootstrap cannot proceed safely yet. The two nodes expose 58 allocatable Pod
-slots; six are already used by `kube-system`. The rendered bootstrap and active
-desired state have a lower bound of 53 additional steady Pods, for a total of
-59 before Prometheus/Alertmanager-generated workloads, CronJobs, canary Jobs,
-or rolling-update surge. EKS Auto Mode is disabled and no Karpenter or cluster
-autoscaler API/controller is installed. Capacity must therefore be increased
-through the Terraform-owned foundation and observed live before the audited
-ArgoCD bootstrap is executed. The GitOps migration must also pass CI and receive
-the one external approval required by protected `main`.
+The two nodes expose 58 allocatable Pod slots; six are already used by
+`kube-system`. The full twelve-controller target would exceed that envelope
+before Prometheus/Alertmanager-generated workloads, CronJobs, canary Jobs, or
+rolling-update surge. The tracked root therefore selects a reversible
+capacity-constrained profile with the five release-critical controllers. Its
+historically observed lower bound is 51 total steady Pods, including the six
+system Pods, leaving seven slots for serialized rollout surge and bounded
+analysis. All observability and runtime-security definitions remain in the
+parent profile but are deferred until Terraform-owned capacity grows. The
+GitOps migration must pass CI and receive the one external approval required by
+protected `main` before the audited two-mutation ArgoCD bootstrap executes.

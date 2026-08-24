@@ -235,6 +235,25 @@ accurate final report.
 
 ---
 
+## Phase 9: Replacement-Cluster Recovery
+
+**Purpose**: Re-establish the reviewed shared-cluster release in the new AWS
+account without exceeding the replacement cluster's two-node capacity.
+
+- [X] T093 Revalidate the live cluster identity, ArgoCD absence, allocatable Pod
+  capacity, VPC CNI enforcement, new-account IRSA prerequisites, and the five
+  signed immutable release digests without changing cluster state.
+- [X] T094 Add and validate a reversible capacity-constrained EKS profile that
+  retains the three environment Applications and fifteen business Applications
+  while activating only KEDA, cert-manager, External Secrets Operator, Kyverno,
+  and Argo Rollouts.
+- [ ] T095 After protected `main` receives external approval and the recovery
+  revision merges, execute only the documented vendored-ArgoCD and tracked-root
+  bootstrap mutations, then observe exact-revision convergence, Application
+  health, Pod readiness, ExternalSecret readiness, and immutable runtime images.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase dependencies
