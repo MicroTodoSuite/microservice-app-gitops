@@ -1,23 +1,28 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: microtodo-dev
-resources: [../../topology]
-replicas: [{name: frontend, count: 1}]
+resources:
+- ../../topology
+replicas:
+- count: 1
+  name: frontend
 patches:
-  - target: {kind: Deployment, name: frontend}
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: {name: frontend}
-      spec:
-        template:
-          spec:
-            containers:
-              - name: frontend
-                resources:
-                  requests: {cpu: 25m, memory: 32Mi}
-                  limits: {cpu: 100m, memory: 128Mi}
+- patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata: {name: frontend}
+    spec:
+      template:
+        spec:
+          containers:
+            - name: frontend
+              resources:
+                requests: {cpu: 25m, memory: 32Mi}
+                limits: {cpu: 100m, memory: 128Mi}
+  target:
+    kind: Deployment
+    name: frontend
 images:
-  - name: frontend
-    newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
-    digest: sha256:1b5013646e8592c8e3970341efacf1a3d6b8b09e7fcd1fbbdd56cbd1e37ba554
+- digest: sha256:5fe218db17bb8d71d00458c44d8a88e9d7c9875f7e5a4cfee980eef45de0e728
+  name: frontend
+  newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
