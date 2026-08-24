@@ -2,25 +2,28 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 namespace: microtodo-dev
-resources: [../../topology]
+resources:
+- ../../topology
 replicas:
-  - name: users-api
-    count: 1
+- count: 1
+  name: users-api
 patches:
-  - target: {kind: Deployment, name: users-api}
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: {name: users-api}
-      spec:
-        template:
-          spec:
-            containers:
-              - name: users-api
-                resources:
-                  requests: {cpu: 150m, memory: 256Mi}
-                  limits: {cpu: 500m, memory: 512Mi}
+- patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata: {name: users-api}
+    spec:
+      template:
+        spec:
+          containers:
+            - name: users-api
+              resources:
+                requests: {cpu: 150m, memory: 256Mi}
+                limits: {cpu: 500m, memory: 512Mi}
+  target:
+    kind: Deployment
+    name: users-api
 images:
-  - name: users-api
-    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
-    digest: sha256:48936907d0b4fb68bd2f0644f8246517c9c9ad8c61e874c8ce3a31b89f11d845
+- digest: sha256:7cd7d91ef5c077ac90d8e87ce7f3f12086641ab783fef0257336faf974a55c88
+  name: users-api
+  newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
