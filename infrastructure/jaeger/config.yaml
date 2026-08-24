@@ -2,7 +2,10 @@
 # (https://raw.githubusercontent.com/jaegertracing/jaeger/v2.20.0/cmd/jaeger/config-badger.yaml),
 # with a single Badger store (no archive store, out of scope here), 3-day
 # retention per the Clarifications session, and storage moved onto the PVC
-# mount path this Deployment declares.
+# mount path this Deployment declares. healthcheckv2's http.endpoint must be
+# explicit and bound to 0.0.0.0: an empty http: block starts no listener at
+# all, so the kubelet's readiness/liveness probes against the pod IP on
+# :13133 got "connection refused" - not a localhost-vs-pod-IP mismatch.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -34,6 +37,7 @@ data:
       healthcheckv2:
         use_v2: true
         http:
+          endpoint: 0.0.0.0:13133
 
       jaeger_query:
         storage:
