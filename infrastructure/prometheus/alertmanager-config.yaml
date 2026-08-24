@@ -1,16 +1,15 @@
 # Cross-namespace mirror of environments/base's AWS Secrets Manager pattern
 # (SecretStore is namespace-scoped, so the observability namespace needs its
-# own copy). Its IRSA role ARN is the same kind of explicit, clearly-marked
-# placeholder already used there (arn:...:000000000000:role/replace-...) -
-# not a real role yet, exactly like environments/base/external-secrets-
-# serviceaccount.yaml. Do not treat this as live until microservice-app-ops
-# provisions the real IAM role.
+# own copy). Trusts exactly this ServiceAccount subject
+# (system:serviceaccount:observability:observability-external-secrets-jwt),
+# provisioned by the microtodosuite-observability-secrets-reader IRSA role in
+# microservice-app-ops (aws/modules/environment-foundation/observability-irsa.tf).
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: observability-external-secrets-jwt
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::000000000000:role/replace-environment-observability-secrets-reader
+    eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-observability-secrets-reader
 automountServiceAccountToken: false
 ---
 apiVersion: external-secrets.io/v1
@@ -48,7 +47,7 @@ spec:
   data:
     - secretKey: SLACK_WEBHOOK_URL
       remoteRef:
-        key: replace/environment/alertmanager-slack-webhook
+        key: microtodosuite/observability/alertmanager-slack-webhook
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: AlertmanagerConfig
