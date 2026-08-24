@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "fixture-checksum-mismatch",
+  "generatedAt": "2026-08-24T20:00:00Z",
+  "scope": {"repositories": ["microservice-app-gitops"], "destinations": [], "stateKeys": [], "capabilities": ["evidence-validation"]},
+  "identities": {"gitActor": "fixture", "awsAccountId": "916491575487"},
+  "baseline": {"result": "pass", "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]},
+  "artifacts": [{"kind": "identity", "path": "tests/evidence/fixtures/artifacts/pass.txt", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "result": "pass"}],
+  "requirements": {"FR-001": {"result": "pass", "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]}},
+  "rollback": {"result": "pass", "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]},
+  "postBaseline": {"result": "pass", "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]},
+  "decision": "accepted"
+}

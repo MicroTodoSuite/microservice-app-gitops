@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "template-stage",
+  "generatedAt": "1970-01-01T00:00:00Z",
+  "scope": {
+    "repositories": ["replace-with-repository"],
+    "destinations": [],
+    "stateKeys": [],
+    "capabilities": ["replace-with-capability"]
+  },
+  "identities": {
+    "gitActor": "replace-with-github-login"
+  },
+  "baseline": {
+    "result": "blocked",
+    "evidence": ["evidence/templates/full-profile-stage/README.md"]
+  },
+  "artifacts": [
+    {
+      "kind": "desired-state",
+      "path": "evidence/templates/full-profile-stage/README.md",
+      "sha256": "42021595b2241d79230728a4925f6d42f2956e376f41e9f9177d787534012990",
+      "producer": "template",
+      "result": "not-applicable"
+    }
+  ],
+  "requirements": {
+    "FR-001": {
+      "result": "blocked",
+      "evidence": ["evidence/templates/full-profile-stage/README.md"]
+    }
+  },
+  "rollback": {
+    "result": "blocked",
+    "evidence": ["evidence/templates/full-profile-stage/README.md"]
+  },
+  "postBaseline": {
+    "result": "blocked",
+    "evidence": ["evidence/templates/full-profile-stage/README.md"]
+  },
+  "decision": "pending"
+}

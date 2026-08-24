@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "fixture-valid",
+  "generatedAt": "2026-08-24T20:00:00Z",
+  "scope": {
+    "repositories": ["microservice-app-gitops"],
+    "destinations": [],
+    "stateKeys": [],
+    "capabilities": ["evidence-validation"]
+  },
+  "identities": {
+    "gitActor": "fixture",
+    "awsAccountId": "916491575487"
+  },
+  "baseline": {
+    "result": "pass",
+    "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]
+  },
+  "artifacts": [
+    {
+      "kind": "identity",
+      "path": "tests/evidence/fixtures/artifacts/pass.txt",
+      "sha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+      "producer": "fixture",
+      "result": "pass"
+    },
+    {
+      "kind": "approval",
+      "path": "tests/evidence/fixtures/artifacts/approval.txt",
+      "sha256": "82c8f8af98b335ba9df3b77d297742d4fbf789e4b0632315dd21be7e02a5d9a3",
+      "producer": "fixture",
+      "result": "pass",
+      "approvedBy": "fixture-reviewer"
+    }
+  ],
+  "requirements": {
+    "FR-001": {
+      "result": "pass",
+      "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]
+    }
+  },
+  "rollback": {
+    "result": "pass",
+    "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]
+  },
+  "postBaseline": {
+    "result": "pass",
+    "evidence": ["tests/evidence/fixtures/artifacts/pass.txt"]
+  },
+  "decision": "accepted"
+}
