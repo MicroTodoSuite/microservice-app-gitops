@@ -16,6 +16,9 @@
     - name: argo-rollouts
       path: infrastructure/argo-rollouts
       namespace: argo-rollouts
+    - name: ebs-csi-driver
+      path: infrastructure/ebs-csi-driver
+      namespace: kube-system
     - name: prometheus
       path: infrastructure/prometheus
       namespace: observability
