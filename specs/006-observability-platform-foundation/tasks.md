@@ -183,9 +183,12 @@ followed by a resolution message once the breach clears.
 - [x] T028 [P] [US3] Add the `ExternalSecret` referencing the pre-provisioned
   Slack webhook (delivered via ESO, never a literal value) in
   `infrastructure/prometheus/alertmanager-config.yaml`. The `SecretStore`
-  behind it uses the same explicit, clearly-marked placeholder IRSA role ARN
-  already used by `environments/base/external-secrets-serviceaccount.yaml`
-  (not real yet; needs the actual IAM role from `microservice-app-ops`).
+  behind it now trusts the real `microtodosuite-observability-secrets-reader`
+  IRSA role (`microservice-app-ops/aws/modules/environment-foundation/
+  observability-irsa.tf`), and the `ExternalSecret` reads the real
+  `microtodosuite/observability/alertmanager-slack-webhook` secret path.
+  Terraform owns only the secret container; the webhook value itself is
+  still provisioned out-of-band by a human in Slack's own admin UI.
 - [x] T029 [US3] Add the `AlertmanagerConfig` Slack route and error-rate/
   latency alert rules (error-rate fully specified at 5%/5min per the
   Clarifications session; latency uses a starting-default 1s threshold, not
