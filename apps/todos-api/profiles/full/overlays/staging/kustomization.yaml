@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: microtodo-staging
+resources: [../../topology]
+replicas: [{name: todos-api, count: 1}]
+patches:
+  - target: {kind: ConfigMap, name: todos-api-config}
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: {name: todos-api-config}
+      data:
+        REDIS_HOST: redis
+  - target: {kind: Deployment, name: todos-api}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: todos-api}
+      spec:
+        template:
+          metadata:
+            annotations:
+              runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
+          spec:
+            containers:
+              - name: todos-api
+                resources:
+                  requests: {cpu: 50m, memory: 64Mi}
+                  limits: {cpu: 250m, memory: 256Mi}
+images:
+  - name: todos-api
+    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
+    digest: sha256:3ff827efe849fe812151c221c3d4c418d7490384e2bcb5c1bb9975fd3f2a4185

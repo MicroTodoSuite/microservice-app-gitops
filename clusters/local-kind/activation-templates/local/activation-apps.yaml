@@ -4,4 +4,6 @@
   path: /spec/generators/0/matrix/generators/1/list/elements
   value:
     - env: local
+      profile: economical
+      destination: local-kind
       server: https://kubernetes.default.svc

@@ -118,15 +118,26 @@ else:
 PY
 }
 
+# Service composition lives under apps/<service>/profiles/<profile>/overlays/<env>
+# since the economical/full profile split. PROFILE selects which one a generated
+# environment joins; economical is the working platform and stays the default.
+PROFILE="${PROFILE:-economical}"
+overlay_dir() {
+  printf 'apps/%s/profiles/%s/overlays/%s\n' "$1" "$PROFILE" "$2"
+}
+
 # ---------------------------------------------------------------------------- #
 if [ "$DELETE" -eq 1 ]; then
   echo ">> removing environment '$ENV'"
   if [ "$DRY_RUN" -eq 1 ]; then
-    echo "[dry-run] rm -rf environments/$ENV apps/*/overlays/$ENV; drop $ENV from activation + rolling-sync"
+    echo "[dry-run] rm -rf environments/$ENV apps/*/profiles/$PROFILE/overlays/$ENV; drop $ENV from activation + rolling-sync"
     exit 0
   fi
   rm -rf "environments/$ENV"
-  for svc in apps/*/; do rm -rf "${svc}overlays/$ENV"; done
+  for svc in apps/*/; do
+    s="${svc%/}"; s="${s#apps/}"
+    rm -rf "$(overlay_dir "$s" "$ENV")"
+  done
   edit_registration remove
   echo ">> done. review 'git status' and open a PR; ArgoCD prunes the environment on merge."
   exit 0
@@ -140,7 +151,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] would copy environments/$SOURCE_ENV -> environments/$ENV"
   for svc in apps/*/; do
     s="${svc%/}"; s="${s#apps/}"
-    [ -d "apps/$s/overlays/$SOURCE_ENV" ] && echo "[dry-run] would copy apps/$s/overlays/$SOURCE_ENV -> apps/$s/overlays/$ENV"
+    [ -d "$(overlay_dir "$s" "$SOURCE_ENV")" ] && echo "[dry-run] would copy $(overlay_dir "$s" "$SOURCE_ENV") -> $(overlay_dir "$s" "$ENV")"
   done
   echo "[dry-run] would activate '$ENV' in $ACT_APPS, $ACT_ENVS and add a RollingSync wave in $RS"
   exit 0
@@ -162,11 +173,11 @@ done < <(find "environments/$ENV" -type f -name '*.yaml')
 #    copied verbatim so the new environment is a bit-for-bit replica.
 for svc in apps/*/; do
   s="${svc%/}"; s="${s#apps/}"
-  if [ -d "apps/$s/overlays/$SOURCE_ENV" ]; then
-    cp -R "apps/$s/overlays/$SOURCE_ENV" "apps/$s/overlays/$ENV"
+  if [ -d "$(overlay_dir "$s" "$SOURCE_ENV")" ]; then
+    cp -R "$(overlay_dir "$s" "$SOURCE_ENV")" "$(overlay_dir "$s" "$ENV")"
     while IFS= read -r f; do
       sed -i.bak -e "s|microtodo-$SOURCE_ENV|microtodo-$ENV|g" "$f" && rm -f "$f.bak"
-    done < <(find "apps/$s/overlays/$ENV" -type f -name '*.yaml')
+    done < <(find "$(overlay_dir "$s" "$ENV")" -type f -name '*.yaml')
   fi
 done
 

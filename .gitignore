@@ -1,4 +1,9 @@
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.tmp
+*.swp
 
 # Pilot runtime state: local git source, registry data, port-forward pids,
 # disposable clones, and captured evidence scratch. Never committed.
@@ -14,3 +19,10 @@ secrets/
 kubeconfig*
 *.key
 *.crt
+*.pem
+*.p12
+*.pfx
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan*

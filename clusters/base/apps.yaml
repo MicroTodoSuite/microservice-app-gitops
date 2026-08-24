@@ -35,6 +35,8 @@ spec:
       labels:
         microtodosuite.io/business-service: "true" # used by pilot verification
         microtodosuite.io/environment: "{{ .env }}"
+        microtodosuite.io/profile: "{{ .profile }}"
+        microtodosuite.io/destination: "{{ .destination }}"
       annotations:
         argocd.argoproj.io/sync-wave: "1" # after platform add-ons and env policy
     spec:
@@ -42,7 +44,7 @@ spec:
       source:
         repoURL: https://registration.invalid/microservice-app-gitops.git # injected by registration
         targetRevision: registration-revision # injected by registration
-        path: "{{ .path.path }}/overlays/{{ .env }}"
+        path: "{{ .path.path }}/profiles/{{ .profile }}/overlays/{{ .env }}"
       destination:
         server: "{{ .server }}"
         namespace: "microtodo-{{ .env }}"

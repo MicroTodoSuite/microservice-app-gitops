@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "1.0.0",
+  "resources": [
+    {
+      "resourceId": "aws:s3:microtodosuite-tfstate-916491575487-us-east-1-dev",
+      "kind": "terraform-backend-bucket",
+      "ownerState": "aws/backend-bootstrap/terraform.tfstate",
+      "consumers": ["aws/dev", "aws/demo-full", "aws/full-dev", "aws/full-prod", "aws/shared-egress"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:kms:30da1308-c2d0-4d3c-8df1-b1c2c937a177",
+      "kind": "terraform-backend-kms-key",
+      "ownerState": "aws/backend-bootstrap/terraform.tfstate",
+      "consumers": ["aws/dev", "aws/demo-full", "aws/full-dev", "aws/full-prod", "aws/shared-egress"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:ecr:microtodosuite/auth-api",
+      "kind": "service-ecr-repository",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["all-clusters", "service-ci"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:ecr:microtodosuite/frontend",
+      "kind": "service-ecr-repository",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["all-clusters", "service-ci"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:ecr:microtodosuite/log-message-processor",
+      "kind": "service-ecr-repository",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["all-clusters", "service-ci"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:ecr:microtodosuite/todos-api",
+      "kind": "service-ecr-repository",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["all-clusters", "service-ci"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:ecr:microtodosuite/users-api",
+      "kind": "service-ecr-repository",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["all-clusters", "service-ci"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:ecr:microtodosuite/platform",
+      "kind": "platform-mirror-ecr-repository",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["full-clusters", "platform-mirror-workflow"],
+      "preventDestroy": true,
+      "status": "planned"
+    },
+    {
+      "resourceId": "aws:iam:oidc-provider/token.actions.githubusercontent.com",
+      "kind": "github-actions-oidc-provider",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["service-ci", "platform-mirror-workflow", "dr-seed-workflow"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:iam:role/microtodosuite-github-ecr-publisher",
+      "kind": "github-ecr-publisher-role",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["service-ci"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:iam:role/microtodosuite-kyverno-ecr-verifier",
+      "kind": "shared-irsa-role",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["economical-cluster", "full-eks-clusters"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:iam:role/microtodosuite-observability-secrets-reader",
+      "kind": "shared-irsa-role",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["economical-cluster", "full-eks-clusters"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:iam:role/microtodosuite-security-secrets-reader",
+      "kind": "shared-irsa-role",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["economical-cluster", "full-eks-clusters"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:route53:hostedzone/microtodosuite.abrdns.com",
+      "kind": "legacy-public-hosted-zone",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": [],
+      "preventDestroy": true,
+      "status": "existing-retained"
+    },
+    {
+      "resourceId": "aws:route53:hostedzone/microtodosuite.online",
+      "kind": "canonical-public-hosted-zone",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["full-ingress", "cert-manager", "route53-health-routing"],
+      "preventDestroy": true,
+      "status": "planned"
+    },
+    {
+      "resourceId": "aws:network:economical-vpc-eks",
+      "kind": "environment-foundation",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": ["economical-gitops-root"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:network:full-staging-vpc-eks",
+      "kind": "environment-foundation",
+      "ownerState": "environments/demo-full/foundation/terraform.tfstate",
+      "consumers": ["full-staging-gitops-root"],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:network:full-dev-vpc-eks",
+      "kind": "environment-foundation",
+      "ownerState": "environments/full-dev/foundation/terraform.tfstate",
+      "consumers": ["full-dev-gitops-root"],
+      "preventDestroy": false,
+      "status": "planned"
+    },
+    {
+      "resourceId": "aws:network:full-prod-vpc-eks",
+      "kind": "environment-foundation",
+      "ownerState": "environments/full-prod/foundation/terraform.tfstate",
+      "consumers": ["full-prod-gitops-root"],
+      "preventDestroy": false,
+      "status": "planned"
+    },
+    {
+      "resourceId": "aws:network:centralized-egress",
+      "kind": "transit-egress-foundation",
+      "ownerState": "shared/egress/terraform.tfstate",
+      "consumers": ["aws/full-dev", "aws/full-prod"],
+      "preventDestroy": false,
+      "status": "planned"
+    },
+    {
+      "resourceId": "azure:network:aks-dr-foundation",
+      "kind": "aks-dr-foundation",
+      "ownerState": "azure-dr-backend-key-to-be-discovered",
+      "consumers": ["aks-dr-gitops-root", "dr-mirror-workflow", "dr-seed-workflow"],
+      "preventDestroy": false,
+      "status": "planned"
+    }
+  ]
+}

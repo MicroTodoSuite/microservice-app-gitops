@@ -1,0 +1,128 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: users-api
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: users-api
+  namespace: microtodo-dev
+---
+apiVersion: v1
+data:
+  JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Xss512k -XX:MaxMetaspaceSize=112m -XX:ReservedCodeCacheSize=48m
+    -XX:MaxDirectMemorySize=32m -XX:+UseSerialGC
+  SERVER_PORT: "8083"
+  SPRING_APPLICATION_NAME: users-api
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: users-api
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: users-api-config
+  namespace: microtodo-dev
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: users-api
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: users-api
+  namespace: microtodo-dev
+spec:
+  ports:
+  - name: http
+    port: 8083
+    targetPort: http
+  selector:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: users-api
+    app.kubernetes.io/part-of: microtodosuite
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: users-api
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: users-api
+  namespace: microtodo-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: business-service
+      app.kubernetes.io/name: users-api
+      app.kubernetes.io/part-of: microtodosuite
+  template:
+    metadata:
+      annotations:
+        data-continuity.microtodosuite.io/risk: pod-local-h2
+        runtime-config.microtodosuite.io/revision: users-api-jvm-bounds-v1
+        sidecar.istio.io/inject: "false"
+      labels:
+        app.kubernetes.io/component: business-service
+        app.kubernetes.io/name: users-api
+        app.kubernetes.io/part-of: microtodosuite
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: JWT_SECRET
+              name: auth-api-secrets
+        envFrom:
+        - configMapRef:
+            name: users-api-config
+        image: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api@sha256:48936907d0b4fb68bd2f0644f8246517c9c9ad8c61e874c8ce3a31b89f11d845
+        livenessProbe:
+          httpGet:
+            path: /prometheus
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+        name: users-api
+        ports:
+        - containerPort: 8083
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /prometheus
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 150m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        startupProbe:
+          failureThreshold: 36
+          httpGet:
+            path: /prometheus
+            port: http
+          periodSeconds: 5
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: users-api

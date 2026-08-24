@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "resources": [
+    {
+      "resourceId": "aws:ecr:microtodosuite/auth-api",
+      "kind": "service-ecr-repository",
+      "ownerState": "environments/dev/foundation/terraform.tfstate",
+      "consumers": [],
+      "preventDestroy": true,
+      "status": "existing"
+    },
+    {
+      "resourceId": "aws:ecr:microtodosuite/auth-api",
+      "kind": "service-ecr-repository",
+      "ownerState": "environments/full-dev/foundation/terraform.tfstate",
+      "consumers": [],
+      "preventDestroy": true,
+      "status": "planned"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# Preserve the economical destination tuple while the replacement EKS cluster
+# runs with the capacity-constrained infrastructure profile.
+- op: replace
+  path: /spec/generators/0/matrix/generators/1/list/elements
+  value:
+    - env: dev
+      profile: economical
+      destination: eks-dev
+      server: https://kubernetes.default.svc
+    - env: staging
+      profile: economical
+      destination: eks-dev
+      server: https://kubernetes.default.svc
+    - env: prod
+      profile: economical
+      destination: eks-dev
+      server: https://kubernetes.default.svc

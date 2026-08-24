@@ -1,0 +1,672 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-08-24T20:29:00Z",
+  "platform": "linux-amd64",
+  "tools": [
+    {
+      "name": "terraform",
+      "version": "1.15.8",
+      "source": "https://releases.hashicorp.com/terraform/1.15.8/terraform_1.15.8_linux_amd64.zip",
+      "sha256": "d25ce7b6902013ad905db3d2eab0be4cd905887fe88b81a6171b8d5503c31f3d"
+    },
+    {
+      "name": "aws-cli",
+      "version": "2.36.19",
+      "source": "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.36.19.zip",
+      "sha256": "545f9bf0cd58e0f30f3a9470d3c4e3387148006bf30f41fb3a4a167347be815f"
+    },
+    {
+      "name": "azure-cli",
+      "version": "2.89.1",
+      "source": "https://packages.microsoft.com/repos/azure-cli/pool/main/a/azure-cli/azure-cli_2.89.1-1~noble_amd64.deb",
+      "sha256": "3608abe64c5c1a407d468b790a2187b26d4df7f709f747414d19143d909e45da"
+    },
+    {
+      "name": "kubectl",
+      "version": "1.36.3",
+      "source": "https://dl.k8s.io/release/v1.36.3/bin/linux/amd64/kubectl",
+      "sha256": "ebbd080e7c2e275093b55915722043257eb24004363e20acb3c4d71919f88336"
+    },
+    {
+      "name": "kustomize",
+      "version": "5.8.1",
+      "source": "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_linux_amd64.tar.gz",
+      "sha256": "029a7f0f4e1932c52a0476cf02a0fd855c0bb85694b82c338fc648dcb53a819d"
+    },
+    {
+      "name": "kubeconform",
+      "version": "0.7.0",
+      "source": "https://github.com/yannh/kubeconform/releases/download/v0.7.0/kubeconform-linux-amd64.tar.gz",
+      "sha256": "c31518ddd122663b3f3aa874cfe8178cb0988de944f29c74a0b9260920d115d3"
+    },
+    {
+      "name": "infracost",
+      "version": "0.10.45",
+      "source": "https://github.com/infracost/infracost/releases/download/v0.10.45/infracost-linux-amd64.tar.gz",
+      "sha256": "e2f527d8391a87ac00bfc55237ff875107861715e234bbbeb9b6015aba576c77"
+    },
+    {
+      "name": "cosign",
+      "version": "3.1.3",
+      "source": "https://github.com/sigstore/cosign/releases/download/v3.1.3/cosign-linux-amd64",
+      "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71"
+    },
+    {
+      "name": "syft",
+      "version": "1.51.0",
+      "source": "https://github.com/anchore/syft/releases/download/v1.51.0/syft_1.51.0_linux_amd64.tar.gz",
+      "sha256": "2a2e837a2c8d59ec9af5472ee22d3b04ee463c4e44476ecf993fd1e5ab6ebc7f"
+    },
+    {
+      "name": "trivy",
+      "version": "0.74.0",
+      "source": "https://github.com/aquasecurity/trivy/releases/download/v0.74.0/trivy_0.74.0_Linux-64bit.tar.gz",
+      "sha256": "2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a"
+    },
+    {
+      "name": "crane",
+      "version": "0.21.9",
+      "source": "https://github.com/google/go-containerregistry/releases/download/v0.21.9/go-containerregistry_Linux_x86_64.tar.gz",
+      "sha256": "5c16d8ddb971cb1d5e6ed8b1e743da8224414eeba2c2762d8f1a61b2f095699e"
+    },
+    {
+      "name": "oras",
+      "version": "1.3.3",
+      "source": "https://github.com/oras-project/oras/releases/download/v1.3.3/oras_1.3.3_linux_amd64.tar.gz",
+      "sha256": "9ce999f8d2de03fc03968b29d743077a58783e545e5eaa53917ca177352d0e59"
+    }
+  ],
+  "actions": [
+    {
+      "name": "actions/checkout",
+      "ref": "v4",
+      "commitSha": "11d5960a326750d5838078e36cf38b85af677262"
+    },
+    {
+      "name": "actions/create-github-app-token",
+      "ref": "v1",
+      "commitSha": "d72941d797fd3113feb6b93fd0dec494b13a2547"
+    },
+    {
+      "name": "actions/download-artifact",
+      "ref": "v4",
+      "commitSha": "d3f86a106a0bac45b974a628896c90dbdf5c8093"
+    },
+    {
+      "name": "actions/setup-go",
+      "ref": "v5",
+      "commitSha": "40f1582b2485089dde7abd97c1529aa768e1baff"
+    },
+    {
+      "name": "actions/setup-java",
+      "ref": "v4",
+      "commitSha": "cf277c60eb25467037889841efdb72551f06f6c3"
+    },
+    {
+      "name": "actions/setup-node",
+      "ref": "v4",
+      "commitSha": "49933ea5288caeca8642d1e84afbd3f7d6820020"
+    },
+    {
+      "name": "actions/setup-python",
+      "ref": "v5",
+      "commitSha": "a26af69be951a213d495a4c3e4e4022e16d87065"
+    },
+    {
+      "name": "actions/upload-artifact",
+      "ref": "v4",
+      "commitSha": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+    },
+    {
+      "name": "anchore/sbom-action",
+      "ref": "v0",
+      "commitSha": "e22c389904149dbc22b58101806040fa8d37a610"
+    },
+    {
+      "name": "aquasecurity/trivy-action",
+      "ref": "0.35.0",
+      "commitSha": "57a97c7e7821a5776cebc9bb87c984fa69cba8f1"
+    },
+    {
+      "name": "aws-actions/amazon-ecr-login",
+      "ref": "v2",
+      "commitSha": "03f1aad4c6c7ffd436567f42f9384779290529bd"
+    },
+    {
+      "name": "aws-actions/configure-aws-credentials",
+      "ref": "v5",
+      "commitSha": "61815dcd50bd041e203e49132bacad1fd04d2708"
+    },
+    {
+      "name": "azure/login",
+      "ref": "v2",
+      "commitSha": "7184910d9eb2b1c5e48f7073824a90609bb9b6d6"
+    },
+    {
+      "name": "cycjimmy/semantic-release-action",
+      "ref": "v4.2.2",
+      "commitSha": "16ca923e6ccbb50770c415a0ccd43709a8c5f7a4"
+    },
+    {
+      "name": "docker/build-push-action",
+      "ref": "v6",
+      "commitSha": "10e90e3645eae34f1e60eeb005ba3a3d33f178e8"
+    },
+    {
+      "name": "docker/setup-buildx-action",
+      "ref": "v3",
+      "commitSha": "8d2750c68a42422c14e847fe6c8ac0403b4cbd6f"
+    },
+    {
+      "name": "hashicorp/setup-terraform",
+      "ref": "v3",
+      "commitSha": "b9cd54a3c349d3f38e8881555d616ced269862dd"
+    },
+    {
+      "name": "infracost/actions/setup",
+      "ref": "v3",
+      "commitSha": "e9d6e6cd65e168e76b0de50ff9957d2fe8bb1832"
+    },
+    {
+      "name": "sigstore/cosign-installer",
+      "ref": "v3",
+      "commitSha": "398d4b0eeef1380460a10c8013a76f728fb906ac"
+    },
+    {
+      "name": "SonarSource/sonarqube-scan-action",
+      "ref": "v4",
+      "commitSha": "689fb39b34b9aa95ebc5f8f119343ddd51542402"
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "argocd",
+      "version": "3.5.0",
+      "artifacts": [
+        {
+          "kind": "static-manifest",
+          "source": "https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.0/manifests/install.yaml",
+          "sha256": "a32bf36a437071a1f563ebf9e81c8a39fba9057c17db7d5d041afb7b6e3f4afe"
+        }
+      ]
+    },
+    {
+      "name": "argo-rollouts",
+      "version": "1.9.1",
+      "artifacts": [
+        {
+          "kind": "static-manifest",
+          "source": "https://github.com/argoproj/argo-rollouts/releases/download/v1.9.1/install.yaml",
+          "sha256": "78c82343803c2bbc13a36049e269a532dd67f25b7e2cb3603c99e31d8d8a40b5"
+        }
+      ]
+    },
+    {
+      "name": "cert-manager",
+      "version": "1.21.0",
+      "artifacts": [
+        {
+          "kind": "static-manifest",
+          "source": "https://github.com/cert-manager/cert-manager/releases/download/v1.21.0/cert-manager.yaml",
+          "sha256": "6e499c3f1ab356abe79a7853911f80cb09c213885bfdf81092fdff142ba63c4a"
+        }
+      ]
+    },
+    {
+      "name": "external-secrets",
+      "version": "2.9.0",
+      "artifacts": [
+        {
+          "kind": "helm-chart",
+          "source": "https://github.com/external-secrets/external-secrets/releases/download/helm-chart-2.9.0/external-secrets-2.9.0.tgz",
+          "sha256": "da2d5c126a103b4c1b16a9dc1c168c4332a3687144e88ac070e594f81a0b6578"
+        }
+      ]
+    },
+    {
+      "name": "keda",
+      "version": "2.20.1",
+      "artifacts": [
+        {
+          "kind": "static-manifest",
+          "source": "https://github.com/kedacore/keda/releases/download/v2.20.1/keda-2.20.1.yaml",
+          "sha256": "11c2c88a126c33d21a81315c9462ba410e27a87598b5ddae7a1fdd6eff376ef7"
+        }
+      ]
+    },
+    {
+      "name": "kyverno",
+      "version": "1.18.2",
+      "artifacts": [
+        {
+          "kind": "static-manifest",
+          "source": "https://github.com/kyverno/kyverno/releases/download/v1.18.2/install.yaml",
+          "sha256": "3dcd43eaf11f0719084217148cd0c82a8fa49faa9b1a783ea5bea2cf84041bda"
+        }
+      ]
+    },
+    {
+      "name": "kube-prometheus",
+      "version": "0.18.0",
+      "artifacts": [
+        {
+          "kind": "source-archive",
+          "source": "https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/v0.18.0.tar.gz",
+          "sha256": "24379eb37cc54f73e96c7a39cdaa28ae9f4670ad6e0e932ea8b524c1fefdaacd"
+        }
+      ]
+    },
+    {
+      "name": "aws-load-balancer-controller",
+      "version": "3.5.0",
+      "artifacts": [
+        {
+          "kind": "static-manifest",
+          "source": "https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/download/v3.5.0/v3_5_0_full.yaml",
+          "sha256": "709fa64150df430895d215ad80dd89dff7e1bead9e28f62ab5a1aac212c44cee"
+        }
+      ]
+    },
+    {
+      "name": "istio",
+      "version": "1.30.3",
+      "artifacts": [
+        {
+          "kind": "release-archive",
+          "source": "https://github.com/istio/istio/releases/download/1.30.3/istio-1.30.3-linux-amd64.tar.gz",
+          "sha256": "55ada076ba1b37af49e8a24e5e539b4abccabdb33894c923279edd293eea3993"
+        }
+      ]
+    },
+    {
+      "name": "kiali",
+      "version": "2.31.0",
+      "artifacts": [
+        {
+          "kind": "helm-chart",
+          "source": "https://kiali.org/helm-charts/kiali-server-2.31.0.tgz",
+          "sha256": "6699eeed9ec8026aa3db25b32a8fd1987d1a966481d784eafadc8bdddba771b4"
+        }
+      ]
+    },
+    {
+      "name": "karpenter",
+      "version": "1.14.1",
+      "artifacts": [
+        {
+          "kind": "oci-helm-manifest",
+          "source": "public.ecr.aws/karpenter/karpenter:1.14.1",
+          "sha256": "91434e00fb102d6ee0d1bd34a4457a32fe01a8fa833fe1a2a37da4f50272079b",
+          "contentSha256": "d5b62605a4cdad0e6fe9eb0b1a4332abb44606fb0f02a3fc6d780ac6ea5533b6"
+        },
+        {
+          "kind": "oci-helm-manifest",
+          "source": "public.ecr.aws/karpenter/karpenter-crd:1.14.1",
+          "sha256": "c05c566740802506a34f3500b33e2fa3c9254f60469e84e5e294a3bd8adefb9f",
+          "contentSha256": "06759bdbd553e3bbf707e00cc56ca2efa0842f7f4388a172b8b57fb4f6798776"
+        }
+      ]
+    },
+    {
+      "name": "eck",
+      "version": "3.5.0",
+      "elasticStackVersion": "9.4.4",
+      "artifacts": [
+        {
+          "kind": "crd-manifest",
+          "source": "https://download.elastic.co/downloads/eck/3.5.0/crds.yaml",
+          "sha256": "0e126dbd003f8f98c9b84f2af6263b5ac8a00b52cd9a6d6da225aa3af66cc13c"
+        },
+        {
+          "kind": "operator-manifest",
+          "source": "https://download.elastic.co/downloads/eck/3.5.0/operator.yaml",
+          "sha256": "450f59d5026341226c54bbd3fafb68adcf99de8c674b47e32c22fae8aa183bf7"
+        }
+      ]
+    },
+    {
+      "name": "chaos-mesh",
+      "version": "2.8.4",
+      "artifacts": [
+        {
+          "kind": "helm-chart",
+          "source": "https://charts.chaos-mesh.org/chaos-mesh-2.8.4.tgz",
+          "sha256": "ae4abd385649771300e4d33a44627c0df3618be0780c385bf30cc2fdf2ad93fa"
+        }
+      ]
+    },
+    {
+      "name": "opencost",
+      "version": "2.5.29",
+      "appVersion": "1.121.1",
+      "artifacts": [
+        {
+          "kind": "helm-chart",
+          "source": "https://github.com/opencost/opencost-helm-chart/releases/download/opencost-2.5.29/opencost-2.5.29.tgz",
+          "sha256": "65edf913738a9810ee940a24efcd265ff4a0f22235fa3cc483e1ebd5c121d0bc"
+        }
+      ]
+    }
+  ],
+  "mirrorContract": {
+    "ecrRepository": "916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/platform",
+    "acrLoginServerSource": "terraform-output:azure-dr.acr_login_server",
+    "acrRepositoryPath": "microtodosuite/platform",
+    "immutableReferenceRule": "repository plus at-sign plus upstreamDigest",
+    "copyRule": "Copy the complete OCI graph without rebuilding; preserve and verify the upstream manifest digest."
+  },
+  "images": [
+    {
+      "id": "argocd",
+      "upstreamRef": "quay.io/argoproj/argocd:v3.5.0",
+      "upstreamDigest": "sha256:c298cedbaeb31532ba8d4e9904eba9e4987e067293fbd86400c5194e78f743d5",
+      "mirrorTag": "argocd-3.5.0"
+    },
+    {
+      "id": "argocd-dex",
+      "upstreamRef": "ghcr.io/dexidp/dex:v2.45.0",
+      "upstreamDigest": "sha256:b8469881d3cb3a73001506f0d3aaefecb9c45d2311c1e0f405d8ac538316c59d",
+      "mirrorTag": "dex-2.45.0"
+    },
+    {
+      "id": "argocd-redis",
+      "upstreamRef": "public.ecr.aws/docker/library/redis:8.2.3-alpine",
+      "upstreamDigest": "sha256:08ad0b1d280850169a790dba1393ff7a90aef951fc19632cf4d3ce4f78e679ba",
+      "mirrorTag": "argocd-redis-8.2.3-alpine"
+    },
+    {
+      "id": "argo-rollouts",
+      "upstreamRef": "quay.io/argoproj/argo-rollouts:v1.9.1",
+      "upstreamDigest": "sha256:15c0d41f2c69a382d4399bcb28ed4f03ee9f58b56cfc9e6cd55bcbf0f311c06d",
+      "mirrorTag": "argo-rollouts-1.9.1"
+    },
+    {
+      "id": "cert-manager-controller",
+      "upstreamRef": "quay.io/jetstack/cert-manager-controller:v1.21.0",
+      "upstreamDigest": "sha256:e370f7800a53078e9d74324287a7d52b553864e55f5b4e521f911c3f6c7da203",
+      "mirrorTag": "cert-manager-controller-1.21.0"
+    },
+    {
+      "id": "cert-manager-cainjector",
+      "upstreamRef": "quay.io/jetstack/cert-manager-cainjector:v1.21.0",
+      "upstreamDigest": "sha256:ad1dcc5b2fccc420f9b3fbee7ce8a869450c540fd4f2f41de2d95b1ca0c4d701",
+      "mirrorTag": "cert-manager-cainjector-1.21.0"
+    },
+    {
+      "id": "cert-manager-webhook",
+      "upstreamRef": "quay.io/jetstack/cert-manager-webhook:v1.21.0",
+      "upstreamDigest": "sha256:c33cca307541e2d58861a55b1af5f390b7e19c8741e48b433693b73a7cce88b3",
+      "mirrorTag": "cert-manager-webhook-1.21.0"
+    },
+    {
+      "id": "cert-manager-acmesolver",
+      "upstreamRef": "quay.io/jetstack/cert-manager-acmesolver:v1.21.0",
+      "upstreamDigest": "sha256:33ebbc2688578e37bd48dcc5b6b1f1362c919dff44fe5e5f602532a2d37d514f",
+      "mirrorTag": "cert-manager-acmesolver-1.21.0"
+    },
+    {
+      "id": "external-secrets",
+      "upstreamRef": "ghcr.io/external-secrets/external-secrets:v2.9.0",
+      "upstreamDigest": "sha256:44eb290f1c7f5d8f4eec2168cea4a6cfbc72a955c6781eb835e1c40700475dbd",
+      "mirrorTag": "external-secrets-2.9.0"
+    },
+    {
+      "id": "keda",
+      "upstreamRef": "ghcr.io/kedacore/keda:2.20.1",
+      "upstreamDigest": "sha256:8888d1896d316c9e087ce0ca3b72bd945dfbad6f3ef2d64ca24ee394feccc023",
+      "mirrorTag": "keda-2.20.1"
+    },
+    {
+      "id": "keda-metrics-apiserver",
+      "upstreamRef": "ghcr.io/kedacore/keda-metrics-apiserver:2.20.1",
+      "upstreamDigest": "sha256:ba32172082a2ff935d5b62ffa0bd0698424d373b55c5cae0846db057e237b28e",
+      "mirrorTag": "keda-metrics-apiserver-2.20.1"
+    },
+    {
+      "id": "keda-admission-webhooks",
+      "upstreamRef": "ghcr.io/kedacore/keda-admission-webhooks:2.20.1",
+      "upstreamDigest": "sha256:0350cbb59471123623134801a3e9a753c90e0945bb4eb7e36086746fc4b35fb8",
+      "mirrorTag": "keda-admission-webhooks-2.20.1"
+    },
+    {
+      "id": "pause",
+      "upstreamRef": "registry.k8s.io/pause:3.10.1",
+      "upstreamDigest": "sha256:278fb9dbcca9518083ad1e11276933a2e96f23de604a3a08cc3c80002767d24c",
+      "mirrorTag": "pause-3.10.1"
+    },
+    {
+      "id": "kyverno",
+      "upstreamRef": "reg.kyverno.io/kyverno/kyverno:v1.18.2",
+      "upstreamDigest": "sha256:0a540e2ddf74d0d2d3d45f9ef248d7dbc96576accdbcc6a2dd7eaff9fea56504",
+      "mirrorTag": "kyverno-1.18.2"
+    },
+    {
+      "id": "kyverno-background-controller",
+      "upstreamRef": "reg.kyverno.io/kyverno/background-controller:v1.18.2",
+      "upstreamDigest": "sha256:d62566ce41bd0d4a32bf2cf44b9ebfc02c36374f821f83070890287f62f68671",
+      "mirrorTag": "kyverno-background-controller-1.18.2"
+    },
+    {
+      "id": "kyverno-cleanup-controller",
+      "upstreamRef": "reg.kyverno.io/kyverno/cleanup-controller:v1.18.2",
+      "upstreamDigest": "sha256:b0395d29ae332276e6910eb40418be9bc127c068d659f90aa1bcddd6be99ccb4",
+      "mirrorTag": "kyverno-cleanup-controller-1.18.2"
+    },
+    {
+      "id": "kyverno-reports-controller",
+      "upstreamRef": "reg.kyverno.io/kyverno/reports-controller:v1.18.2",
+      "upstreamDigest": "sha256:f09cf305170014e191b94e1c54f5be73163d8824eefad49349675c4efe43159a",
+      "mirrorTag": "kyverno-reports-controller-1.18.2"
+    },
+    {
+      "id": "kyvernopre",
+      "upstreamRef": "reg.kyverno.io/kyverno/kyvernopre:v1.18.2",
+      "upstreamDigest": "sha256:cd8cb4a31d25b3992734fb8f24a90ef691c90ce49338c89bea96792160eacb98",
+      "mirrorTag": "kyvernopre-1.18.2"
+    },
+    {
+      "id": "prometheus-operator",
+      "upstreamRef": "quay.io/prometheus-operator/prometheus-operator:v0.92.0",
+      "upstreamDigest": "sha256:3db296f8aca7b3abbcbb79afac165abfe08212ad54f4301c88f68f079ec9d9b7",
+      "mirrorTag": "prometheus-operator-0.92.0"
+    },
+    {
+      "id": "kube-rbac-proxy",
+      "upstreamRef": "quay.io/brancz/kube-rbac-proxy:v0.22.0",
+      "upstreamDigest": "sha256:53d5a3911ac076d000c92362d4939a3147ba21f231edf82926c82d16dbdd8850",
+      "mirrorTag": "kube-rbac-proxy-0.22.0"
+    },
+    {
+      "id": "prometheus",
+      "upstreamRef": "quay.io/prometheus/prometheus:v3.12.0",
+      "upstreamDigest": "sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac",
+      "mirrorTag": "prometheus-3.12.0"
+    },
+    {
+      "id": "alertmanager",
+      "upstreamRef": "quay.io/prometheus/alertmanager:v0.33.0",
+      "upstreamDigest": "sha256:af26fbe4dd1886ac0efd7bd55cd9027da262e105b137a376522b7c14c3626e4a",
+      "mirrorTag": "alertmanager-0.33.0"
+    },
+    {
+      "id": "grafana",
+      "upstreamRef": "docker.io/grafana/grafana:13.2.0",
+      "upstreamDigest": "sha256:3fd54ae1214669f8355f065ec9f6445d5279a3d77095ab048ca045685272429b",
+      "mirrorTag": "grafana-13.2.0"
+    },
+    {
+      "id": "jaeger",
+      "upstreamRef": "docker.io/jaegertracing/jaeger:2.20.0",
+      "upstreamDigest": "sha256:46a886260e04002d8f45e213fc39063fa11a50446048fdaa64786fc0840cb9f8",
+      "mirrorTag": "jaeger-2.20.0"
+    },
+    {
+      "id": "loki",
+      "upstreamRef": "docker.io/grafana/loki:3.7.6",
+      "upstreamDigest": "sha256:efd47c67f9bac88ca29bcf8cb997d9ab29d1848bd0aff579282295542a745952",
+      "mirrorTag": "loki-3.7.6"
+    },
+    {
+      "id": "alloy",
+      "upstreamRef": "docker.io/grafana/alloy:v1.18.1",
+      "upstreamDigest": "sha256:0f4434c92b3e6cdac38bb129b344e1790c246f7b6e2eaffcc16a5fa363240e33",
+      "mirrorTag": "alloy-1.18.1"
+    },
+    {
+      "id": "falco",
+      "upstreamRef": "docker.io/falcosecurity/falco:0.44.1",
+      "upstreamDigest": "sha256:d0cfe422d6ac0e0f20857798f46c7d7273210e1b064b22821e4e6e7f843cde6b",
+      "mirrorTag": "falco-0.44.1"
+    },
+    {
+      "id": "falcosidekick",
+      "upstreamRef": "docker.io/falcosecurity/falcosidekick:2.34.1",
+      "upstreamDigest": "sha256:d4f0d7c538ede3fe4a491143c45c0787bf4fc24e6fcac6d39dff6721d75a9419",
+      "mirrorTag": "falcosidekick-2.34.1"
+    },
+    {
+      "id": "kube-bench",
+      "upstreamRef": "docker.io/aquasec/kube-bench:v0.16.0",
+      "upstreamDigest": "sha256:75506f222d1eb6ce2a751a5533bdc0a3b54c898e2e49e7751d0ee22cfb862679",
+      "mirrorTag": "kube-bench-0.16.0"
+    },
+    {
+      "id": "kube-hunter",
+      "upstreamRef": "docker.io/aquasec/kube-hunter:0.6.8",
+      "upstreamDigest": "sha256:e64fe49f059f513a09c772a8972172b2af6833d092c06cc311171d7135e4525a",
+      "mirrorTag": "kube-hunter-0.6.8"
+    },
+    {
+      "id": "redis",
+      "upstreamRef": "docker.io/library/redis:7.4.9-alpine",
+      "upstreamDigest": "sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99",
+      "mirrorTag": "redis-7.4.9-alpine"
+    },
+    {
+      "id": "busybox",
+      "upstreamRef": "docker.io/library/busybox:1.37",
+      "upstreamDigest": "sha256:9db7b59979c38555a39def84a31fb98b5296952f9e3afd4f6f11f05b07adfab0",
+      "mirrorTag": "busybox-1.37"
+    },
+    {
+      "id": "sonarqube",
+      "upstreamRef": "docker.io/library/sonarqube:26.8.0.126808-community",
+      "upstreamDigest": "sha256:9026624a61cd25542a402a9e7213dd7dbb39724ac9597e331e6b85362558c079",
+      "mirrorTag": "sonarqube-26.8.0.126808-community"
+    },
+    {
+      "id": "postgres",
+      "upstreamRef": "docker.io/library/postgres:16.15-alpine3.24",
+      "upstreamDigest": "sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685",
+      "mirrorTag": "postgres-16.15-alpine3.24"
+    },
+    {
+      "id": "aws-load-balancer-controller",
+      "upstreamRef": "public.ecr.aws/eks/aws-load-balancer-controller:v3.5.0",
+      "upstreamDigest": "sha256:298acdff5a571731276aaea3d5cc450a264e4ad710a5bddf3e518f68a3f9f6cb",
+      "mirrorTag": "aws-load-balancer-controller-3.5.0"
+    },
+    {
+      "id": "istio-pilot",
+      "upstreamRef": "docker.io/istio/pilot:1.30.3",
+      "upstreamDigest": "sha256:6b37817f7f8f8e0f6f6fffc832c44ae4d7e50feec7ef7f1f3719638d1bbdc45a",
+      "mirrorTag": "istio-pilot-1.30.3"
+    },
+    {
+      "id": "istio-proxyv2",
+      "upstreamRef": "docker.io/istio/proxyv2:1.30.3",
+      "upstreamDigest": "sha256:485c87f71654b14e89911a9424a208d92b347b59c2bfefdc9707aaa83fe5618e",
+      "mirrorTag": "istio-proxyv2-1.30.3"
+    },
+    {
+      "id": "kiali",
+      "upstreamRef": "quay.io/kiali/kiali:v2.31.0",
+      "upstreamDigest": "sha256:df636734606c220263c1eae85f473940b52ced3c026abfe7110c64014098fb41",
+      "mirrorTag": "kiali-2.31.0"
+    },
+    {
+      "id": "karpenter-controller",
+      "upstreamRef": "public.ecr.aws/karpenter/controller:1.14.1",
+      "upstreamDigest": "sha256:445baefaaa689029cc12ac1f659b916b0b82fb14308ce536f8521fcf079116fa",
+      "mirrorTag": "karpenter-controller-1.14.1"
+    },
+    {
+      "id": "eck-operator",
+      "upstreamRef": "docker.elastic.co/eck/eck-operator:3.5.0",
+      "upstreamDigest": "sha256:b6f261372d9d9af7b00aab03efea25263314d16063c4d440ac322e52c2fdf314",
+      "mirrorTag": "eck-operator-3.5.0"
+    },
+    {
+      "id": "elasticsearch",
+      "upstreamRef": "docker.elastic.co/elasticsearch/elasticsearch:9.4.4",
+      "upstreamDigest": "sha256:a3545404e436e348721786bed638042a81f2181ebe2e2636501bb43940677747",
+      "mirrorTag": "elasticsearch-9.4.4"
+    },
+    {
+      "id": "kibana",
+      "upstreamRef": "docker.elastic.co/kibana/kibana:9.4.4",
+      "upstreamDigest": "sha256:fbdf2b53fd1a9cec892c69eed735e7ee27a912dabff600308f5a576138a9806f",
+      "mirrorTag": "kibana-9.4.4"
+    },
+    {
+      "id": "logstash",
+      "upstreamRef": "docker.elastic.co/logstash/logstash:9.4.4",
+      "upstreamDigest": "sha256:c1aeca2bbf56148c1c868957e1d0ea5aa020cba5b3dca3493a097f54c0efc544",
+      "mirrorTag": "logstash-9.4.4"
+    },
+    {
+      "id": "filebeat",
+      "upstreamRef": "docker.elastic.co/beats/filebeat:9.4.4",
+      "upstreamDigest": "sha256:fa4330da529e88e51241c5a3091ff6484f0ea74a79e516c78524bc7ac0faae79",
+      "mirrorTag": "filebeat-9.4.4"
+    },
+    {
+      "id": "chaos-mesh-controller",
+      "upstreamRef": "ghcr.io/chaos-mesh/chaos-mesh:v2.8.4",
+      "upstreamDigest": "sha256:9e48285bb44c63be80f2fe4468c54b0f2d7cdc447ba5f5bc9ded4ab6a973cd37",
+      "mirrorTag": "chaos-mesh-controller-2.8.4"
+    },
+    {
+      "id": "chaos-mesh-daemon",
+      "upstreamRef": "ghcr.io/chaos-mesh/chaos-daemon:v2.8.4",
+      "upstreamDigest": "sha256:0d28dbd95b033279f65605ea88c354d25fe902409197274016dd2efc28ef25cd",
+      "mirrorTag": "chaos-mesh-daemon-2.8.4"
+    },
+    {
+      "id": "chaos-mesh-dashboard",
+      "upstreamRef": "ghcr.io/chaos-mesh/chaos-dashboard:v2.8.4",
+      "upstreamDigest": "sha256:8a8ec8d4c9ea61fb9c2201e8b01d0a2015069a31ea49abd3e00da244469edbe3",
+      "mirrorTag": "chaos-mesh-dashboard-2.8.4"
+    },
+    {
+      "id": "chaos-mesh-coredns",
+      "upstreamRef": "ghcr.io/chaos-mesh/chaos-coredns:v0.2.8",
+      "upstreamDigest": "sha256:38bfdf5e37749a097873d226351013c34ba74174a8ddcfbe2871ec952af2d7b3",
+      "mirrorTag": "chaos-mesh-coredns-0.2.8"
+    },
+    {
+      "id": "chaos-mesh-kernel",
+      "upstreamRef": "ghcr.io/chaos-mesh/chaos-kernel:v2.8.4",
+      "upstreamDigest": "sha256:afd792566b55b904d8c331f0beb56878f07c591f30575f1a6f72947c1059c55d",
+      "mirrorTag": "chaos-mesh-kernel-2.8.4"
+    },
+    {
+      "id": "chaos-mesh-dlv",
+      "upstreamRef": "ghcr.io/chaos-mesh/chaos-dlv:v2.8.4",
+      "upstreamDigest": "sha256:e24fbffb850d2d82b0df1edf23dd4c55403681131c7fbd8ee5d8703ff06b9cce",
+      "mirrorTag": "chaos-mesh-dlv-2.8.4"
+    },
+    {
+      "id": "opencost",
+      "upstreamRef": "ghcr.io/opencost/opencost:1.121.1",
+      "upstreamDigest": "sha256:50052694785db32174332670920faf7b7f55d32a91ba3caec1e9207a58338ff5",
+      "mirrorTag": "opencost-1.121.1"
+    },
+    {
+      "id": "opencost-ui",
+      "upstreamRef": "ghcr.io/opencost/opencost-ui:1.121.1",
+      "upstreamDigest": "sha256:a2eaa7f585f418deba878e81cf571bdcb7ead07becf18a158138e2a39d28dc5c",
+      "mirrorTag": "opencost-ui-1.121.1"
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: frontend
+  namespace: microtodo-prod
+---
+apiVersion: v1
+data:
+  AUTH_API_ADDRESS: http://auth-api:8000
+  TODOS_API_ADDRESS: http://todos-api:8082
+  ZIPKIN_URL: http://127.0.0.1:9411/api/v2/spans
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: frontend-config
+  namespace: microtodo-prod
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: frontend
+  namespace: microtodo-prod
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+  - name: metrics
+    port: 9113
+    targetPort: metrics
+  selector:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: microtodosuite
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: microtodosuite
+  name: frontend-canary
+  namespace: microtodo-prod
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+  selector:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: microtodosuite
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: frontend
+  namespace: microtodo-prod
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: business-service
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: microtodosuite
+  template:
+    metadata:
+      annotations:
+        release-evidence.microtodosuite.io/exercise: canary-health-gate-v1
+        sidecar.istio.io/inject: "false"
+      labels:
+        app.kubernetes.io/component: business-service
+        app.kubernetes.io/name: frontend
+        app.kubernetes.io/part-of: microtodosuite
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: frontend-config
+        image: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend@sha256:5fe218db17bb8d71d00458c44d8a88e9d7c9875f7e5a4cfee980eef45de0e728
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+        name: frontend
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 25m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 3
+      - args:
+        - --nginx.scrape-uri=http://127.0.0.1:8080/nginx_status
+        image: nginx/nginx-prometheus-exporter@sha256:85666e7fde7e253f1c6d978f9a961245df4c9cdb7677e1866d9bb28e8f9ee41d
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 15
+        name: nginx-metrics
+        ports:
+        - containerPort: 9113
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 50m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: frontend
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: frontend
+  namespace: microtodo-prod
+spec:
+  progressDeadlineSeconds: 300
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: business-service
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: microtodosuite
+  strategy:
+    canary:
+      canaryService: frontend-canary
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+      - setWeight: 50
+      - pause:
+          duration: 15s
+      - analysis:
+          args:
+          - name: workload
+            value: frontend
+          templates:
+          - clusterScope: true
+            templateName: microtodosuite-canary-health
+      - setWeight: 100
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
+    scaleDown: onsuccess

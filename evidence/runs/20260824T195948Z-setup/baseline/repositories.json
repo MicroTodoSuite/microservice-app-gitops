@@ -1,0 +1,118 @@
+{
+  "capturedAt": "2026-08-24T19:59:48Z",
+  "finalizedAt": "2026-08-24T20:04:44Z",
+  "remote": "origin",
+  "fetchResult": "pass",
+  "repositories": [
+    {
+      "name": "microservice-app-ops",
+      "branch": "main",
+      "head": "74bd2fe4ee5610698b08b87fe2a422cb91db6aa5",
+      "originMain": "74bd2fe4ee5610698b08b87fe2a422cb91db6aa5",
+      "ahead": 0,
+      "behind": 0,
+      "status": [
+        " M aws/environments/dev/foundation/dev.tfvars"
+      ],
+      "syncAction": "none",
+      "syncReason": "Local canonical-domain work is present and was preserved; main already equals origin/main."
+    },
+    {
+      "name": "microservice-app-gitops",
+      "branch": "feat/full-platform-rollout",
+      "head": "19f8abd86f58a6df48ad70365b3404072d0c0aa2",
+      "originMain": "9a18ebbd838d0f67313f5221cfd519fc53dc0a5d",
+      "ahead": 0,
+      "behind": 0,
+      "status": [
+        " M .specify/feature.json",
+        " M .specify/memory/constitution.md",
+        "?? specs/009-full-platform-rollout/checklists/requirements.md",
+        "?? specs/009-full-platform-rollout/contracts/cluster-registration-contract.md",
+        "?? specs/009-full-platform-rollout/contracts/dr-game-day-contract.md",
+        "?? specs/009-full-platform-rollout/contracts/full-profile-evidence.schema.json",
+        "?? specs/009-full-platform-rollout/contracts/infrastructure-ownership-contract.md",
+        "?? specs/009-full-platform-rollout/contracts/release-promotion-contract.md",
+        "?? specs/009-full-platform-rollout/contracts/stage-gate-contract.md",
+        "?? specs/009-full-platform-rollout/data-model.md",
+        "?? specs/009-full-platform-rollout/plan.md",
+        "?? specs/009-full-platform-rollout/quickstart.md",
+        "?? specs/009-full-platform-rollout/research.md",
+        "?? specs/009-full-platform-rollout/spec.md",
+        "?? specs/009-full-platform-rollout/tasks.md"
+      ],
+      "syncAction": "fast-forwarded-after-non-overlap-check",
+      "syncReason": "The expected feature work was preserved while the branch advanced without rebase or stash to the latest observed origin/main."
+    },
+    {
+      "name": ".github",
+      "branch": "main",
+      "head": "5c4e133fc528ef6ff596d146150321ca94760721",
+      "originMain": "5c4e133fc528ef6ff596d146150321ca94760721",
+      "ahead": 0,
+      "behind": 0,
+      "status": [],
+      "syncAction": "already-up-to-date"
+    },
+    {
+      "name": "microservice-app-auth-api",
+      "branch": "main",
+      "head": "e1483fa60beb2b80d1433dcaef82b14ab8a7f2fa",
+      "originMain": "e1483fa60beb2b80d1433dcaef82b14ab8a7f2fa",
+      "ahead": 0,
+      "behind": 0,
+      "status": [],
+      "syncAction": "already-up-to-date"
+    },
+    {
+      "name": "microservice-app-frontend",
+      "branch": "main",
+      "head": "3c142333859d29b5e25600f774d1d5d32e176dcf",
+      "originMain": "3c142333859d29b5e25600f774d1d5d32e176dcf",
+      "ahead": 0,
+      "behind": 0,
+      "status": [],
+      "syncAction": "already-up-to-date"
+    },
+    {
+      "name": "microservice-app-log-message-processor",
+      "branch": "main",
+      "head": "96e5f08b1d61a28adade717b263e3f0e0f133731",
+      "originMain": "96e5f08b1d61a28adade717b263e3f0e0f133731",
+      "ahead": 0,
+      "behind": 0,
+      "status": [],
+      "syncAction": "already-up-to-date"
+    },
+    {
+      "name": "microservice-app-todos-api",
+      "branch": "main",
+      "head": "e14e1997eaaad8214d87087164ffb6450e220a04",
+      "originMain": "e14e1997eaaad8214d87087164ffb6450e220a04",
+      "ahead": 0,
+      "behind": 0,
+      "status": [],
+      "syncAction": "already-up-to-date"
+    },
+    {
+      "name": "microservice-app-users-api",
+      "branch": "main",
+      "head": "fde83bd3b079eed28f387116404cacc63a4af181",
+      "originMain": "fde83bd3b079eed28f387116404cacc63a4af181",
+      "ahead": 0,
+      "behind": 0,
+      "status": [],
+      "syncAction": "already-up-to-date"
+    },
+    {
+      "name": "microservice-app-docs",
+      "branch": "main",
+      "head": "9a058b1982bbaa9c8b05aa4dd01d46b016daf5f2",
+      "originMain": "9a058b1982bbaa9c8b05aa4dd01d46b016daf5f2",
+      "ahead": 0,
+      "behind": 0,
+      "status": [],
+      "syncAction": "already-up-to-date"
+    }
+  ]
+}
