@@ -34,7 +34,7 @@ changed_paths="$(git -C "$worktree" diff-tree --no-commit-id --name-only -r HEAD
   printf 'FAIL: expected only %s to change, got:\n%s\n' "$expected_path" "$changed_paths" >&2
   exit 1
 }
-rg -Fq "digest: $digest" "$worktree/$expected_path" || {
+grep -Fq "digest: $digest" "$worktree/$expected_path" || {
   printf 'FAIL: selected overlay does not contain the requested digest.\n' >&2
   exit 1
 }

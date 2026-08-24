@@ -39,7 +39,7 @@ for service in "${services[@]}"; do
       printf 'FAIL: %s/%s economical render changed.\n' "$service" "$environment" >&2
       exit 1
     }
-    rg -q 'microtodosuite.io/topology: full' "$full_render" || {
+    grep -Fq 'microtodosuite.io/topology: full' "$full_render" || {
       printf 'FAIL: %s/%s full render does not select topology-full.\n' "$service" "$environment" >&2
       exit 1
     }
@@ -48,7 +48,7 @@ for service in "${services[@]}"; do
   done
 done
 
-rg -Fq 'path: "{{ .path.path }}/profiles/{{ .profile }}/overlays/{{ .env }}"' \
+grep -Fq 'path: "{{ .path.path }}/profiles/{{ .profile }}/overlays/{{ .env }}"' \
   "$repo_root/clusters/base/apps.yaml" || {
   printf 'FAIL: the ApplicationSet path is not profile-aware.\n' >&2
   exit 1
@@ -63,17 +63,17 @@ do
     printf 'FAIL: missing explicit profile activation %s\n' "$activation" >&2
     exit 1
   }
-  rg -q 'profile: economical' "$activation" || {
+  grep -Fq 'profile: economical' "$activation" || {
     printf 'FAIL: %s does not preserve the economical profile.\n' "$activation" >&2
     exit 1
   }
-  rg -q 'destination: (eks-dev|local-kind)' "$activation" || {
+  grep -Eq 'destination: (eks-dev|local-kind)' "$activation" || {
     printf 'FAIL: %s does not declare an economical destination identity.\n' "$activation" >&2
     exit 1
   }
 done
 
-rg -Fq 'value: []' "$repo_root/clusters/local-kind/activation-apps.yaml" || {
+grep -Fq 'value: []' "$repo_root/clusters/local-kind/activation-apps.yaml" || {
   printf 'FAIL: local-kind bootstrap activation must remain empty.\n' >&2
   exit 1
 }
