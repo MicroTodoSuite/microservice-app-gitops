@@ -54,8 +54,19 @@ kube logs daemonset/falco -n "$NAMESPACE" --tail=50 \
   | grep -i "shell\|notice\|warning" \
   || log "WARNING: no matching finding observed in the last 50 log lines"
 
-log "Evidence retained under $EVIDENCE_DIR"
-log "Remaining checks (kube-bench report, kube-hunter report) are added by"
-log "this feature's later user stories; this run only covers User Story 1."
+log "Triggering a manual kube-bench run and capturing its report"
+kube create job --from=cronjob/kube-bench "kube-bench-manual-$(date +%s)" -n "$NAMESPACE" \
+  || log "WARNING: could not trigger a manual kube-bench Job"
+sleep 5
+kube get pods -n "$NAMESPACE" -l app.kubernetes.io/name=kube-bench \
+  | tee "$EVIDENCE_DIR/raw/kube-bench-pods.txt" \
+  || log "WARNING: could not list kube-bench pods"
+log "Once the Job completes, run: kubectl --context $CONTEXT -n $NAMESPACE logs job/<name>"
+log "to capture the real PASS/FAIL/WARN report (not automated here - a"
+log "manually-triggered Job's pod name is only known after it starts)."
 
-echo "SECURITY VERIFIED (US1 scope only): see $EVIDENCE_DIR for raw evidence."
+log "Evidence retained under $EVIDENCE_DIR"
+log "Remaining check (kube-hunter report) is added by this feature's next"
+log "user story; this run covers User Story 1 and User Story 2."
+
+echo "SECURITY VERIFIED (US1/US2 scope): see $EVIDENCE_DIR for raw evidence."

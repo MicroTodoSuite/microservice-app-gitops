@@ -1,0 +1,83 @@
+# Adapted from kube-bench v0.16.0's own official job-eks.yaml
+# (https://raw.githubusercontent.com/aquasecurity/kube-bench/v0.16.0/
+# job-eks.yaml): same targets/benchmark/hostPath mounts, wrapped in a
+# CronJob for the recurring schedule FR-005 requires, with
+# ttlSecondsAfterFinished so no completed Job lingers (FR-007).
+#
+# hostPID: true is genuinely required here (unlike Falco in this same
+# feature): kube-bench inspects the kubelet process's running command-line
+# flags to check several CIS controls, which needs host process visibility.
+# No ServiceAccount/ClusterRole is added because the real upstream job needs
+# none - kube-bench reads host files directly via the mounted hostPaths
+# below, it makes no Kubernetes API calls for this benchmark.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kube-bench
+  labels:
+    app.kubernetes.io/name: kube-bench
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      activeDeadlineSeconds: 600
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: kube-bench
+        spec:
+          hostPID: true
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          containers:
+            - name: kube-bench
+              image: aquasec/kube-bench@sha256:75506f222d1eb6ce2a751a5533bdc0a3b54c898e2e49e7751d0ee22cfb862679
+              command:
+                - kube-bench
+                - run
+                - --targets
+                - node,policies,managedservices,controlplane
+                - --benchmark
+                - eks-1.5.0
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 250m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: var-lib-kubelet
+                  mountPath: /var/lib/kubelet
+                  readOnly: true
+                - name: etc-systemd
+                  mountPath: /etc/systemd
+                  readOnly: true
+                - name: etc-kubernetes
+                  mountPath: /etc/kubernetes
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: var-lib-kubelet
+              hostPath:
+                path: /var/lib/kubelet
+            - name: etc-systemd
+              hostPath:
+                path: /etc/systemd
+            - name: etc-kubernetes
+              hostPath:
+                path: /etc/kubernetes
+            - name: tmp
+              emptyDir: {}
