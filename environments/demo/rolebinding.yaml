@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: environment-workload-maintainers
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: microtodosuite:demo-maintainers
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: environment-workload-maintainer

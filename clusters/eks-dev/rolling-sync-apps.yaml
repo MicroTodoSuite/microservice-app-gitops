@@ -28,3 +28,8 @@
               operator: In
               values: ["prod"]
           maxUpdate: 1
+        - matchExpressions:
+            - key: microtodosuite.io/environment
+              operator: In
+              values: ["demo"]
+          maxUpdate: 1
