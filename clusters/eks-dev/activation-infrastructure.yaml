@@ -34,3 +34,6 @@
     - name: kube-bench
       path: infrastructure/kube-bench
       namespace: security
+    - name: kube-hunter
+      path: infrastructure/kube-hunter
+      namespace: security
