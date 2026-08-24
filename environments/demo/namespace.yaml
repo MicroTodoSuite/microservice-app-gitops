@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: microtodo-demo
-  labels:
-    microtodosuite.io/environment: demo
-    microtodosuite.io/managed-by: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"

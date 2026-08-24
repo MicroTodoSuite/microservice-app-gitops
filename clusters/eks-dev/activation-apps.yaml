@@ -9,5 +9,3 @@
       server: https://kubernetes.default.svc
     - env: prod
       server: https://kubernetes.default.svc
-    - env: demo
-      server: https://kubernetes.default.svc
