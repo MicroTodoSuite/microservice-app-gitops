@@ -62,6 +62,7 @@ base_files=(
   environments/base/networkpolicy-allow-dns.yaml
   environments/base/networkpolicy-allow-intra-namespace.yaml
   environments/base/networkpolicy-allow-redis.yaml
+  environments/base/networkpolicy-allow-observability-scrape.yaml
   environments/base/redis-serviceaccount.yaml
   environments/base/redis-deployment.yaml
   environments/base/redis-service.yaml
@@ -87,6 +88,12 @@ require_text environments/base/networkpolicy-allow-intra-namespace.yaml \
   "same-namespace allowance is missing"
 require_text environments/base/networkpolicy-allow-redis.yaml 'port: 6379' \
   "Redis allowance does not target port 6379"
+require_text environments/base/networkpolicy-allow-observability-scrape.yaml \
+  'kubernetes.io/metadata.name: observability' \
+  "observability scrape allowance does not select the observability namespace"
+require_text environments/base/networkpolicy-allow-observability-scrape.yaml \
+  'app.kubernetes.io/name: prometheus' \
+  "observability scrape allowance is not scoped to the Prometheus pod"
 for quantity in 'cpu: 25m' 'memory: 32Mi' 'cpu: 250m' 'memory: 256Mi' \
   'cpu: 500m' 'memory: 512Mi'; do
   require_text environments/base/limitrange.yaml "$quantity" \
@@ -181,8 +188,8 @@ for environment in "${environments[@]}"; do
     "$environment render must contain exactly one ExternalSecret"
   require_render_text "$render" "namespace: ${namespaces[$environment]}" \
     "$environment resources are not namespace-scoped correctly"
-  final_policy_count=4
-  [[ "$environment" == dev ]] && final_policy_count=5
+  final_policy_count=5
+  [[ "$environment" == dev ]] && final_policy_count=6
   require_render_count "$render" '^kind: NetworkPolicy$' "$final_policy_count" \
     "$environment steady state must contain default deny plus exact allowances"
   require_render_text "$render" 'name: default-deny' \
@@ -202,8 +209,8 @@ for environment in "${environments[@]}"; do
   foundation_render="$TMP_DIR/environment-$environment-foundation.yaml"
   render_kustomize "$ROOT/tests/fixtures/namespace-isolation/foundation/$environment" \
     >"$foundation_render" || fail "$environment foundation fixture does not render"
-  foundation_policy_count=3
-  [[ "$environment" == dev ]] && foundation_policy_count=4
+  foundation_policy_count=4
+  [[ "$environment" == dev ]] && foundation_policy_count=5
   require_render_count "$foundation_render" '^kind: NetworkPolicy$' \
     "$foundation_policy_count" \
     "$environment foundation must retain only its exact allow policies"
