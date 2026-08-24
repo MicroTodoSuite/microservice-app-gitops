@@ -1,3 +1,12 @@
+# Industry-standard delivery for the shared cluster: keep the base template's
+# automated + selfHeal sync policy (continuous reconciliation, no silent drift)
+# and orchestrate it with RollingSync so environments converge in order
+# dev -> staging -> prod, one at a time, never advancing until the previous
+# environment is Healthy. Human control lives in Git (promotion PRs, the prod
+# approval gate, branch protection on overlays/prod) and progressive delivery is
+# handled by the Argo Rollouts canary in the prod overlay -- not by withholding
+# sync. Ordered waves require the ApplicationSet progressive-syncs feature to be
+# enabled on this cluster (applicationsetcontroller.enable.progressive.syncs).
 - op: add
   path: /spec/strategy
   value:
@@ -19,5 +28,3 @@
               operator: In
               values: ["prod"]
           maxUpdate: 1
-- op: remove
-  path: /spec/template/spec/syncPolicy/automated
