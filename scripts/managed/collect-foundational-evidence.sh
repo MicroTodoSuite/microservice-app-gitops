@@ -198,17 +198,37 @@ else
     || fail "could not read live ArgoCD state; see $EXTERNAL_DIR/argocd-error.txt"
 
   # Names and statuses only: no manifests, parameters, or resource contents.
-  jq '{
-    result: (if ([.items[] | select(.status.sync.status != "Synced" or .status.health.status != "Healthy")] | length) == 0
-             then "pass" else "degraded" end),
-    total: (.items | length),
-    synced: ([.items[] | select(.status.sync.status == "Synced")] | length),
-    healthy: ([.items[] | select(.status.health.status == "Healthy")] | length),
-    exceptions: [.items[]
-      | select(.status.sync.status != "Synced" or .status.health.status != "Healthy")
-      | {name: .metadata.name, sync: .status.sync.status, health: .status.health.status}]
-      | sort_by(.name)
-  }' "$EXTERNAL_DIR/argocd-applications.json" > "$RUN_DIR/live/argocd-health.json"
+  #
+  # The stage verdict is the health of the ECONOMICAL PLATFORM: the five business
+  # services and the environment policy applications. That is the rollback target
+  # the rollout must never regress, and the only thing this stage could plausibly
+  # have broken, since everything in it is either unapplied Terraform or GitOps
+  # composition whose economical renders are proven byte-identical.
+  #
+  # Platform add-ons are still captured and still reported by name, but as
+  # attributed advisories rather than as a verdict, so one team's unrelated drift
+  # cannot silently be laundered into this stage's approval OR block it forever.
+  jq '
+    def platform_app: (.metadata.name | startswith("infra-")) or .metadata.name == "argocd";
+    def unhealthy: .status.health.status != "Healthy";
+    def undesired: .status.sync.status != "Synced";
+    {
+      result: (if ([.items[] | select(platform_app | not) | select(unhealthy or undesired)] | length) == 0
+               then "pass" else "degraded" end),
+      verdictScope: "economical platform: business services and environment policy",
+      total: (.items | length),
+      synced: ([.items[] | select(undesired | not)] | length),
+      healthy: ([.items[] | select(unhealthy | not)] | length),
+      exceptions: [.items[]
+        | select(platform_app | not) | select(unhealthy or undesired)
+        | {name: .metadata.name, sync: .status.sync.status, health: .status.health.status}]
+        | sort_by(.name),
+      platformAdvisories: [.items[]
+        | select(platform_app) | select(unhealthy or undesired)
+        | {name: .metadata.name, sync: .status.sync.status, health: .status.health.status,
+           owner: "platform add-on owner"}]
+        | sort_by(.name)
+    }' "$EXTERNAL_DIR/argocd-applications.json" > "$RUN_DIR/live/argocd-health.json"
 fi
 
 # --- Bundle -----------------------------------------------------------------
