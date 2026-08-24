@@ -192,7 +192,7 @@ for environment in "${environments[@]}"; do
   require_render_text "$render" 'name: external-secrets-jwt' \
     "$environment render lacks its exact JWT synchronization ServiceAccount"
   require_render_text "$render" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-${environment}-jwt-reader" \
+    "eks.amazonaws.com/role-arn: arn:aws:iam::916491575487:role/microtodosuite-${environment}-jwt-reader" \
     "$environment JWT ServiceAccount role mapping drifted"
   require_render_text "$render" \
     "key: microtodosuite/$environment/auth-api-secrets" \

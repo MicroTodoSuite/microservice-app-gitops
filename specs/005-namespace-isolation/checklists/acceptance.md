@@ -106,18 +106,31 @@
 
 ## Current Status
 
-**COST-OPTIMIZED SHARED-CLUSTER SOLUTION OPERATIONAL; UNEVIDENCED NEGATIVE GATES
-REMAIN OPEN.** The shared cluster has reconciled reviewed revision
-`432347fa3bde65eaab379802c6c7346528ccea21`. All 25 Argo CD Applications are
-`Synced/Healthy`; the fifteen business Applications run five services in each of
-dev, staging, and prod. All 23 steady environment Pods are Ready with zero
-restarts and the five reviewed immutable business digests; 15/15 service health
-requests return HTTP 200. Live DNS, same-environment TCP, all six directed
-cross-environment TCP denials, three local Redis controls, all six directed
-cross-environment Redis denials, Redis Pub/Sub containment, ten-minute dev
-continuity, and five fail-closed production canaries pass. AWS maintainer
-principal mappings remain operator-deferred. The pre-foundation dev baseline,
-service-PR review clause, destination-secret/cross-role proof, negative signature
-and canary fixtures, quota-violation fixture, reviewed fixture-revert chain, and
-final schema-valid cumulative observer result remain unchecked rather than being
-inferred from healthy steady state.
+**NEW-ACCOUNT RECOVERY PREPARED; BOOTSTRAP IS BLOCKED ONLY BY THE
+PROTECTED-BRANCH REVIEW GATE.** The earlier operational evidence above belongs
+to the retired AWS account and is retained as historical evidence only. A fresh
+read-only baseline on 2026-08-23 verified the replacement cluster
+`arn:aws:eks:us-east-1:916491575487:cluster/microtodosuite-dev` as Active with
+two Ready nodes, VPC CNI network-policy enforcement enabled, the exact new OIDC
+provider, three current secret versions, and the four environment/Kyverno IRSA
+trust bindings. ArgoCD is not installed in this replacement cluster.
+
+The organization workflow and all five service callers now target account
+`916491575487`. Their new `main` runs passed tests, source audit, image build,
+Trivy, SBOM retention, OIDC publication, digest resolution, attestation, and
+keyless signing. The replacement digests are `04af9a4` (auth), `3ff827e`
+(todos), `4893690` (users), `5fe218d` (frontend), and `17c5848` (log processor),
+and this migration updates all three environments plus Kyverno's exact signer
+identity.
+
+The two nodes expose 58 allocatable Pod slots; six are already used by
+`kube-system`. The full twelve-controller target would exceed that envelope
+before Prometheus/Alertmanager-generated workloads, CronJobs, canary Jobs, or
+rolling-update surge. The tracked root therefore selects a reversible
+capacity-constrained profile with the five release-critical controllers. Its
+historically observed lower bound is 51 total steady Pods, including the six
+system Pods, leaving seven slots for serialized rollout surge and bounded
+analysis. All observability and runtime-security definitions remain in the
+parent profile but are deferred until Terraform-owned capacity grows. The
+GitOps migration must pass CI and receive the one external approval required by
+protected `main` before the audited two-mutation ArgoCD bootstrap executes.

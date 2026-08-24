@@ -43,26 +43,21 @@ locally also requires a Redis instance in `microtodo-local`. The service
 definitions onboarded here render and conform independently; their local
 activation (and thus a running Redis) is optional and deferred.
 
-## Managed overlays and the real dev cluster
+## Managed overlays and the shared EKS cluster
 
-`staging` and `prod` overlays are inactive scaffolds (placeholder registry +
-all-zero digest) until their foundations exist.
+The `clusters/eks-dev` registration targets the in-cluster API of the shared
+`microtodosuite-dev` EKS cluster in AWS account `916491575487`, region
+`us-east-1`. The legacy directory and physical cluster name are retained, while
+the registration activates dev, staging, and prod as isolated namespaces.
 
-The **`dev`** environment is now wired to real AWS (task-1 dev foundation,
-`ops @ esteban/eks-dev-foundation`, account `995253610162`, `us-east-1`):
+All managed overlays use the environment-neutral private repository
+`916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>`. A
+service is built once by its reviewed `main` workflow, then the same signed
+immutable digest is pinned in dev, staging, and prod. Environment-specific
+Secrets Manager readers remain separate IRSA roles even though the artifact is
+shared.
 
-- **Cluster registration**: [`clusters/eks-dev/`](../clusters/eks-dev) — the real
-  EKS cluster, reconciling from this hosted GitHub repo, activating `env=dev`
-  (economical growth to staging/prod as namespaces is a value change; see its
-  `activation-templates/economical/`). It stays **inactive** until ArgoCD is
-  bootstrapped in the cluster and `root-app.yaml` is applied.
-- **Registry**: `dev` overlays now point at the real ECR
-  `995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/dev/<service>`
-  (IMMUTABLE, scan-on-push). The digest stays all-zero until the CI promotion
-  flow writes a real one.
-
-**Still blocking a live dev deploy** (both external to this repo):
-
-1. The task-1 dev foundation must be `terraform apply`-ed (confirm it is live).
-2. A GitHub Actions → ECR **OIDC push role** must exist — it is not in the
-   foundation yet. See [docs/ci-ecr-oidc-role.md](./ci-ecr-oidc-role.md).
+ArgoCD is installed once through the audited bootstrap boundary and receives
+only the tracked root Application. From that point onward, platform add-ons,
+environment policy, and all fifteen business Applications are reconciled from
+this repository; CI and operators never apply workloads directly.

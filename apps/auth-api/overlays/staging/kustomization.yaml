@@ -1,9 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# INACTIVE managed-environment scaffold (see dev/kustomization.yaml for the
-# activation contract). Staging receives the digest already verified in dev,
-# promoted by copying the digest — never a rebuilt artifact.
+# Active managed staging overlay. Staging receives the digest already verified
+# in dev, promoted by copying the digest — never a rebuilt artifact.
 namespace: microtodo-staging
 
 resources:
@@ -37,5 +36,5 @@ patches:
 
 images:
   - name: auth-api
-    newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
-    digest: sha256:c4514e18b83b7265b90a8f7e62cbf31868fbe539d3e6c65356d9a0f4e8356fdc
+    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+    digest: sha256:04af9a416d532184bfd98bc73c77f936138f861572eec0fdbf5ecb6aae76189d

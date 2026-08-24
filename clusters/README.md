@@ -17,9 +17,13 @@ The registration seam is intentionally small:
 
 Infrastructure is never activated by folder discovery. The local registration
 explicitly retains its validated entries, including local Redis. The managed
-registration declares exactly KEDA, cert-manager, External Secrets Operator,
-Kyverno, and Argo Rollouts. Namespace-local Redis belongs to each environment
-Application; the former shared Redis Application is not retained.
+full profile declares twelve reviewed platform entries. The replacement
+two-node EKS cluster currently selects
+`eks-dev-capacity-constrained`, which narrows that list to KEDA,
+cert-manager, External Secrets Operator, Kyverno, and Argo Rollouts while
+preserving all three environments and fifteen business Applications.
+Namespace-local Redis belongs to each environment Application; the former
+shared Redis Application is not retained.
 
 Because every reconciler targets its own cluster, every activation uses
 `server: https://kubernetes.default.svc`. A raw EKS or AKS API endpoint and
@@ -47,6 +51,15 @@ The shared templates derive `microtodo-dev`, `microtodo-staging`, and
 remains empty until all release prerequisites pass. The final activation uses
 the same three elements and the EKS-only RollingSync strategy serializes all
 five Applications in dev, then staging, then prod.
+
+The tracked root selects the sibling `eks-dev-capacity-constrained` profile on the
+replacement cluster. This is a reversible GitOps overlay, not an imperative
+scale-down: it inherits the normal `eks-dev` registration and replaces only the
+infrastructure ApplicationSet elements with the five release-critical
+controllers. Prometheus, Grafana, Jaeger, Loki, Falco, kube-bench, and
+kube-hunter remain fully defined in the parent profile but are not reconciled
+until Terraform-owned node capacity is increased and the root path is changed
+back through a reviewed commit.
 
 ## Full version (prepared, not active)
 
@@ -83,7 +96,9 @@ Each sibling registration consumes `../base`, patches the three independent
 activation lists, and replaces only the repository URL and revision fields from
 its ConfigMap. `clusters/eks-dev` additionally patches the business
 ApplicationSet with the environment label and `dev -> staging -> prod`
-RollingSync strategy. `clusters/eks-dev` is the active shared-cluster
+RollingSync strategy. `clusters/eks-dev` remains the shared-cluster
 registration; its name is historical and does not limit it to the dev
-namespace. Renaming the AWS cluster or moving the root Application path is a
-separate replacement/migration operation, not part of environment activation.
+namespace. Its tracked root currently points to the sibling capacity-constrained
+profile for new-account recovery. Renaming the AWS cluster or selecting another
+root profile is a separate reviewed migration operation, not part of
+environment activation.

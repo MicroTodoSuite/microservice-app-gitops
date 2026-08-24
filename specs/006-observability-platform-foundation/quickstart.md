@@ -2,7 +2,7 @@
 
 Run from the repository root. Unlike `003-platform-addons`'s disposable local
 `kind` pilot, this feature targets the real, live `eks-dev` cluster
-(`ops @ esteban/eks-dev-foundation`, account `995253610162`, `us-east-1`).
+(`ops @ main`, account `916491575487`, `us-east-1`).
 Every step below either renders/observes read-only, or is a normal committed
 PR to `main` that ArgoCD reconciles — never a direct `kubectl apply` against
 the managed cluster.

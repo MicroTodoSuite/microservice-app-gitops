@@ -33,7 +33,7 @@ patches:
       metadata:
         name: kyverno-admission-controller
         annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::995253610162:role/microtodosuite-kyverno-ecr-verifier
+          eks.amazonaws.com/role-arn: arn:aws:iam::916491575487:role/microtodosuite-kyverno-ecr-verifier
   - target:
       group: apps
       version: v1

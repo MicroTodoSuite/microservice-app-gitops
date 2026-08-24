@@ -22,7 +22,7 @@ trace to the baselines recorded in `spec.md`.
 ## 2. Capture the live read-only baseline
 
 ```bash
-CONTEXT='arn:aws:eks:us-east-1:995253610162:cluster/microtodosuite-dev'
+CONTEXT='arn:aws:eks:us-east-1:916491575487:cluster/microtodosuite-dev'
 CLUSTER_ID="$(kubectl config view -o jsonpath="{.contexts[?(@.name=='${CONTEXT}')].context.cluster}")"
 REVISION="$(git rev-parse origin/main)"
 

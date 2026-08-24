@@ -101,7 +101,7 @@ spec:
                 - "microtodo-*"
       verifyImages:
         - imageReferences:
-            - "995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/*"
+            - "916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/*"
           failureAction: Enforce
           required: true
           mutateDigest: true
@@ -114,7 +114,7 @@ spec:
             - count: 1
               entries:
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -124,7 +124,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -134,7 +134,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -144,7 +144,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -154,7 +154,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@0ea80036f4e92c32e24350c422b8d64d55da4a55
+                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push

@@ -31,5 +31,5 @@ patches:
                   limits: {cpu: 250m, memory: 256Mi}
 images:
   - name: log-message-processor
-    newName: 995253610162.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
-    digest: sha256:8ba82aa460eb61273f96ed7c1496404d194388e2c9cf3172fdae1180e52e5ee3
+    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
+    digest: sha256:17c5848722fe9bc5a7daf618418008e39ea8077a75dca0ed1c7e5a755bcdfc51
