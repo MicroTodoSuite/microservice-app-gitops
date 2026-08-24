@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Static contract for runtime security hardening (feature 008).
-# Covers User Story 1 (Falco + Falcosidekick). kube-bench/kube-hunter are
-# added by later tasks in specs/008-security-runtime-hardening/tasks.md.
+# Covers User Story 1 (Falco + Falcosidekick) and User Story 2 (kube-bench).
+# kube-hunter is added by a later task in specs/008-security-runtime-
+# hardening/tasks.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -68,11 +69,12 @@ require_resource() {
 }
 
 # --- Vendor provenance: none of the three tools has a genuine upstream
-# bundle to checksum (all normally installed via Helm chart) ---
+# bundle to checksum (all normally installed via Helm chart or example Job) ---
 require_file "infrastructure/falco/vendor/v0.44.1/README.md"
+require_file "infrastructure/kube-bench/vendor/v0.16.0/README.md"
 
 # --- Render check ---
-for component in falco; do
+for component in falco kube-bench; do
   render="$TMP_DIR/$component.yaml"
   render_kustomize "$ROOT/infrastructure/$component" >"$render" \
     || fail "Kustomize render failed for $component"
@@ -117,13 +119,26 @@ for f in infrastructure/falco/falco-daemonset.yaml infrastructure/falco/falcosid
     "$f must not add a public Ingress"
 done
 
+# --- kube-bench resources ---
+require_resource "$TMP_DIR/kube-bench.yaml" CronJob kube-bench
+require_text infrastructure/kube-bench/cronjob.yaml 'eks-1.5.0' \
+  "kube-bench must use the eks target profile (Clarifications session decision)"
+require_text infrastructure/kube-bench/cronjob.yaml 'ttlSecondsAfterFinished' \
+  "kube-bench Job must not leave a standing workload after it completes"
+reject_text infrastructure/kube-bench/cronjob.yaml 'kind: ClusterRole' \
+  "kube-bench needs no ClusterRole (verified against the real upstream job)"
+reject_text infrastructure/kube-bench/cronjob.yaml '\-\-outputfile' \
+  "kube-bench must not write a persisted report file (findings stay in Job logs only)"
+
 # --- Registration contract ---
-require_text clusters/eks-dev/activation-infrastructure.yaml 'name: falco' \
-  "eks-dev infrastructure activation omits falco"
-if [[ "$(rg -A2 "name: falco$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | rg -c 'namespace: security')" -lt 1 ]]; then
-  fail "eks-dev activation entry falco is not destined to the security namespace"
-fi
+for name in falco kube-bench; do
+  require_text clusters/eks-dev/activation-infrastructure.yaml "name: $name" \
+    "eks-dev infrastructure activation omits $name"
+  if [[ "$(rg -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | rg -c 'namespace: security')" -lt 1 ]]; then
+    fail "eks-dev activation entry $name is not destined to the security namespace"
+  fi
+done
 require_text clusters/base/project.yaml 'namespace: security' \
   "AppProject destinations omit the security namespace"
 
-pass "runtime security hardening static contract (falco)"
+pass "runtime security hardening static contract (falco, kube-bench)"
