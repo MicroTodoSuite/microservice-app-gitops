@@ -1,0 +1,96 @@
+# Adapted from kube-hunter 0.6.8's own official job.yaml
+# (https://raw.githubusercontent.com/aquasecurity/kube-hunter/v0.6.8/
+# job.yaml): the same `--pod` internal-mode invocation, wrapped in a
+# CronJob for the recurring schedule FR-006 requires, with
+# ttlSecondsAfterFinished so no completed Job lingers (FR-007).
+#
+# `--pod` (no `--active`) is passive/non-destructive by kube-hunter's own
+# design: it reports potential vulnerabilities without exploiting them,
+# matching this feature's explicit "does not disrupt a running business
+# workload" requirement. Unlike Falco and kube-bench in this same feature,
+# kube-hunter needs no host access at all: no hostPID, no hostPath mounts,
+# no elevated Linux capabilities, and no ServiceAccount/ClusterRole -
+# confirmed directly against the real upstream job, which has none of these
+# either. It only needs outbound network reach to the cluster's own Service
+# network, which every pod already has by default.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kube-hunter
+  labels:
+    app.kubernetes.io/name: kube-hunter
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  schedule: "0 4 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      activeDeadlineSeconds: 900
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: kube-hunter
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: kube-hunter
+              image: aquasec/kube-hunter@sha256:e64fe49f059f513a09c772a8972172b2af6833d092c06cc311171d7135e4525a
+              command: ["kube-hunter"]
+              args: ["--pod"]
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 250m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kube-hunter-default-deny
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-hunter
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kube-hunter-allow-cluster-scan-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-hunter
+  policyTypes: ["Egress"]
+  egress:
+    # kube-hunter's --pod mode needs to reach other pods/Services across
+    # this suite's own namespaces to scan them; unlike every other
+    # NetworkPolicy in this repo, this one is deliberately broad within the
+    # cluster because scanning for exposed paths is this Job's entire job.
+    # It still cannot reach the public internet or namespaces outside this
+    # cluster's pod network.
+    - {}
