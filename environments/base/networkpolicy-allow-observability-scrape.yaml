@@ -1,0 +1,30 @@
+# default-deny blocks all ingress by default (namespace isolation). Prometheus
+# lives in the observability namespace and needs to reach every business
+# workload's metrics port; nothing previously allowed that cross-namespace
+# path, so every ServiceMonitor target here read as "down" with
+# context deadline exceeded once RBAC-based discovery was fixed separately
+# (infrastructure/prometheus/rbac-servicemonitor-discovery.yaml).
+# Scoped to the Prometheus pod specifically (not the whole observability
+# namespace) and to the two named ports the golden-signals ServiceMonitors
+# actually scrape (infrastructure/prometheus/servicemonitors/*.yaml).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-observability-scrape
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: http
+          protocol: TCP
+        - port: metrics
+          protocol: TCP

@@ -14,6 +14,7 @@ resources:
   - networkpolicy-allow-dns.yaml
   - networkpolicy-allow-intra-namespace.yaml
   - networkpolicy-allow-redis.yaml
+  - networkpolicy-allow-observability-scrape.yaml
   - external-secrets-serviceaccount.yaml
   - secretstore.yaml
   - external-secret.yaml
