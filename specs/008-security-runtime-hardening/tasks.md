@@ -98,24 +98,31 @@ text for any FAIL.
 
 ### Tests for User Story 2
 
-- [ ] T014 [P] [US2] Add `eks`-target-profile, read-only-RBAC, and
+- [x] T014 [P] [US2] Add `eks`-target-profile, no-ClusterRole, and
   `ttlSecondsAfterFinished`-cleanup assertions to `tests/contract/security.sh`
   for `infrastructure/kube-bench/`
 
 ### Implementation for User Story 2
 
-- [ ] T015 [P] [US2] Add the kube-bench `CronJob` (`--benchmark eks-1.x`,
-  image pinned by digest, `ttlSecondsAfterFinished`) and its read-only
-  ServiceAccount/ClusterRole/ClusterRoleBinding in
-  `infrastructure/kube-bench/cronjob.yaml`
-- [ ] T016 [P] [US2] Record kube-bench v0.16.0 image source/digest
+- [x] T015 [P] [US2] Add the kube-bench `CronJob` (`--benchmark eks-1.5.0`,
+  targets `node,policies,managedservices,controlplane`, image pinned by
+  digest, `ttlSecondsAfterFinished`) in `infrastructure/kube-bench/cronjob.yaml`.
+  Adapted directly from kube-bench's own real `job-eks.yaml` for this
+  version. `hostPID: true` is genuinely required here (kube-bench inspects
+  the kubelet's live process flags); no `ServiceAccount`/`ClusterRole` is
+  needed (verified against the real upstream job, which uses none - it
+  makes no Kubernetes API calls, only reads mounted host files).
+- [x] T016 [P] [US2] Record kube-bench v0.16.0 image source/digest
   provenance in `infrastructure/kube-bench/vendor/v0.16.0/README.md` (no
   bundle to checksum)
-- [ ] T017 [US2] Complete kube-bench report-capture evidence in
-  `scripts/managed/verify-security.sh`
+- [x] T017 [US2] Complete kube-bench report-capture evidence in
+  `scripts/managed/verify-security.sh` (triggers a manual Job; log capture
+  is a follow-up manual step since the Job's pod name is only known after
+  it starts - not yet run against a live cluster from this environment)
 - [ ] T018 [US2] Publish the kube-bench installation commit, wait for it to
   sync, manually trigger one Job run, and record its full report plus a
-  remediation-or-exception disposition for every FAIL
+  remediation-or-exception disposition for every FAIL (live eks-dev step,
+  not run from this environment)
 
 **Checkpoint**: A real, complete CIS Benchmark report exists for `eks-dev`,
 with no silently-dropped finding.

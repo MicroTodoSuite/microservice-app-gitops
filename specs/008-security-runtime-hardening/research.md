@@ -58,9 +58,14 @@ rather than a bespoke one.
 
 ## kube-bench target: the `eks` profile, not the generic CIS profile
 
-**Decision**: kube-bench v0.16.0 runs with `--benchmark eks-1.x` (the `eks`
-target profile bundled with kube-bench), not the generic upstream
-Kubernetes CIS profile.
+**Decision**: kube-bench v0.16.0 runs with `--benchmark eks-1.5.0` and
+`--targets node,policies,managedservices,controlplane` (the exact
+invocation from kube-bench's own real `job-eks.yaml` for this version), not
+the generic upstream Kubernetes CIS profile. `controlplane` stays in the
+targets list even on EKS: that section of the `eks-1.5.0` benchmark checks
+customer-configurable settings (e.g. audit logging), not anything requiring
+direct access to the AWS-managed control plane itself, so it is not one of
+the inapplicable checks this decision is about.
 
 **Rationale**: Resolved in the Clarifications session. `eks-dev`'s control
 plane (API server, etcd, scheduler, controller-manager) is fully managed by
@@ -84,10 +89,14 @@ detectors (unlike Falco) - the spec's Assumptions already frame their
 interval as a planning-phase decision. A `CronJob` is the standard
 Kubernetes-native pattern for "run this periodically, then stop," and
 matches FR-007's requirement that neither tool leaves a standing privileged
-workload after it completes. kube-bench specifically needs to read
-per-node kubelet configuration; this is done via a single Job whose pod is
-scheduled onto (and reads config from) one representative node per run,
-which is kube-bench's own documented Kubernetes deployment pattern, rather
+workload after it completes. kube-bench specifically needs `hostPID: true`
+to inspect the kubelet process's live command-line flags for several CIS
+controls (a real, verified need, unlike the `hostPID` this feature's own
+earlier draft wrongly assumed Falco needed); it reads kubelet/API-server
+config through mounted host paths and makes no Kubernetes API calls, so it
+needs no `ServiceAccount`/`ClusterRole` at all - confirmed directly against
+kube-bench's own real `job-eks.yaml`, which uses neither. This is kube-bench's
+own documented Kubernetes deployment pattern, rather
 than fanning out to every node like Falco must.
 
 ## Namespace: `security`, not `observability`
