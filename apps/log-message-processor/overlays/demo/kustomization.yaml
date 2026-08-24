@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: microtodo-demo
+resources: [../../topology]
+replicas: [{name: log-message-processor, count: 1}]
+patches:
+  - target: {kind: ConfigMap, name: log-message-processor-config}
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: {name: log-message-processor-config}
+      data:
+        REDIS_HOST: redis
+  - target: {kind: Deployment, name: log-message-processor}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: log-message-processor}
+      spec:
+        template:
+          metadata:
+            annotations:
+              runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
+          spec:
+            containers:
+              - name: log-message-processor
+                resources:
+                  requests: {cpu: 50m, memory: 64Mi}
+                  limits: {cpu: 250m, memory: 256Mi}
+images:
+  - name: log-message-processor
+    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
+    digest: sha256:17c5848722fe9bc5a7daf618418008e39ea8077a75dca0ed1c7e5a755bcdfc51
