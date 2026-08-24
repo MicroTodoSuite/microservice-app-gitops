@@ -34,3 +34,39 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop: [ALL]
+        # Scrapes /nginx_status over the pod's own loopback, matching the
+        # `allow 127.0.0.1; deny all;` restriction already on that endpoint
+        # (frontend repo, nginx.conf.template) - no Service port is needed
+        # for this reach, only the ServiceMonitor's own container port
+        # below (spec 006 US1's business-workloads.yaml already targets it).
+        - name: nginx-metrics
+          image: nginx/nginx-prometheus-exporter@sha256:85666e7fde7e253f1c6d978f9a961245df4c9cdb7677e1866d9bb28e8f9ee41d
+          args:
+            - --nginx.scrape-uri=http://127.0.0.1:8080/nginx_status
+          ports:
+            - name: metrics
+              containerPort: 9113
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+          securityContext:
+            runAsNonRoot: true
+            # Verified via `docker inspect ... --format '{{.Config.User}}'`
+            # against the real pinned digest: this image's own default user
+            # is 1001:1001, not the more common 101 some other images use.
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          livenessProbe:
+            httpGet: {path: /metrics, port: metrics}
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: {path: /metrics, port: metrics}
+            periodSeconds: 10
