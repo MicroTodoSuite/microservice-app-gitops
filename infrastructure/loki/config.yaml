@@ -2,7 +2,10 @@
 # (https://raw.githubusercontent.com/grafana/loki/v3.7.6/cmd/loki/loki-local-config.yaml):
 # storage moved from /tmp onto the PVC this StatefulSet mounts, retention
 # enabled at 3 days per the Clarifications session, and anonymous usage
-# reporting to Grafana Labs disabled.
+# reporting to Grafana Labs disabled. delete_request_store is mandatory once
+# retention_enabled is true (Loki's own compactor.Validate() rejects an empty
+# value); "filesystem" matches schema_config's object_store below - there is
+# no separate store to name here.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -41,6 +44,7 @@ data:
     compactor:
       working_directory: /loki/data/compactor
       retention_enabled: true
+      delete_request_store: filesystem
 
     schema_config:
       configs:

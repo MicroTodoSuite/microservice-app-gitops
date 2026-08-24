@@ -37,9 +37,8 @@ spec:
       containers:
         - name: falco
           image: falcosecurity/falco@sha256:d0cfe422d6ac0e0f20857798f46c7d7273210e1b064b22821e4e6e7f843cde6b
-          args:
+          command:
             - /usr/bin/falco
-            - --modern-bpf
           securityContext:
             capabilities:
               add: ["BPF", "SYS_RESOURCE", "PERFMON", "SYS_PTRACE"]

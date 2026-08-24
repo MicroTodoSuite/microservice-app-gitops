@@ -97,8 +97,8 @@ infrastructure_root_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
   infrastructure_root_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#infrastructure_root_names[@]}" == "14" ]] \
-  || fail "expected exactly fourteen infrastructure roots, found ${#infrastructure_root_names[@]}"
+[[ "${#infrastructure_root_names[@]}" == "15" ]] \
+  || fail "expected exactly fifteen infrastructure roots, found ${#infrastructure_root_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
   [[ " ${infrastructure_root_names[*]} " == *" $addon "* ]] \
@@ -367,10 +367,10 @@ for crd in rollouts.argoproj.io analysisruns.argoproj.io analysistemplates.argop
   require_resource "$TMP_DIR/argo-rollouts.yaml" CustomResourceDefinition "$crd"
 done
 
-if [[ "$(rg -c '^    - name:' "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" || true)" != 12 ]]; then
-  fail "shared EKS infrastructure activation must contain exactly twelve final controllers"
+if [[ "$(rg -c '^    - name:' "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" || true)" != 13 ]]; then
+  fail "shared EKS infrastructure activation must contain exactly thirteen final controllers"
 fi
-for addon in keda cert-manager external-secrets kyverno argo-rollouts prometheus grafana jaeger loki falco kube-bench kube-hunter; do
+for addon in keda cert-manager external-secrets kyverno argo-rollouts ebs-csi-driver prometheus grafana jaeger loki falco kube-bench kube-hunter; do
   require_text clusters/eks-dev/activation-infrastructure.yaml \
     "name: $addon" "shared EKS infrastructure activation omits $addon"
 done
@@ -390,8 +390,12 @@ done
 reject_text "$recovery_profile/activation-infrastructure.yaml" \
   'name: (prometheus|grafana|jaeger|loki|falco|kube-bench|kube-hunter|redis)' \
   "capacity-constrained EKS profile activates a deferred controller"
+# Capacity was restored 2026-08-24 (VPC CNI prefix delegation plus a
+# nodegroup rolling replace); root points back at the full profile. The
+# recovery profile directory above stays in place as a documented rollback
+# path, just no longer selected.
 require_text clusters/eks-dev/root-app.yaml \
-  'path: clusters/eks-dev-capacity-constrained' \
-  "replacement-cluster root does not select the capacity-constrained profile"
+  'path: clusters/eks-dev$' \
+  "replacement-cluster root does not select the full platform profile"
 
 pass "platform add-on static contract"

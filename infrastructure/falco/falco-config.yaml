@@ -3,7 +3,16 @@
 # charts/falco/values.yaml): default/community rules_files kept as-is,
 # json_output and http_output enabled to forward findings to Falcosidekick
 # (the "when using falcosidekick, json_output must be true" note in that
-# same values.yaml).
+# same values.yaml). engine.kind selects the modern eBPF driver here, in
+# config, not as a falco binary CLI flag: `--modern-bpf` was a
+# docker-entrypoint.sh wrapper convenience, not a real getopt option, and
+# fails with "Option 'modern-bpf' does not exist" against the actual binary.
+#
+# The container plugin is declared but NOT auto-loaded by upstream's own
+# default falco.yaml (load_plugins: [] there) - the default rules_files
+# still require it ("Plugin requirement not satisfied, must load one of:
+# container (>= 0.4.0)"), so it must be added to load_plugins explicitly.
+# library_path and init_config match the upstream default verbatim.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,6 +23,18 @@ data:
       - /etc/falco/falco_rules.yaml
       - /etc/falco/falco_rules.local.yaml
       - /etc/falco/rules.d
+
+    engine:
+      kind: modern_ebpf
+
+    plugins:
+      - name: container
+        library_path: libcontainer.so
+        init_config:
+          label_max_len: 100
+          with_size: false
+
+    load_plugins: [container]
 
     json_output: true
     json_include_output_property: true

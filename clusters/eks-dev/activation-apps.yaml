@@ -15,3 +15,5 @@
       profile: economical
       destination: eks-dev
       server: https://kubernetes.default.svc
+    - env: demo
+      server: https://kubernetes.default.svc

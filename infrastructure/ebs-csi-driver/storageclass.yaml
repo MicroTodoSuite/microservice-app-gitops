@@ -1,0 +1,20 @@
+# The controller/node pods for ebs.csi.aws.com are the Terraform-owned EKS
+# managed addon "aws-ebs-csi-driver" (microservice-app-ops, IRSA-scoped to
+# kube-system/ebs-csi-controller-sa). This StorageClass is the only
+# cluster-scoped object GitOps needs to add: Prometheus, Grafana, Jaeger, and
+# Loki already reference storageClassName: gp3.
+#
+# Not marked as the cluster default: every observability PVC already sets
+# storageClassName explicitly, so a default would only add a blast radius
+# with no matching need.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  encrypted: "true"
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true

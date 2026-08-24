@@ -90,7 +90,10 @@ require_resource "$TMP_DIR/falco.yaml" ExternalSecret falcosidekick-slack-webhoo
 require_resource "$TMP_DIR/falco.yaml" SecretStore aws-secrets-manager
 
 # --- Falco driver: modern eBPF least-privileged, never full privileged ---
-require_text infrastructure/falco/falco-daemonset.yaml '\-\-modern-bpf' \
+# engine.kind lives in falco.yaml, not a --modern-bpf CLI flag: that flag is a
+# docker-entrypoint.sh wrapper convenience, not a real falco binary option,
+# and fails at runtime with "Option 'modern-bpf' does not exist".
+require_text infrastructure/falco/falco-config.yaml 'kind: modern_ebpf' \
   "Falco must use the modern eBPF driver (Clarifications session decision)"
 require_text infrastructure/falco/falco-daemonset.yaml 'add: \["BPF", "SYS_RESOURCE", "PERFMON", "SYS_PTRACE"\]' \
   "Falco must use the least-privileged modern eBPF capability set, not privileged: true"

@@ -67,9 +67,9 @@ data:
         }
       }
 
-      # Low-cardinality only: level is one of a handful of values, safe as a
-      # label. trace_id/span_id are per-request-unique and must never become
-      # labels (see the comment above this ConfigMap).
+      // Low-cardinality only: level is one of a handful of values, safe as a
+      // label. trace_id/span_id are per-request-unique and must never become
+      // labels (see the comment above this ConfigMap).
       stage.labels {
         values = {
           level = "",
