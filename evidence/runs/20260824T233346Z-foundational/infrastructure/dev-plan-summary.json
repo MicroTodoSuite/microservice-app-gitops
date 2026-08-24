@@ -1,0 +1,18 @@
+{
+  "result": "pass",
+  "cleanPlan": true,
+  "summary": "0 to add, 0 to change, 0 to destroy",
+  "resourceChangeCounts": {
+    "add": 0,
+    "change": 0,
+    "destroy": 0,
+    "replace": 0
+  },
+  "changedResources": [],
+  "outputOnlyChanges": [
+    "foundation_contract"
+  ],
+  "terraformVersion": "1.15.8",
+  "externalPlanTextSha256": "2b69eed807ce6734af00cbb182b4402737a38f4e9f1172ad71f030991fcd888e",
+  "note": "The full plan text is retained outside Git; only its checksum and this redacted result are committed. Output-only changes do not alter infrastructure."
+}

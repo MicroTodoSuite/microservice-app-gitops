@@ -1,0 +1,23 @@
+{
+  "result": "degraded",
+  "total": 39,
+  "synced": 37,
+  "healthy": 38,
+  "exceptions": [
+    {
+      "name": "env-demo",
+      "sync": "Synced",
+      "health": "Degraded"
+    },
+    {
+      "name": "infra-loki",
+      "sync": "OutOfSync",
+      "health": "Healthy"
+    },
+    {
+      "name": "infra-prometheus",
+      "sync": "OutOfSync",
+      "health": "Healthy"
+    }
+  ]
+}

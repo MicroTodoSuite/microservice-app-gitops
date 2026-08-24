@@ -1,0 +1,4 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-gitops && tests/evidence/validate-evidence.bats)
+
+PASS: /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-gitops/tests/evidence/fixtures/valid.json conforms to schema and all artifact checksums match
+PASS: full-profile evidence validation fixtures

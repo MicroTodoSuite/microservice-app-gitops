@@ -1,0 +1,4 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-ops && tests/preflight/azure-dr-preflight.bats)
+
+PASS: Azure DR preflight wrote redacted evidence to /tmp/tmp.TaJHXrVjgW/valid.json
+PASS: Azure DR preflight fails closed and redacts identity output

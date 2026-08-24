@@ -1,0 +1,3 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-gitops && tests/policy/no-imperative-managed-mutations.bats)
+
+PASS: managed scripts contain no post-bootstrap imperative mutations; any bootstrap helper is limited to two audited apply commands.

@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "foundational-compatibility",
+  "generatedAt": "2026-08-24T23:35:37Z",
+  "scope": {
+    "repositories": [
+      "microservice-app-gitops",
+      "microservice-app-ops"
+    ],
+    "destinations": [
+      "eks-dev"
+    ],
+    "stateKeys": [
+      "environments/dev/foundation/terraform.tfstate"
+    ],
+    "capabilities": [
+      "profile-routing",
+      "full-profile-network",
+      "full-profile-cluster-prerequisites",
+      "canonical-dns",
+      "platform-image-mirror",
+      "multi-issuer-irsa",
+      "full-profile-secrets"
+    ]
+  },
+  "identities": {
+    "gitActor": "Esteban Gaviria Zambrano",
+    "awsAccountId": "916491575487"
+  },
+  "baseline": {
+    "result": "pass",
+    "evidence": [
+      "evidence/runs/20260824T233346Z-foundational/gates/gitops-profile-routing.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/gitops-image-promotion.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/gitops-managed-policy.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/gitops-ownership.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/gitops-evidence-schema.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/ops-terraform-fmt.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/ops-module-tests.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/ops-root-tests.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/ops-workflow-contract.txt",
+      "evidence/runs/20260824T233346Z-foundational/gates/ops-azure-dr-preflight.txt"
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "desired-state",
+      "path": "evidence/runs/20260824T233346Z-foundational/heads.txt",
+      "sha256": "15d3aa369fe1437327f3c9a544c29b052e9a199d4d45013896db682f18d712ba",
+      "producer": "git",
+      "result": "pass"
+    },
+    {
+      "kind": "terraform-plan",
+      "path": "evidence/runs/20260824T233346Z-foundational/infrastructure/dev-plan-summary.json",
+      "sha256": "8a33e34aa87f69541b3f1540c2dca5b76c2d91db4a3c05b037000254b4003cff",
+      "producer": "terraform",
+      "result": "pass"
+    },
+    {
+      "kind": "continuity",
+      "path": "evidence/runs/20260824T233346Z-foundational/live/argocd-health.json",
+      "sha256": "bda884c149e6d29a1fa5cdb0dee3a3aa7fcfc0b306e6985255b14f4187fc0fd9",
+      "producer": "kubectl",
+      "result": "fail"
+    },
+    {
+      "kind": "gitops-render",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/gitops-profile-routing.txt",
+      "sha256": "3377df62c2cae23c1d44de87a3a9d5bc0789afd38a7c6e9580083daec05433db",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "gitops-render",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/gitops-image-promotion.txt",
+      "sha256": "31dde27ee16f3247e7f2fe6a7eec5a79055651956fdeda913ad54aae5f46bcf5",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "gitops-render",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/gitops-managed-policy.txt",
+      "sha256": "cc2dfc765951214db1b53b946bc756e335d063df865c98bc8a0dfa46027f752a",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "gitops-render",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/gitops-ownership.txt",
+      "sha256": "cc6e8e882edaef1b42504ec91f6282053c31edb9b863404fb2edd118db4bdef5",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "gitops-render",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/gitops-evidence-schema.txt",
+      "sha256": "07b9d18c26c3d505016c68ba5af44621558baecd5e55cfc0c5f9f8adf52e3ee4",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "desired-state",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/ops-terraform-fmt.txt",
+      "sha256": "cb3ba48c32c03d59469bbd5409f71d205b165817cf1921ed784045c6bd7252d8",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "desired-state",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/ops-module-tests.txt",
+      "sha256": "02b77c7b8bdba40f460166b0b0f65ec34f75bb19b25ec8713787d69884652773",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "desired-state",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/ops-root-tests.txt",
+      "sha256": "ef260e86d904a75e02832652e082ae428f24c01c314a9302ba7b2cfb4421c614",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "desired-state",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/ops-workflow-contract.txt",
+      "sha256": "d3499fc9cdca0a1180152c48fc695ee3f1d4303c3fc2441b60809aa7cb28622b",
+      "producer": "test-suite",
+      "result": "pass"
+    },
+    {
+      "kind": "desired-state",
+      "path": "evidence/runs/20260824T233346Z-foundational/gates/ops-azure-dr-preflight.txt",
+      "sha256": "2065e24fc748f32202c8afd5884ee02edf75bff6f5a36a17fc94964bb38eb61d",
+      "producer": "test-suite",
+      "result": "pass"
+    }
+  ],
+  "requirements": {
+    "FR-038": {
+      "result": "pass",
+      "evidence": [
+        "evidence/runs/20260824T233346Z-foundational/gates/gitops-profile-routing.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/gitops-image-promotion.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/gitops-managed-policy.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/gitops-ownership.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/gitops-evidence-schema.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/ops-terraform-fmt.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/ops-module-tests.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/ops-root-tests.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/ops-workflow-contract.txt",
+        "evidence/runs/20260824T233346Z-foundational/gates/ops-azure-dr-preflight.txt"
+      ]
+    },
+    "SC-004": {
+      "result": "pass",
+      "evidence": [
+        "evidence/runs/20260824T233346Z-foundational/infrastructure/dev-plan-summary.json"
+      ]
+    }
+  },
+  "rollback": {
+    "result": "pass",
+    "evidence": [
+      "evidence/runs/20260824T233346Z-foundational/infrastructure/dev-plan-summary.json",
+      "evidence/runs/20260824T233346Z-foundational/heads.txt"
+    ]
+  },
+  "postBaseline": {
+    "result": "blocked",
+    "evidence": [
+      "evidence/runs/20260824T233346Z-foundational/live/argocd-health.json"
+    ]
+  },
+  "decision": "blocked"
+}
