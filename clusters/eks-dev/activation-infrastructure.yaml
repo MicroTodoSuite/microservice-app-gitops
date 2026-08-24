@@ -31,3 +31,6 @@
     - name: falco
       path: infrastructure/falco
       namespace: security
+    - name: kube-bench
+      path: infrastructure/kube-bench
+      namespace: security
