@@ -46,6 +46,7 @@ resources:
   - servicemonitors/canary-workloads.yaml
   - rules/golden-signals.yaml
   - alertmanager-config.yaml
+  - rbac-servicemonitor-discovery.yaml
 
 # Upstream ships everything at namespace: monitoring; this cluster's
 # convention is one observability namespace, not a per-tool one.
@@ -99,6 +100,17 @@ patches:
       - op: replace
         path: /spec/image
         value: quay.io/prometheus/prometheus@sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac
+      # The vendored CR's alerting.alertmanagers[0] discovers Alertmanager by
+      # Kubernetes service discovery, hardcoded to upstream's "monitoring"
+      # namespace (a plain string inside the CR spec, not a field Kustomize's
+      # namespace transformer recognizes and rewrites like it does for
+      # metadata.namespace/subjects[].namespace elsewhere in this bundle).
+      # That namespace does not exist on this cluster - the real Alertmanager
+      # lives in observability - so Prometheus could never route alerts to
+      # it. Verified live: this was silently broken, not merely untested.
+      - op: replace
+        path: /spec/alerting/alertmanagers/0/namespace
+        value: observability
   - target:
       group: monitoring.coreos.com
       version: v1

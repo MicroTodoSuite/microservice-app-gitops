@@ -1,0 +1,39 @@
+# Fills a real gap left by vendor/v0.18.0/README.md's own exclusion
+# rationale: it drops upstream's prometheus-roleSpecificNamespaces.yaml /
+# prometheus-roleBindingSpecificNamespaces.yaml, reasoning they are "an
+# alternative to the broader prometheus-clusterRole/prometheus-
+# clusterRoleBinding this subset already retains." Verified live against a
+# real cluster: the retained prometheus-clusterRole.yaml only grants
+# nodes/metrics and the /metrics, /metrics/slis non-resource URLs - it has
+# no pods/services/endpointslices access at all, so every ServiceMonitor
+# (business-workloads.yaml, canary-workloads.yaml, plus the vendored
+# self-monitoring ones) silently resolved zero targets. Read-only,
+# cluster-wide by resource type (not by hand-enumerated namespace) to match
+# the Prometheus CR's own serviceMonitorNamespaceSelector: {} - it already
+# declares "discover ServiceMonitors in any namespace" as the intended
+# design, so a per-namespace allowlist here would just be a second place to
+# forget to update for the next namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-k8s-servicemonitor-discovery
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-k8s-servicemonitor-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-k8s-servicemonitor-discovery
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-k8s
+    namespace: monitoring
