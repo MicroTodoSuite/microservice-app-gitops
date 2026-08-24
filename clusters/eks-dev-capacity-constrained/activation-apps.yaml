@@ -1,5 +1,5 @@
-# Coordinated shared-cluster release: activate every managed environment in
-# one reviewed revision so RollingSync controls dev -> staging -> prod.
+# Preserve the economical destination tuple while the replacement EKS cluster
+# runs with the capacity-constrained infrastructure profile.
 - op: replace
   path: /spec/generators/0/matrix/generators/1/list/elements
   value:

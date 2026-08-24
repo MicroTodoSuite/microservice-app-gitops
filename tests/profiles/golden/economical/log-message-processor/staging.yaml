@@ -1,0 +1,121 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor
+  namespace: microtodo-staging
+---
+apiVersion: v1
+data:
+  PORT: "9090"
+  REDIS_CHANNEL: log_channel
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor-config
+  namespace: microtodo-staging
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor
+  namespace: microtodo-staging
+spec:
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+  selector:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor
+  namespace: microtodo-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: business-service
+      app.kubernetes.io/name: log-message-processor
+      app.kubernetes.io/part-of: microtodosuite
+  template:
+    metadata:
+      annotations:
+        runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
+        sidecar.istio.io/inject: "false"
+      labels:
+        app.kubernetes.io/component: business-service
+        app.kubernetes.io/name: log-message-processor
+        app.kubernetes.io/part-of: microtodosuite
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: log-message-processor-config
+        image: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor@sha256:17c5848722fe9bc5a7daf618418008e39ea8077a75dca0ed1c7e5a755bcdfc51
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 10
+          timeoutSeconds: 3
+        name: log-message-processor
+        ports:
+        - containerPort: 9090
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 3
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: log-message-processor

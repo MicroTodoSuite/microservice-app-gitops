@@ -17,17 +17,26 @@ jobs:
   render-and-validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Install kustomize + kubeconform
+      - name: Install checksum-locked kustomize and kubeconform
         run: |
           set -euo pipefail
-          curl -sSfL https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh | bash
-          sudo mv kustomize /usr/local/bin/
-          KUBECONFORM_VERSION=v0.6.7
-          curl -sSfL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
-            | tar -xz kubeconform
-          sudo mv kubeconform /usr/local/bin/
+          install_locked_tool() {
+            local name="$1" url checksum archive extract_dir
+            url="$(jq -er --arg name "$name" '.tools[] | select(.name == $name) | .source' scripts/managed/full-profile-toolchain.lock)"
+            checksum="$(jq -er --arg name "$name" '.tools[] | select(.name == $name) | .sha256' scripts/managed/full-profile-toolchain.lock)"
+            archive="$(mktemp)"
+            extract_dir="$(mktemp -d)"
+            curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location "$url" --output "$archive"
+            printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
+            tar -xzf "$archive" -C "$extract_dir" "$name"
+            sudo install -m 0755 "$extract_dir/$name" "/usr/local/bin/$name"
+          }
+          install_locked_tool kustomize
+          install_locked_tool kubeconform
+          kustomize version
+          kubeconform -v
 
       - name: Render + schema-validate every kustomization
         run: |
@@ -50,6 +59,57 @@ jobs:
           # are exercised through the overlays/topology that include them.
           exit $fail
 
+  profile-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Install checksum-locked kustomize
+        run: |
+          set -euo pipefail
+          url="$(jq -er '.tools[] | select(.name == "kustomize") | .source' scripts/managed/full-profile-toolchain.lock)"
+          checksum="$(jq -er '.tools[] | select(.name == "kustomize") | .sha256' scripts/managed/full-profile-toolchain.lock)"
+          archive="$(mktemp)"
+          extract_dir="$(mktemp -d)"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location "$url" --output "$archive"
+          printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
+          tar -xzf "$archive" -C "$extract_dir" kustomize
+          sudo install -m 0755 "$extract_dir/kustomize" /usr/local/bin/kustomize
+          kustomize version
+
+      - name: Preserve economical renders and validate profile routing
+        run: tests/profiles/validate-profile-routing.bats
+
+      - name: Validate destination-scoped image promotion
+        run: tests/promotion/bump-image.bats
+
+      - name: Reject mutable deployable application images
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r overlay; do
+            while IFS= read -r image; do
+              if [[ ! "$image" =~ @sha256:[a-f0-9]{64}$ ]]; then
+                echo "::error file=$overlay::mutable rendered image: $image"
+                fail=1
+              fi
+            done < <(kustomize build "$overlay" | awk '$1 == "image:" {gsub(/"/, "", $2); print $2}')
+          done < <(find apps -type f -name kustomization.yaml \
+            \( -path '*/profiles/*/overlays/*/kustomization.yaml' -o -path '*/overlays/local/kustomization.yaml' \) \
+            -printf '%h\n' | sort -u)
+          exit "$fail"
+
+  policy-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Install pinned JSON Schema runtime
+        run: python3 -m pip install --disable-pip-version-check --no-cache-dir 'jsonschema==4.25.1'
+
+      - name: Validate single-owner infrastructure inventory
+        run: tests/evidence/validate-ownership.bats
+
       - name: Reject committed secret material
         run: |
           set -euo pipefail
@@ -66,12 +126,5 @@ jobs:
           fi
           echo "OK: no committed secret material"
 
-      - name: Reject mutable image references
-        run: |
-          set -euo pipefail
-          # Images must be pinned by digest (newName + digest), never by tag or
-          # newTag. The all-zero digest is an allowed DISABLED placeholder.
-          if grep -rnE '^\s*newTag:' apps; then
-            echo "::error::newTag is forbidden; pin images by digest"; exit 1
-          fi
-          echo "OK: no tag-based image references"
+      - name: Reject post-bootstrap imperative managed mutations
+        run: tests/policy/no-imperative-managed-mutations.bats

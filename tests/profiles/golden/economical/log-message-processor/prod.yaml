@@ -1,0 +1,179 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor
+  namespace: microtodo-prod
+---
+apiVersion: v1
+data:
+  PORT: "9090"
+  REDIS_CHANNEL: log_channel
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor-config
+  namespace: microtodo-prod
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor
+  namespace: microtodo-prod
+spec:
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+  selector:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+  name: log-message-processor-canary
+  namespace: microtodo-prod
+spec:
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+  selector:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: business-service
+    app.kubernetes.io/name: log-message-processor
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/topology: economical
+  name: log-message-processor
+  namespace: microtodo-prod
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: business-service
+      app.kubernetes.io/name: log-message-processor
+      app.kubernetes.io/part-of: microtodosuite
+  template:
+    metadata:
+      annotations:
+        release-evidence.microtodosuite.io/exercise: canary-health-gate-v1
+        runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
+        sidecar.istio.io/inject: "false"
+      labels:
+        app.kubernetes.io/component: business-service
+        app.kubernetes.io/name: log-message-processor
+        app.kubernetes.io/part-of: microtodosuite
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: log-message-processor-config
+        image: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor@sha256:17c5848722fe9bc5a7daf618418008e39ea8077a75dca0ed1c7e5a755bcdfc51
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 10
+          timeoutSeconds: 3
+        name: log-message-processor
+        ports:
+        - containerPort: 9090
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /metrics
+            port: metrics
+          periodSeconds: 3
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: log-message-processor
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: log-message-processor
+  namespace: microtodo-prod
+spec:
+  progressDeadlineSeconds: 300
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: business-service
+      app.kubernetes.io/name: log-message-processor
+      app.kubernetes.io/part-of: microtodosuite
+  strategy:
+    canary:
+      canaryService: log-message-processor-canary
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+      - setWeight: 50
+      - pause:
+          duration: 15s
+      - analysis:
+          args:
+          - name: workload
+            value: log-message-processor
+          templates:
+          - clusterScope: true
+            templateName: microtodosuite-canary-health
+      - setWeight: 100
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: log-message-processor
+    scaleDown: onsuccess

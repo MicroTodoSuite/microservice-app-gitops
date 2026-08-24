@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Active managed staging overlay. Staging receives the digest already verified
+# in dev, promoted by copying the digest — never a rebuilt artifact.
+namespace: microtodo-staging
+
+resources:
+  - ../../topology
+
+replicas:
+  - name: auth-api
+    count: 2
+
+patches:
+  - target:
+      kind: Deployment
+      name: auth-api
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: auth-api
+      spec:
+        template:
+          spec:
+            containers:
+              - name: auth-api
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+                  limits:
+                    cpu: 250m
+                    memory: 256Mi
+
+images:
+  - name: auth-api
+    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+    digest: sha256:04af9a416d532184bfd98bc73c77f936138f861572eec0fdbf5ecb6aae76189d
