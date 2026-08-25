@@ -1,33 +1,40 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: microtodo-staging
-resources: [../../topology]
-replicas: [{name: todos-api, count: 1}]
+resources:
+- ../../topology
+replicas:
+- count: 1
+  name: todos-api
 patches:
-  - target: {kind: ConfigMap, name: todos-api-config}
-    patch: |-
-      apiVersion: v1
-      kind: ConfigMap
-      metadata: {name: todos-api-config}
-      data:
-        REDIS_HOST: redis
-  - target: {kind: Deployment, name: todos-api}
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: {name: todos-api}
-      spec:
-        template:
-          metadata:
-            annotations:
-              runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
-          spec:
-            containers:
-              - name: todos-api
-                resources:
-                  requests: {cpu: 50m, memory: 64Mi}
-                  limits: {cpu: 250m, memory: 256Mi}
+- patch: |-
+    apiVersion: v1
+    kind: ConfigMap
+    metadata: {name: todos-api-config}
+    data:
+      REDIS_HOST: redis
+  target:
+    kind: ConfigMap
+    name: todos-api-config
+- patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata: {name: todos-api}
+    spec:
+      template:
+        metadata:
+          annotations:
+            runtime-config.microtodosuite.io/revision: namespace-local-redis-v1
+        spec:
+          containers:
+            - name: todos-api
+              resources:
+                requests: {cpu: 50m, memory: 64Mi}
+                limits: {cpu: 250m, memory: 256Mi}
+  target:
+    kind: Deployment
+    name: todos-api
 images:
-  - name: todos-api
-    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
-    digest: sha256:3ff827efe849fe812151c221c3d4c418d7490384e2bcb5c1bb9975fd3f2a4185
+- digest: sha256:5c57160d3e627aa3818cc893b76264d84838a2911f2c7f92945e0e7fcd446262
+  name: todos-api
+  newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
