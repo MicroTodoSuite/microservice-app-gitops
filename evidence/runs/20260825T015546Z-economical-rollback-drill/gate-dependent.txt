@@ -1,0 +1,1 @@
+FAIL: 'full-aws-environments' is blocked by 'no-op-blocked-drill': decision is 'blocked'; only 'accepted' unlocks a dependent

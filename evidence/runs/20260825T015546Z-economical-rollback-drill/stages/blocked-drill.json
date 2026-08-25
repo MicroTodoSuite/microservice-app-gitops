@@ -1,0 +1,5 @@
+{
+  "stageId": "no-op-blocked-drill",
+  "decision": "blocked",
+  "dependsOn": ["economical-baseline"]
+}
