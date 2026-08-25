@@ -34,11 +34,22 @@ for service in "${services[@]}"; do
     full_render="$(mktemp)"
     "$kustomize_bin" build "$economical" > "$economical_render"
     "$kustomize_bin" build "$full" > "$full_render"
-    cmp -s "$golden" "$economical_render" || {
-      diff -u "$golden" "$economical_render" >&2 || true
+    # The golden renders exist to prove COMPOSITION is unchanged. The image
+    # digest is the one field designed to change on every release, so pin its
+    # shape rather than its value: a promotion must not have to rewrite the
+    # goldens, but dropping to a mutable tag still fails, because only
+    # @sha256:<64 hex> is normalized.
+    golden_normalized="$(mktemp)"
+    render_normalized="$(mktemp)"
+    sed -E 's/@sha256:[a-f0-9]{64}/@sha256:<DIGEST>/g' "$golden" > "$golden_normalized"
+    sed -E 's/@sha256:[a-f0-9]{64}/@sha256:<DIGEST>/g' "$economical_render" > "$render_normalized"
+    cmp -s "$golden_normalized" "$render_normalized" || {
+      diff -u "$golden_normalized" "$render_normalized" >&2 || true
       printf 'FAIL: %s/%s economical render changed.\n' "$service" "$environment" >&2
       exit 1
     }
+    unlink "$golden_normalized"
+    unlink "$render_normalized"
     grep -Fq 'microtodosuite.io/topology: full' "$full_render" || {
       printf 'FAIL: %s/%s full render does not select topology-full.\n' "$service" "$environment" >&2
       exit 1
