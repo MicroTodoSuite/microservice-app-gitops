@@ -24,6 +24,7 @@ capture() {
   local fixture="$1" output="$2" rc=0
   ECONOMICAL_FIXTURE_DIR="$FIXTURES/$fixture" \
   PATH="$FIXTURES/$fixture/bin:$PATH" \
+  WORKLOAD_NAMESPACES="microtodo-dev" \
     "$COLLECTOR" --output "$output" \
       --git-revision "$(cat "$FIXTURES/$fixture/git-revision.txt")" \
       --dev-plan-result "$(cat "$FIXTURES/$fixture/dev-plan-result.txt")" \
