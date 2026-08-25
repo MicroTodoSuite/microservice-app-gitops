@@ -1,0 +1,79 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-ops && terraform -chdir=aws/modules/environment-foundation test -no-color)
+
+tests/ecr.tftest.hcl... in progress
+  run "platform_mirror_is_off_by_default"... pass
+  run "platform_mirror_is_one_hardened_dev_owned_repository"... pass
+  run "platform_mirror_role_is_separate_and_scoped_to_one_repository"... pass
+  run "reject_platform_mirror_without_an_exact_workflow"... pass
+  run "consumer_reads_the_mirror_it_does_not_own"... pass
+tests/ecr.tftest.hcl... tearing down
+tests/ecr.tftest.hcl... pass
+tests/ecr_irsa.tftest.hcl... in progress
+  run "ecr_and_irsa_contract"... pass
+tests/ecr_irsa.tftest.hcl... tearing down
+tests/ecr_irsa.tftest.hcl... pass
+tests/github_oidc.tftest.hcl... in progress
+  run "github_oidc_contract"... pass
+  run "shared_resource_consumer_contract"... pass
+  run "dr_secret_seed_is_off_by_default"... pass
+  run "dr_secret_seed_reads_exactly_four_secrets_from_one_workflow"... pass
+  run "reject_dr_secret_seed_without_its_exact_identity"... pass
+tests/github_oidc.tftest.hcl... tearing down
+tests/github_oidc.tftest.hcl... pass
+tests/kyverno_irsa.tftest.hcl... in progress
+  run "kyverno_verifier_contract"... pass
+tests/kyverno_irsa.tftest.hcl... tearing down
+tests/kyverno_irsa.tftest.hcl... pass
+tests/managed_secrets.tftest.hcl... in progress
+  run "managed_secret_contract"... pass
+  run "full_profile_secret_containers_are_off_by_default"... pass
+  run "full_profile_secret_containers_are_write_only_and_versioned"... pass
+  run "reject_enabling_tooling_secrets_without_every_value_and_counter"... pass
+  run "consumer_reads_one_environment_jwt_and_creates_no_secret"... pass
+  run "reject_consumer_jwt_reader_on_the_owning_foundation"... pass
+tests/managed_secrets.tftest.hcl... tearing down
+tests/managed_secrets.tftest.hcl... pass
+tests/multi_issuer_irsa.tftest.hcl... in progress
+  run "single_issuer_trust_is_unchanged_by_default"... pass
+  run "additional_issuers_extend_only_the_shared_reader_trust"... pass
+  run "reject_additional_issuer_with_mismatched_host"... pass
+  run "reject_additional_issuer_that_is_not_an_eks_issuer"... pass
+tests/multi_issuer_irsa.tftest.hcl... tearing down
+tests/multi_issuer_irsa.tftest.hcl... pass
+tests/network_eks.tftest.hcl... in progress
+  run "network_and_eks_contract"... pass
+  run "reject_burstable_free_tier_shortcut"... pass
+  run "reject_account_ineligible_instance_type"... pass
+  run "accept_environment_specific_api_narrowing"... pass
+  run "reject_invalid_api_cidr"... pass
+  run "reject_cross_account_administrator"... pass
+  run "full_profile_switches_default_off"... pass
+  run "full_profile_prerequisites_are_cluster_specific_when_enabled"... pass
+  run "reject_load_balancer_prerequisite_without_reviewed_policy"... pass
+  run "transit_egress_spoke_has_no_nat_or_elastic_ip"... pass
+  run "reject_transit_egress_without_transit_gateway"... pass
+  run "reject_transit_gateway_in_direct_nat_mode"... pass
+  run "reject_unknown_outbound_mode"... pass
+  run "accept_single_node_bootstrap_bounds"... pass
+  run "reject_zero_node_bootstrap_group"... pass
+  run "reject_unordered_bootstrap_bounds"... pass
+tests/network_eks.tftest.hcl... tearing down
+tests/network_eks.tftest.hcl... pass
+tests/observability_security_irsa.tftest.hcl... in progress
+  run "observability_security_secrets_reader_contract"... pass
+  run "sonar_reader_is_bound_to_full_dev_and_two_secrets"... pass
+  run "reject_sonar_reader_pointing_at_an_unknown_issuer"... pass
+tests/observability_security_irsa.tftest.hcl... tearing down
+tests/observability_security_irsa.tftest.hcl... pass
+tests/route53.tftest.hcl... in progress
+  run "public_hosted_zone_contract"... pass
+  run "public_hosted_zone_is_opt_in"... pass
+  run "canonical_zone_is_off_by_default_and_leaves_the_legacy_zone_alone"... pass
+  run "canonical_zone_is_a_separate_address_from_the_legacy_zone"... pass
+  run "canonical_zone_does_not_create_application_records_by_default"... pass
+  run "reject_canonical_records_without_the_canonical_zone"... pass
+  run "reject_renaming_the_legacy_zone_to_the_canonical_domain"... pass
+tests/route53.tftest.hcl... tearing down
+tests/route53.tftest.hcl... pass
+
+Success! 48 passed, 0 failed.

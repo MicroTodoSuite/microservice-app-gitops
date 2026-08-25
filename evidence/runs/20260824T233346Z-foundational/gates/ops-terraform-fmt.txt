@@ -1,0 +1,2 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-ops && terraform fmt -check -recursive aws)
+
