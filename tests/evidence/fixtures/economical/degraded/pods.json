@@ -1,0 +1,4 @@
+{"items":[
+ {"metadata":{"name":"auth-api-1","namespace":"microtodo-dev"},"status":{"phase":"Running","containerStatuses":[{"ready":true,"restartCount":0}]}},
+ {"metadata":{"name":"frontend-1","namespace":"microtodo-dev"},"status":{"phase":"Running","containerStatuses":[{"ready":true,"restartCount":1}]}}
+]}
