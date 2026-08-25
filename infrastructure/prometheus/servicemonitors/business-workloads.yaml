@@ -20,7 +20,8 @@ spec:
       path: /metrics
       interval: 30s
       relabelings:
-        - targetLabel: revision
+        - action: replace
+          targetLabel: revision
           replacement: stable
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -40,7 +41,8 @@ spec:
       path: /metrics
       interval: 30s
       relabelings:
-        - targetLabel: revision
+        - action: replace
+          targetLabel: revision
           replacement: stable
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -63,7 +65,8 @@ spec:
       path: /prometheus
       interval: 30s
       relabelings:
-        - targetLabel: revision
+        - action: replace
+          targetLabel: revision
           replacement: stable
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -85,7 +88,8 @@ spec:
       path: /metrics
       interval: 30s
       relabelings:
-        - targetLabel: revision
+        - action: replace
+          targetLabel: revision
           replacement: stable
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -109,5 +113,6 @@ spec:
       path: /metrics
       interval: 30s
       relabelings:
-        - targetLabel: revision
+        - action: replace
+          targetLabel: revision
           replacement: stable
