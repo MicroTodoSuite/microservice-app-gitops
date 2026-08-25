@@ -1,0 +1,22 @@
+{
+  "result": "pass",
+  "verdictScope": "economical platform: business services and environment policy",
+  "total": 39,
+  "synced": 37,
+  "healthy": 39,
+  "exceptions": [],
+  "platformAdvisories": [
+    {
+      "name": "infra-loki",
+      "sync": "OutOfSync",
+      "health": "Healthy",
+      "owner": "platform add-on owner"
+    },
+    {
+      "name": "infra-prometheus",
+      "sync": "OutOfSync",
+      "health": "Healthy",
+      "owner": "platform add-on owner"
+    }
+  ]
+}

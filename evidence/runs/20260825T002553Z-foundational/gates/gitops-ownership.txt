@@ -1,0 +1,3 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-gitops && tests/evidence/validate-ownership.bats)
+
+PASS: infrastructure inventory has exactly one owner per resource ID

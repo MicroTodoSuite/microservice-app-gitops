@@ -1,0 +1,13 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-ops && terraform -chdir=aws/environments/dev/foundation test -no-color)
+
+tests/foundation.tftest.hcl... in progress
+  run "dev_root_inventory"... pass
+tests/foundation.tftest.hcl... tearing down
+tests/foundation.tftest.hcl... pass
+tests/full-profile-compatibility.tftest.hcl... in progress
+  run "full_profile_switches_are_declared_and_default_safe"... pass
+  run "root_refuses_to_rename_the_legacy_zone_to_the_canonical_domain"... pass
+tests/full-profile-compatibility.tftest.hcl... tearing down
+tests/full-profile-compatibility.tftest.hcl... pass
+
+Success! 3 passed, 0 failed.

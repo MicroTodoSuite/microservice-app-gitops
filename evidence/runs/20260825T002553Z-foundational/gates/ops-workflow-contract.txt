@@ -1,0 +1,4 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-ops && tests/workflows/foundation-checks.bats)
+
+NOTE: 3 legacy Azure Terraform workflow(s) are outside this contract and still need migration: backend.yml deploy.yml destroy.yml
+PASS: state keys, environment identity, address space, DNS approvals and workflow safety hold.

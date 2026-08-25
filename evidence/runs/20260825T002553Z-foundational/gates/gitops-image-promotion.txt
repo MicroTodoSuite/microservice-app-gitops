@@ -1,0 +1,6 @@
+$ (cd /home/esteban/Documents/University/Tenth semester/plataformas-ii/MicroTodoSuite/microservice-app-gitops && tests/promotion/bump-image.bats)
+
+[master b0d19c9] chore(auth-api): promote economical/dev to eks-dev at sha256:1111111111111111111111111111111111111111111111111111111111111111
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+OK: auth-api@economical/dev@eks-dev -> 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api@sha256:1111111111111111111111111111111111111111111111111111111111111111 (commit created; push is a separate, deliberate step)
+PASS: image promotion updates one validated profile overlay and rejects an invalid tuple.
