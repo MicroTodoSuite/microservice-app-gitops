@@ -88,13 +88,15 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
   - `infrastructure/dev-plan-summary.json` records a literal `0 to add, 0 to change,
     0 to destroy`, derived from the plan JSON rather than its printed text. Only the
     checksum and redacted counts are committed; the full text is retained externally.
-- [ ] T030 Validate the foundational evidence bundle in `evidence/runs/<timestamp>-foundational/evidence.json`, obtain review for the exact branch head, merge through protected `main`, and recapture the unchanged economical golden renders and live ArgoCD health.
-  - **Blocked on live health, not on this stage's own gates.** The bundle validates and
-    both owned gates pass, but live ArgoCD is 37/39 synced and 38/39 healthy, so the
-    collector records `blocked` rather than `approved`. The actionable exception is
-    `env-demo`, whose remedy is `microservice-app-ops#25`; `infra-loki` and
-    `infra-prometheus` are Healthy but OutOfSync and belong to the observability owner.
-    Re-run the collector after that remedy is applied to obtain `approved`.
+- [X] T030 Validate the foundational evidence bundle in `evidence/runs/<timestamp>-foundational/evidence.json`, obtain review for the exact branch head, merge through protected `main`, and recapture the unchanged economical golden renders and live ArgoCD health.
+  - Bundle `evidence/runs/20260825T002553Z-foundational/` validates and records `approved`:
+    all ten gates pass, the refreshed dev plan is exactly `0 to add, 0 to change,
+    0 to destroy`, and the economical platform is 39/39 healthy. The superseded
+    `20260824T233346Z-foundational` run is kept as the evidence that the live gate
+    caught a real defect — `env-demo` had no JWT secret, remedied and applied through
+    `microservice-app-ops#25`. `infra-loki` and `infra-prometheus` remain OutOfSync but
+    Healthy and are recorded as advisories attributed to the platform add-on owner.
+    Remaining: review and merge of the gitops PRs through protected `main`.
 
 **Checkpoint**: Reusable Terraform/GitOps contracts exist, tests pass, and dev remains genuinely `0/0/0` before new full-profile work.
 
