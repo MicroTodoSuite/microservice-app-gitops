@@ -71,12 +71,20 @@ spec:
         - name: config
           configMap:
             name: loki-config
+  # apiVersion, kind and volumeMode are defaulted by the API server. A
+  # StatefulSet's volumeClaimTemplates are immutable, so ArgoCD can never
+  # reconcile that difference away: leaving them undeclared pins this
+  # Application OutOfSync permanently. Declaring them makes desired state equal
+  # what the cluster actually stores.
   volumeClaimTemplates:
-    - metadata:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: storage
       spec:
         accessModes: ["ReadWriteOnce"]
         storageClassName: gp3
+        volumeMode: Filesystem
         resources:
           requests:
             storage: 10Gi
