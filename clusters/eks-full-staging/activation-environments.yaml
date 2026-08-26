@@ -1,0 +1,4 @@
+# EMPTY AT BOOTSTRAP, deliberately. See activation-apps.yaml.
+- op: replace
+  path: /spec/generators/0/list/elements
+  value: []

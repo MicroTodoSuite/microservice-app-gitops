@@ -128,3 +128,9 @@ jobs:
 
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
+
+      # The bootstrap helper's whole value is in what it refuses, and a refusal
+      # that stops working is silent: the bootstrap still succeeds, just against
+      # the wrong cluster or an unreviewed revision.
+      - name: Verify the managed cluster bootstrap boundary
+        run: tests/bootstrap/managed-cluster-bootstrap.bats

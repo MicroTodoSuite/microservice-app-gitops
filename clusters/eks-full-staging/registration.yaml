@@ -1,0 +1,20 @@
+# Git-reviewed registration values for the full-profile staging cluster.
+#
+# Maps to the EXISTING physical cluster microtodosuite-demo-full, which
+# aws/environments/demo-full/foundation already owns. The physical name is
+# deliberately not renamed: renaming would replace a running cluster rather
+# than adopt it.
+#
+# The EKS endpoint, certificate authority data, and OIDC provider ARN stay
+# Terraform-owned bootstrap inputs and are deliberately not duplicated here:
+# a value that lives in two places drifts, and the copy nobody applies is the
+# one people read.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-registration
+  namespace: argocd
+data:
+  repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+  revision: main
+  physicalCluster: microtodosuite-demo-full

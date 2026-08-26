@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Fake kubectl. Answers the reads the helper performs and accepts applies; the
+# helper writes its own transcript, so this stub records nothing.
+set -euo pipefail
+present="$(cat "$BOOTSTRAP_FIXTURE_DIR/argocd-present.txt")"
+case "$1" in
+  config)
+    cat "$BOOTSTRAP_FIXTURE_DIR/cluster.txt"
+    ;;
+  get)
+    if [ "$present" = "yes" ]; then
+      printf 'present\n'
+    else
+      printf 'Error from server (NotFound)\n' >&2
+      exit 1
+    fi
+    ;;
+  apply|wait) exit 0 ;;
+  *) printf 'unexpected kubectl call: %s\n' "$*" >&2; exit 64 ;;
+esac

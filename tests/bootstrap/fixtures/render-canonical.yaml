@@ -1,0 +1,5 @@
+# Canonical stand-in for the rendered ArgoCD install used by the fixtures.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd

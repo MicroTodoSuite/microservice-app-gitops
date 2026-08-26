@@ -1,0 +1,14 @@
+# EMPTY AT BOOTSTRAP, deliberately.
+#
+# This cluster is created and bootstrapped before it is allowed to run anything.
+# An empty business activation list means ArgoCD comes up with a valid root that
+# generates zero Applications, so the cluster can be proven healthy and correctly
+# scoped before any workload depends on it. Activation is a separate reviewed
+# commit under US3, once the platform gates pass.
+#
+# The planned inventory for this cluster is recorded in planned-inventory.yaml
+# so the eventual activation can be diffed against what was reviewed here,
+# rather than assembled from memory.
+- op: replace
+  path: /spec/generators/0/matrix/generators/1/list/elements
+  value: []

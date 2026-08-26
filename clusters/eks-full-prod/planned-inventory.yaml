@@ -1,0 +1,75 @@
+# Planned, NOT ACTIVE, inventory for the eks-full-prod cluster.
+#
+# This file is documentation, not desired state. It is not referenced by
+# kustomization.yaml and generates nothing; ArgoCD never reads it.
+#
+# It exists so the eventual activation can be diffed against something that was
+# reviewed at bootstrap time, instead of being assembled from memory months
+# later. Moving an entry from here into the corresponding activation-*.yaml is
+# the activation decision, and it happens under US3 once the platform gates pass.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: planned-inventory
+  namespace: argocd
+  annotations:
+    microtodosuite.io/status: planned-not-active
+    microtodosuite.io/physical-cluster: microtodosuite-full-prod
+data:
+  physicalCluster: microtodosuite-full-prod
+  logicalEnvironment: full-prod
+  profile: full
+
+  # Exactly one logical environment activates on this cluster. One environment
+  # per cluster is what makes the isolation claim checkable: a second entry here
+  # would put two environments in one blast radius.
+  plannedEnvironments: |
+    - env: prod
+      profile: full
+      destination: eks-full-prod
+
+  plannedInfrastructure: |
+    - name: keda
+      path: infrastructure/keda
+      namespace: keda
+    - name: cert-manager
+      path: infrastructure/cert-manager
+      namespace: cert-manager
+    - name: external-secrets
+      path: infrastructure/external-secrets
+      namespace: external-secrets
+    - name: kyverno
+      path: infrastructure/kyverno
+      namespace: kyverno
+    - name: argo-rollouts
+      path: infrastructure/argo-rollouts
+      namespace: argo-rollouts
+    - name: ebs-csi-driver
+      path: infrastructure/ebs-csi-driver
+      namespace: kube-system
+    - name: prometheus
+      path: infrastructure/prometheus
+      namespace: observability
+    - name: grafana
+      path: infrastructure/grafana
+      namespace: observability
+    - name: jaeger
+      path: infrastructure/jaeger
+      namespace: observability
+    - name: loki
+      path: infrastructure/loki
+      namespace: observability
+    - name: falco
+      path: infrastructure/falco
+      namespace: security
+    - name: kube-bench
+      path: infrastructure/kube-bench
+      namespace: security
+    - name: kube-hunter
+      path: infrastructure/kube-hunter
+      namespace: security
+
+  activeAtThisRevision: |
+    environments: 0
+    businessApplications: 0
+    infrastructureApplications: 0
