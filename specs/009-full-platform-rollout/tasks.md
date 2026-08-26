@@ -110,17 +110,23 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
 
 ### Tests first
 
-- [ ] T031 [P] [US1] Add fixture tests for healthy, degraded, unreachable, and revision-mismatch economical baselines in `tests/evidence/economical-baseline.bats`; confirm failure before T032.
-- [ ] T032 [P] [US1] Add a stage-dependency test proving `blocked` cannot unlock a dependent stage in `tests/evidence/stage-dependencies.bats`; confirm failure before T035.
+- [X] T031 [P] [US1] Add fixture tests for healthy, degraded, unreachable, and revision-mismatch economical baselines in `tests/evidence/economical-baseline.bats`; confirm failure before T032.
+- [X] T032 [P] [US1] Add a stage-dependency test proving `blocked` cannot unlock a dependent stage in `tests/evidence/stage-dependencies.bats`; confirm failure before T035.
 
 ### Implementation
 
-- [ ] T033 [US1] Implement a strictly read-only economical baseline collector in `scripts/managed/capture-economical-baseline.sh`, covering Git revision, AWS identity, EKS identity, ArgoCD Applications, pods, endpoints, namespace isolation, and refreshed dev drift; make T031 pass.
-- [ ] T034 [P] [US1] Document economical rollback ownership, abort criteria, and prohibited state/cluster actions in `../microservice-app-docs/full-platform/economical-safety-boundary.md`.
-- [ ] T035 [US1] Implement stage dependency evaluation in `scripts/managed/evaluate-stage-gate.sh`, validate against the JSON schema, and make T032 pass.
-- [ ] T036 [US1] Capture the authoritative pre-rollout economical baseline under `evidence/runs/<timestamp>-economical-baseline/` and stop if any Application, workload, endpoint, namespace-isolation check, or dev plan is unhealthy/non-empty.
-- [ ] T037 [US1] Exercise a deliberately blocked no-op stage fixture from `tests/evidence/fixtures/blocked-stage.json`, verify no activation occurs, and capture the identical post-baseline in `evidence/runs/<timestamp>-economical-rollback-drill/`.
+- [X] T033 [US1] Implement a strictly read-only economical baseline collector in `scripts/managed/capture-economical-baseline.sh`, covering Git revision, AWS identity, EKS identity, ArgoCD Applications, pods, endpoints, namespace isolation, and refreshed dev drift; make T031 pass.
+- [X] T034 [P] [US1] Document economical rollback ownership, abort criteria, and prohibited state/cluster actions in `../microservice-app-docs/full-platform/economical-safety-boundary.md`.
+- [X] T035 [US1] Implement stage dependency evaluation in `scripts/managed/evaluate-stage-gate.sh`, validate against the JSON schema, and make T032 pass.
+- [X] T036 [US1] Capture the authoritative pre-rollout economical baseline under `evidence/runs/<timestamp>-economical-baseline/` and stop if any Application, workload, endpoint, namespace-isolation check, or dev plan is unhealthy/non-empty.
+- [X] T037 [US1] Exercise a deliberately blocked no-op stage fixture from `tests/evidence/fixtures/blocked-stage.json`, verify no activation occurs, and capture the identical post-baseline in `evidence/runs/<timestamp>-economical-rollback-drill/`.
 - [ ] T038 [US1] Validate and review `evidence/runs/<timestamp>-economical-rollback-drill/evidence.json`; mark US1 accepted only if SC-001 and the non-retirement boundary pass.
+  - Bundle `evidence/runs/20260825T015546Z-economical-rollback-drill/` validates and every
+    mandatory check passes: the blocked stage did not unlock its dependent, and the pre/post
+    baselines are identical (39/39 Applications synced and healthy, 23/23 workloads ready).
+    Decision stops at `approved` on purpose — `accepted` requires a named human approval
+    artifact, so an automated run cannot self-accept and unlock the whole downstream rollout.
+    A maintainer flips it by adding their `approvedBy` approval artifact.
 
 **Checkpoint**: A failed future stage is mechanically unable to advance and cannot disturb the economical platform.
 

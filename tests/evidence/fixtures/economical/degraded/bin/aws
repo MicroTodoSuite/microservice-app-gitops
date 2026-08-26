@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+DIR="${ECONOMICAL_FIXTURE_DIR:?fixture dir not set}"
+cat "$DIR/aws-identity.json"

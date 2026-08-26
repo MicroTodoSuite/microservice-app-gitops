@@ -1,0 +1,19 @@
+{
+  "candidate": "full-aws-environments",
+  "unlocked": false,
+  "unlockingDecision": "accepted",
+  "evaluatedStages": [
+    "economical-baseline",
+    "foundational-compatibility",
+    "full-aws-environments",
+    "no-op-blocked-drill"
+  ],
+  "blockers": [
+    {
+      "stage": "no-op-blocked-drill",
+      "decision": "blocked",
+      "reason": "decision is 'blocked'; only 'accepted' unlocks a dependent",
+      "requiredBy": "full-aws-environments"
+    }
+  ]
+}

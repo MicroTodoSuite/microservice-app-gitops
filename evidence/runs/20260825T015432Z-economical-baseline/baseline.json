@@ -1,0 +1,39 @@
+{
+  "result": "pass",
+  "capturedAt": "2026-08-25T01:55:06Z",
+  "git": {
+    "revision": "7c8cf51a7830215da33d0d32e4c5ee8c4fcb5693"
+  },
+  "identities": {
+    "awsAccountId": "916491575487",
+    "argocdNamespace": "argocd",
+    "workloadNamespaces": [
+      "microtodo-dev",
+      "microtodo-staging",
+      "microtodo-prod"
+    ]
+  },
+  "applications": {
+    "total": 39,
+    "synced": 39,
+    "healthy": 39,
+    "exceptions": [],
+    "revisionMismatches": []
+  },
+  "workloads": {
+    "total": 23,
+    "ready": 23,
+    "notReady": []
+  },
+  "endpoints": {
+    "total": 23,
+    "withoutAddresses": []
+  },
+  "namespaceIsolation": {
+    "namespacesWithoutPolicy": []
+  },
+  "devPlan": {
+    "clean": true,
+    "result": "no-changes"
+  }
+}

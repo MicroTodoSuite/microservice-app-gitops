@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "economical-rollback-drill",
+  "generatedAt": "2026-08-25T01:56:32Z",
+  "scope": {
+    "repositories": [
+      "microservice-app-gitops",
+      "microservice-app-ops",
+      "microservice-app-docs"
+    ],
+    "destinations": [
+      "eks-dev"
+    ],
+    "stateKeys": [
+      "environments/dev/foundation/terraform.tfstate"
+    ],
+    "capabilities": [
+      "economical-baseline",
+      "stage-dependency-gate",
+      "blocked-stage-drill"
+    ]
+  },
+  "identities": {
+    "gitActor": "Esteban Gaviria Zambrano",
+    "awsAccountId": "916491575487"
+  },
+  "baseline": {
+    "result": "pass",
+    "evidence": [
+      "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/pre.json"
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "post-baseline",
+      "path": "evidence/runs/20260825T015432Z-economical-baseline/baseline.json",
+      "sha256": "6120e9c985095b5226f176a579e3190c4b1e813b227b8c36689246a5d50c5585",
+      "producer": "capture-economical-baseline.sh",
+      "result": "pass"
+    },
+    {
+      "kind": "post-baseline",
+      "path": "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/pre.json",
+      "sha256": "6120e9c985095b5226f176a579e3190c4b1e813b227b8c36689246a5d50c5585",
+      "producer": "capture-economical-baseline.sh",
+      "result": "pass"
+    },
+    {
+      "kind": "post-baseline",
+      "path": "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/post.json",
+      "sha256": "4c6434049f575ea6f7defb21cf788be0693e61060cae3cae2fcae9d482ba71ea",
+      "producer": "capture-economical-baseline.sh",
+      "result": "pass"
+    },
+    {
+      "kind": "continuity",
+      "path": "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/diff.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "producer": "diff",
+      "result": "pass"
+    },
+    {
+      "kind": "failure-mode",
+      "path": "evidence/runs/20260825T015546Z-economical-rollback-drill/gate-dependent.json",
+      "sha256": "049b0267729c98743f532289627d2f4633d2f5978645a4dbdc838cb0a3a9b7c2",
+      "producer": "evaluate-stage-gate.sh",
+      "result": "pass"
+    },
+    {
+      "kind": "failure-mode",
+      "path": "evidence/runs/20260825T015546Z-economical-rollback-drill/gate-dependent.txt",
+      "sha256": "2518283184f9df89b5b6e107e924f1a4851da3431285daa186aafa6fad19e17a",
+      "producer": "evaluate-stage-gate.sh",
+      "result": "pass"
+    },
+    {
+      "kind": "desired-state",
+      "path": "evidence/runs/20260825T015546Z-economical-rollback-drill/stages/blocked-drill.json",
+      "sha256": "47a1556b27cff816da648069de4b75a64bd39179bb92ae78bc79a03c853f33dc",
+      "producer": "fixture",
+      "result": "pass"
+    }
+  ],
+  "requirements": {
+    "SC-001": {
+      "result": "pass",
+      "evidence": [
+        "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/pre.json",
+        "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/post.json",
+        "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/diff.txt"
+      ]
+    },
+    "FR-047": {
+      "result": "pass",
+      "evidence": [
+        "evidence/runs/20260825T015546Z-economical-rollback-drill/gate-dependent.json",
+        "evidence/runs/20260825T015546Z-economical-rollback-drill/gate-dependent.txt",
+        "evidence/runs/20260825T015546Z-economical-rollback-drill/stages/blocked-drill.json"
+      ]
+    }
+  },
+  "rollback": {
+    "result": "pass",
+    "evidence": [
+      "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/diff.txt"
+    ]
+  },
+  "postBaseline": {
+    "result": "pass",
+    "evidence": [
+      "evidence/runs/20260825T015546Z-economical-rollback-drill/baselines/post.json"
+    ]
+  },
+  "decision": "approved"
+}

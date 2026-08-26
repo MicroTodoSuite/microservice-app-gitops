@@ -1,0 +1,5 @@
+{"items":[
+ {"metadata":{"name":"auth-api-dev"},"status":{"sync":{"status":"Synced","revision":"7c8cf51aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"health":{"status":"Healthy"}}},
+ {"metadata":{"name":"env-dev"},"status":{"sync":{"status":"Synced","revision":"7c8cf51aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"health":{"status":"Healthy"}}},
+ {"metadata":{"name":"infra-loki"},"status":{"sync":{"status":"Synced","revision":"7c8cf51aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"health":{"status":"Healthy"}}}
+]}
