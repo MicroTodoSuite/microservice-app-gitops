@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "$(cat "$BOOTSTRAP_FIXTURE_DIR/checksum.txt")" = "match" ]; then
+  cat "$BOOTSTRAP_FIXTURE_DIR/../render-canonical.yaml"
+else
+  cat "$BOOTSTRAP_FIXTURE_DIR/../render-canonical.yaml"
+  printf '# an unreviewed line the pinned checksum does not cover\n'
+fi

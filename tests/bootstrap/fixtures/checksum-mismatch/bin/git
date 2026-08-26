@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Fake git: answers only whether the revision is on the protected branch.
+set -euo pipefail
+case "$*" in
+  *"merge-base --is-ancestor"*)
+    [ "$(cat "$BOOTSTRAP_FIXTURE_DIR/merged.txt")" = "yes" ] || exit 1
+    exit 0
+    ;;
+  *"rev-parse"*)
+    printf '%s\n' "0000000000000000000000000000000000000000"
+    ;;
+  *"ls-remote"*)
+    printf '0000000000000000000000000000000000000000\trefs/heads/main\n'
+    ;;
+  *) exit 0 ;;
+esac

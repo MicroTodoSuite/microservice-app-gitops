@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Fake AWS CLI: reports only the identity this fixture declares.
+set -euo pipefail
+account="$(cat "$BOOTSTRAP_FIXTURE_DIR/account.txt")"
+case "$*" in
+  *"sts get-caller-identity"*)
+    if [[ "$*" == *"--query Account"* ]]; then
+      printf '%s\n' "$account"
+    else
+      printf '{"Account":"%s","Arn":"arn:aws:iam::%s:role/test","UserId":"test"}\n' "$account" "$account"
+    fi
+    ;;
+  *) printf 'unexpected aws call: %s\n' "$*" >&2; exit 64 ;;
+esac
