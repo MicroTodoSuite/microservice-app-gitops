@@ -1,0 +1,10 @@
+# EMPTY AT BOOTSTRAP, deliberately.
+#
+# Infrastructure is never activated by folder discovery in this repository, so an
+# empty list here means exactly zero platform add-ons are generated. The reviewed
+# inventory this cluster is expected to run is in planned-inventory.yaml; moving
+# an entry from there into this list is the activation decision, and it is made
+# once the US3 platform gates pass.
+- op: replace
+  path: /spec/generators/0/list/elements
+  value: []

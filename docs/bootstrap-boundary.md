@@ -25,12 +25,41 @@ permits exactly two direct mutations, and only after the cluster registration
 and root source revision are merged to the protected `main` branch:
 
 1. server-side apply the checksum-pinned render from `bootstrap/argocd`; and
-2. apply the tracked `clusters/eks-dev/root-app.yaml` object.
+2. apply that cluster's tracked `clusters/<cluster>/root-app.yaml` object.
 
 The first mutation creates the reconciler. The second gives that reconciler its
 reviewed Git root. Readiness waits and observations between or after those two
 actions are read-only. No child Application, platform add-on, environment
 resource, or business workload may be applied directly.
+
+### The enforced form: `scripts/managed/bootstrap-cluster.sh`
+
+For the managed clusters this boundary is no longer a convention that a careful
+operator follows; it is a script that refuses. The helper runs every check
+before the first mutation, so a refusal leaves the cluster untouched rather than
+half-bootstrapped:
+
+| Check | The mistake it catches |
+| --- | --- |
+| `aws sts get-caller-identity` equals `--expected-account` | The two applies land on a real cluster, in the wrong account, and nothing reports an error. |
+| `kubectl config current-context` contains `--cluster` | Same failure, one account over: the right manifests on the wrong cluster. |
+| `--revision` is an ancestor of the protected ref | ArgoCD is handed a Git root nobody reviewed, and then reconciles that unreviewed state indefinitely. |
+| Rendered `bootstrap/argocd` matches `bootstrap/argocd/render.sha256` | The install being applied is not the reviewed one. |
+| `mutate()` refuses past `MUTATION_LIMIT=2` | The boundary quietly becomes three applies, then four. |
+
+The mutation cap lives inside the single function permitted to change cluster
+state, not in argument parsing, so it holds regardless of how a mutation is
+reached. Passing `--extra-apply` is refused outright before any check runs.
+
+Every run writes a transcript of `READ` and `MUTATION` lines. A successful
+bootstrap of an empty cluster records exactly two `MUTATION` lines; a cluster
+that already has ArgoCD records zero, because re-running is a read-only
+verification and not a recovery path.
+
+`tests/bootstrap/managed-cluster-bootstrap.bats` exercises all of it against
+fixtures. Each guard has been verified by mutation: removing the checksum
+comparison, the merged-revision check, or the mutation cap each fails the test
+written for it.
 
 ## What the bootstrap MUST NOT do
 

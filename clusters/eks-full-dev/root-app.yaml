@@ -1,0 +1,33 @@
+# App-of-Apps root for the full-profile dev cluster. It targets the in-cluster
+# API, matching the per-cluster ArgoCD topology used by every other root.
+#
+# Committing this file does not apply it. Bootstrap remains a separate audited
+# action performed by scripts/managed/bootstrap-cluster.sh, which refuses to run
+# against the wrong account or cluster, on an unmerged revision, or with an
+# ArgoCD render that does not match its pinned checksum.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+    targetRevision: main
+    path: clusters/eks-full-dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

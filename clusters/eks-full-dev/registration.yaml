@@ -1,0 +1,17 @@
+# Git-reviewed registration values for the full-profile dev cluster.
+#
+# A new cluster created by aws/environments/full-dev/foundation.
+#
+# The EKS endpoint, certificate authority data, and OIDC provider ARN stay
+# Terraform-owned bootstrap inputs and are deliberately not duplicated here:
+# a value that lives in two places drifts, and the copy nobody applies is the
+# one people read.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-registration
+  namespace: argocd
+data:
+  repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+  revision: main
+  physicalCluster: microtodosuite-full-dev
