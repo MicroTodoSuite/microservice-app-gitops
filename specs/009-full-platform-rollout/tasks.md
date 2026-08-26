@@ -128,6 +128,16 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
     artifact, so an automated run cannot self-accept and unlock the whole downstream rollout.
     A maintainer flips it by adding their `approvedBy` approval artifact.
 
+    A qualifying human approval now exists: PR #76 was approved by Tiago0507 on
+    2026-08-26 and merged as 7b5bca0, and the approved head tree for both evidence
+    bundles is byte-identical to the merged main tree, so the approval covers exactly
+    the evidence being accepted. Recording it is still a maintainer's action, not an
+    automated one — writing one's own acceptance is precisely what this gate exists to
+    prevent. To close this task, add an artifact with `"kind": "approval"`,
+    `"result": "pass"`, and your own `approvedBy` to the drill bundle's `artifacts`,
+    then set `"decision": "accepted"` and re-run
+    `scripts/managed/validate-full-profile-evidence.sh` on it.
+
 **Checkpoint**: A failed future stage is mechanically unable to advance and cannot disturb the economical platform.
 
 ---
@@ -140,22 +150,34 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
 
 ### Tests first
 
-- [ ] T039 [P] [US2] Add Terraform tests for one-EIP/one-NAT centralized egress, separate empty per-spoke TGW route tables, spoke-owned attachments/default/return routes, absent spoke-to-spoke routes, encrypted flow logs, and expected outputs in `../microservice-app-ops/aws/modules/centralized-egress/tests/centralized-egress.tftest.hcl`.
-- [ ] T040 [P] [US2] Add full-dev root tests for account `916491575487`, `us-east-1`, `10.40.0.0/16`, one-node bootstrap, private EKS endpoint plus exactly four reviewed public `/32` CIDRs, transit egress, enabled EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites, consumer mode, and one cluster-qualified dev JWT reader/zero secrets in `../microservice-app-ops/aws/environments/full-dev/foundation/tests/foundation.tftest.hcl`.
-- [ ] T041 [P] [US2] Add full-prod root tests for account `916491575487`, `us-east-1`, `10.30.0.0/16`, one-node bootstrap, private EKS endpoint plus exactly four reviewed public `/32` CIDRs, transit egress, enabled EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites, consumer mode, and one cluster-qualified prod JWT reader/zero secrets in `../microservice-app-ops/aws/environments/full-prod/foundation/tests/foundation.tftest.hcl`.
-- [ ] T042 [P] [US2] Add a demo-full regression/opt-in test for `10.20.0.0/16`, current one NAT, current two-node bootstrap, default prerequisites off, explicit staging EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites on, one cluster-qualified staging JWT reader/zero secrets, `create_shared_resources=false`, and exactly the four approved `/32` values in `../microservice-app-ops/aws/environments/demo-full/foundation/tests/full-staging-contract.tftest.hcl`.
-- [ ] T043 [P] [US2] Extend shared-resource tests with full-dev/full-staging/full-prod issuers and exact ServiceAccount subjects, the full-dev-only Sonar secret reader/two-secret boundary, the isolated DR seed workflow subject/four-secret boundary, and a distinct platform-mirror role limited to its exact workflow and the one `microtodosuite/platform` repository in `../microservice-app-ops/aws/modules/environment-foundation/tests/{ecr,github_oidc,observability_security_irsa,kyverno_irsa,managed_secrets}.tftest.hcl`; confirm consumers still create zero shared roles, ECR repositories, or secret containers.
-- [ ] T044 [P] [US2] Add managed-bootstrap fixture tests for wrong account, wrong cluster, unmerged revision, checksum mismatch, third mutation, and successful two-mutation transcript in `tests/bootstrap/managed-cluster-bootstrap.bats`.
+- [X] T039 [P] [US2] Add Terraform tests for one-EIP/one-NAT centralized egress, separate empty per-spoke TGW route tables, spoke-owned attachments/default/return routes, absent spoke-to-spoke routes, encrypted flow logs, and expected outputs in `../microservice-app-ops/aws/modules/centralized-egress/tests/centralized-egress.tftest.hcl`.
+- [X] T040 [P] [US2] Add full-dev root tests for account `916491575487`, `us-east-1`, `10.40.0.0/16`, one-node bootstrap, private EKS endpoint plus exactly four reviewed public `/32` CIDRs, transit egress, enabled EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites, consumer mode, and one cluster-qualified dev JWT reader/zero secrets in `../microservice-app-ops/aws/environments/full-dev/foundation/tests/foundation.tftest.hcl`.
+- [X] T041 [P] [US2] Add full-prod root tests for account `916491575487`, `us-east-1`, `10.30.0.0/16`, one-node bootstrap, private EKS endpoint plus exactly four reviewed public `/32` CIDRs, transit egress, enabled EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites, consumer mode, and one cluster-qualified prod JWT reader/zero secrets in `../microservice-app-ops/aws/environments/full-prod/foundation/tests/foundation.tftest.hcl`.
+- [X] T042 [P] [US2] Add a demo-full regression/opt-in test for `10.20.0.0/16`, current one NAT, current two-node bootstrap, default prerequisites off, explicit staging EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites on, one cluster-qualified staging JWT reader/zero secrets, `create_shared_resources=false`, and exactly the four approved `/32` values in `../microservice-app-ops/aws/environments/demo-full/foundation/tests/full-staging-contract.tftest.hcl`.
+- [X] T043 [P] [US2] Extend shared-resource tests with full-dev/full-staging/full-prod issuers and exact ServiceAccount subjects, the full-dev-only Sonar secret reader/two-secret boundary, the isolated DR seed workflow subject/four-secret boundary, and a distinct platform-mirror role limited to its exact workflow and the one `microtodosuite/platform` repository in `../microservice-app-ops/aws/modules/environment-foundation/tests/{ecr,github_oidc,observability_security_irsa,kyverno_irsa,managed_secrets}.tftest.hcl`; confirm consumers still create zero shared roles, ECR repositories, or secret containers.
+- [X] T044 [P] [US2] Add managed-bootstrap fixture tests for wrong account, wrong cluster, unmerged revision, checksum mismatch, third mutation, and successful two-mutation transcript in `tests/bootstrap/managed-cluster-bootstrap.bats`.
 
 ### Implementation
 
-- [ ] T045 [US2] Implement the tested egress VPC, single NAT/EIP, Transit Gateway, isolated route tables, flow logs, KMS, and outputs in `../microservice-app-ops/aws/modules/centralized-egress/{variables,main,outputs,versions}.tf`; make T039 pass.
-- [ ] T046 [US2] Create the independent egress root and tests in `../microservice-app-ops/aws/shared/egress/`, including `egress.s3.tfbackend` that reuses dev's exact bucket/region/KMS ARN with key `shared/egress/terraform.tfstate`, and add a plan-only Terraform 1.15.8/Infracost matrix for egress/full-dev/full-prod/demo prerequisites in `../microservice-app-ops/.github/workflows/aws-full-foundation-checks.yml`.
-- [ ] T047 [P] [US2] Create the full-dev root in `../microservice-app-ops/aws/environments/full-dev/foundation/` with backend key `environments/full-dev/foundation/terraform.tfstate`, `10.40.0.0/16`, the exact four reviewed `/32` operator CIDRs, consumer mode, one On-Demand bootstrap node, spoke-owned TGW routes, opt-in EBS/Karpenter/AWS-load-balancer prerequisites, and cluster-specific dev JWT/IRSA outputs; make T040 pass.
-- [ ] T048 [P] [US2] Create the full-prod root in `../microservice-app-ops/aws/environments/full-prod/foundation/` with backend key `environments/full-prod/foundation/terraform.tfstate`, `10.30.0.0/16`, the exact four reviewed `/32` operator CIDRs, consumer mode, one On-Demand bootstrap node, spoke-owned TGW routes, opt-in EBS/Karpenter/AWS-load-balancer prerequisites, and cluster-specific prod JWT/IRSA outputs; make T041 pass.
-- [ ] T049 [US2] Assert the existing `../microservice-app-ops/aws/environments/demo-full/foundation/demo-full.s3.tfbackend` still uses the shared bucket/region/KMS and its own existing key; make T042 pass without renaming or replacing physical staging resources.
-- [ ] T050 [P] [US2] Create one-environment in-cluster roots in `clusters/eks-full-dev/`, `clusters/eks-full-staging/`, and `clusters/eks-full-prod/`, mapping staging to physical `microtodosuite-demo-full`, declaring each root's exact planned logical activation/capability inventory, and keeping both generated business and infrastructure activation lists empty at the recorded bootstrap revision.
-- [ ] T051 [US2] Implement the identity/revision/checksum-guarded two-mutation helper in `scripts/managed/bootstrap-cluster.sh`, update `docs/bootstrap-boundary.md`, and make T044 pass.
+- [X] T045 [US2] Implement the tested egress VPC, single NAT/EIP, Transit Gateway, isolated route tables, flow logs, KMS, and outputs in `../microservice-app-ops/aws/modules/centralized-egress/{variables,main,outputs,versions}.tf`; make T039 pass.
+- [X] T046 [US2] Create the independent egress root and tests in `../microservice-app-ops/aws/shared/egress/`, including `egress.s3.tfbackend` that reuses dev's exact bucket/region/KMS ARN with key `shared/egress/terraform.tfstate`, and add a plan-only Terraform 1.15.8/Infracost matrix for egress/full-dev/full-prod/demo prerequisites in `../microservice-app-ops/.github/workflows/aws-full-foundation-checks.yml`.
+- [X] T047 [P] [US2] Create the full-dev root in `../microservice-app-ops/aws/environments/full-dev/foundation/` with backend key `environments/full-dev/foundation/terraform.tfstate`, `10.40.0.0/16`, the exact four reviewed `/32` operator CIDRs, consumer mode, one On-Demand bootstrap node, spoke-owned TGW routes, opt-in EBS/Karpenter/AWS-load-balancer prerequisites, and cluster-specific dev JWT/IRSA outputs; make T040 pass.
+- [X] T048 [P] [US2] Create the full-prod root in `../microservice-app-ops/aws/environments/full-prod/foundation/` with backend key `environments/full-prod/foundation/terraform.tfstate`, `10.30.0.0/16`, the exact four reviewed `/32` operator CIDRs, consumer mode, one On-Demand bootstrap node, spoke-owned TGW routes, opt-in EBS/Karpenter/AWS-load-balancer prerequisites, and cluster-specific prod JWT/IRSA outputs; make T041 pass.
+- [X] T049 [US2] Assert the existing `../microservice-app-ops/aws/environments/demo-full/foundation/demo-full.s3.tfbackend` still uses the shared bucket/region/KMS and its own existing key; make T042 pass without renaming or replacing physical staging resources.
+- [X] T050 [P] [US2] Create one-environment in-cluster roots in `clusters/eks-full-dev/`, `clusters/eks-full-staging/`, and `clusters/eks-full-prod/`, mapping staging to physical `microtodosuite-demo-full`, declaring each root's exact planned logical activation/capability inventory, and keeping both generated business and infrastructure activation lists empty at the recorded bootstrap revision.
+- [X] T051 [US2] Implement the identity/revision/checksum-guarded two-mutation helper in `scripts/managed/bootstrap-cluster.sh`, update `docs/bootstrap-boundary.md`, and make T044 pass.
+
+**Status at this revision**: T039-T051 are complete. Every root, module, cluster
+root, and helper exists, is tested, and is inert: the three GitOps roots generate
+zero Applications, and every full-profile switch on the live economical and
+staging environments defaults off. Nothing has been applied to AWS.
+
+T052 onward require live cloud reads, quota checks, refreshed plans against the
+real backend, an external timestamped state backup, and exact-plan approval, in
+the order egress -> full dev -> full prod -> staging prerequisites -> dev-owner
+trust -> GitOps roots/bootstrap. Those are human-gated by design and are not
+started here.
+
 - [ ] T052 [US2] Run collision, EIP, On-Demand/Spot quota, EKS quota, AZ/type availability, backend uniqueness, and ownership discovery; store the redacted current snapshot in `evidence/runs/<timestamp>-aws-foundations/infrastructure/quotas.json` and stop on any mismatch.
 - [ ] T053 [US2] Initialize and produce a refreshed saved plan plus Infracost for `../microservice-app-ops/aws/shared/egress/`; prove one EIP/NAT, no environment route sharing, no destroy, and record the single-AZ availability trade-off/cost acceptance.
 - [ ] T054 [P] [US2] Initialize and produce a refreshed saved plan plus Infracost for `../microservice-app-ops/aws/environments/full-dev/foundation/`; prove zero singleton creation, correct state/CIDR/API access, no NAT/EIP, no destroy, and quota fit.
