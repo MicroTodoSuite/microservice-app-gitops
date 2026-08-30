@@ -8,15 +8,29 @@
 **Tests**: Required by FR-016 and by the spec's demand for live evidence
 rather than configuration-only success (FR-015, SC-009).
 
+> **Reconciliation 2026-08-30.** T001 (`tests/contract/observability.sh`) and
+> T002 (`scripts/managed/verify-observability.sh`) were ticked against the tree.
+>
+> **Unresolved: every pinned version in this register drifted and no decision
+> records it.** kube-prometheus v0.16.0 -> v0.18.0, Grafana 11.7.0 -> v13.2.0,
+> Loki 3.6.0 -> v3.7.6, and Jaeger 1.65.0 -> **v2.20.0**, a major version with a
+> different architecture. T004-T007 stay unchecked because the vendoring does not
+> match what they specify. Either this text or the vendoring is wrong; that is a
+> maintainer decision, not a text edit. See section E1 of
+> `microservice-app-docs/full-platform/plan-reconciliation.md`.
+>
+> T049 is real documentation debt: `docs/platform-addons.md` mentions none of
+> Prometheus, Grafana, Jaeger, or Loki.
+
 ## Phase 1: Setup (Validation First)
 
 **Purpose**: Encode the missing behavior as failing checks before filling the
 new infrastructure folders.
 
-- [ ] T001 Create the failing pinned-version, checksum (where a bundle
+- [X] T001 Create the failing pinned-version, checksum (where a bundle
   exists), immutable-image, activation-list, no-Ingress/no-Elasticsearch, and
   label-cardinality checks in `tests/contract/observability.sh`
-- [ ] T002 Create the read-only composite verifier skeleton and expected
+- [X] T002 Create the read-only composite verifier skeleton and expected
   application/controller/capability inventory in
   `scripts/managed/verify-observability.sh`
 - [ ] T003 [P] Confirm `--context`/`--namespace` override support exists (or

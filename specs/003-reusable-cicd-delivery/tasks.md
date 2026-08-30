@@ -18,6 +18,16 @@ not new test suites.
 - `[svc:<name>]` → that service's repo (e.g. `microservice-app-auth-api`)
 - `[gitops]` → `microservice-app-gitops` (this repo)
 
+> **Reconciliation 2026-08-30.** T003 and T004 were ticked against verified
+> evidence: the organization runs both GitHub Apps (`microtodo-gitops-promoter`,
+> `microtodosuite-ci-release`) and SonarCloud with per-service project keys
+> (`MicroTodoSuite_auth-api`) passed through the reusable `ci.yml`. The six that
+> remain are real: T020 (no path-scoped ruleset exists on gitops, and its stated
+> path is stale — prod overlays now live under `profiles/economical/overlays/`),
+> T029 (only auth-api has a `local` ExternalSecret), and T021/T024/T035/T038,
+> which require observed runs. Detail in
+> `microservice-app-docs/full-platform/plan-reconciliation.md`.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no unmet dependency)
@@ -31,8 +41,8 @@ not new test suites.
 
 - [X] T001 [.github] Create reusable-workflow scaffolding: `.github/workflows/` and `.github/actions/` directories plus an `actionlint` config and a short `README` stub
 - [X] T002 [P] [.github] Document the workflow version-pin policy (release tag `@vX` alias + optional SHA pin) from research D2 in `.github/README.md`
-- [ ] T003 [P] [.github] Define and provision the least-privilege cross-repo automation identity (GitHub App or fine-grained token, `contents:write`+`pull_requests:write` on gitops only, research D9); store as org secrets `GITOPS_PROMOTE_APP_ID`/`GITOPS_PROMOTE_APP_KEY`
-- [ ] T004 [P] [.github] Configure SonarCloud org + per-service project keys and store `SONAR_TOKEN` as an org secret (research D6)
+- [X] T003 [P] [.github] Define and provision the least-privilege cross-repo automation identity (GitHub App or fine-grained token, `contents:write`+`pull_requests:write` on gitops only, research D9); store as org secrets `GITOPS_PROMOTE_APP_ID`/`GITOPS_PROMOTE_APP_KEY`
+- [X] T004 [P] [.github] Configure SonarCloud org + per-service project keys and store `SONAR_TOKEN` as an org secret (research D6)
 
 ---
 
