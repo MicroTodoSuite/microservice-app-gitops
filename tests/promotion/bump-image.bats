@@ -46,8 +46,10 @@ grep -Fq "digest: $digest" "$worktree/$expected_path" || {
 # why an overlay is configured the way it is. Asserting only "one file changed"
 # lets that through, which is exactly how ten promotion PRs came to rewrite
 # their overlays end to end for a one-line change.
-added="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -cE '^\+[^+]' || true)"
-removed="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -cE '^-[^-]' || true)"
+# --numstat rather than counting diff lines: a YAML sequence entry renders as
+# `-- digest:` / `+- digest:`, which a naive ^-[^-] filter drops along with the
+# diff header and reports as zero removals.
+read -r added removed _ < <(git -C "$worktree" diff --numstat HEAD~1 HEAD -- "$expected_path")
 [[ "$added" -eq 1 && "$removed" -eq 1 ]] || {
   printf 'FAIL: a promotion must change exactly one line, got +%s/-%s:\n' "$added" "$removed" >&2
   git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" >&2
@@ -55,7 +57,7 @@ removed="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -cE '^
 }
 
 # The changed line must be the digest itself, not a line that merely moved.
-changed_line="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -E '^\+[^+]')"
+changed_line="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -E '^\+' | grep -v '^+++')"
 [[ "$changed_line" == *"digest: $digest"* ]] || {
   printf 'FAIL: the single changed line is not the digest: %s\n' "$changed_line" >&2
   exit 1
