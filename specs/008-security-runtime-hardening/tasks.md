@@ -8,12 +8,19 @@
 **Tests**: Required by FR-012 and by the spec's demand for live evidence
 rather than configuration-only success (FR-011, SC-007).
 
+> **Reconciliation 2026-08-30.** T001 (`tests/contract/security.sh`) and T002
+> (`scripts/managed/verify-security.sh`) were ticked against the tree. The rest
+> are live-cluster evidence tasks ("publish the commit, wait for it to sync"),
+> except T027, which is real documentation debt: `docs/platform-addons.md`
+> mentions none of Falco, kube-bench, or kube-hunter. Detail in
+> `microservice-app-docs/full-platform/plan-reconciliation.md`.
+
 ## Phase 1: Setup (Validation First)
 
-- [ ] T001 Create the failing pinned-version, digest-pinned-image,
+- [X] T001 Create the failing pinned-version, digest-pinned-image,
   activation-list, read-only-RBAC, and no-enforcement checks in
   `tests/contract/security.sh`
-- [ ] T002 Create the read-only composite verifier skeleton and expected
+- [X] T002 Create the read-only composite verifier skeleton and expected
   application/controller inventory in `scripts/managed/verify-security.sh`
 
 ---
