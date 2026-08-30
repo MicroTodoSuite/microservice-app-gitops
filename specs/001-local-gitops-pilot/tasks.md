@@ -27,6 +27,11 @@ implementation they validate.
 - **[Story]**: Maps the task to User Story 1 through 4 from `spec.md`.
 - Every task names the exact repository path(s) it creates or changes.
 
+> **Retired 2026-08-30.** The local pilot is finished; see the decision recorded
+> in `spec.md`. The 44 unchecked tasks below are the formal evidence harness that
+> the cloud rollout superseded. They stay unchecked on purpose — they were not
+> delivered — and this register is closed rather than completed.
+
 ## Phase 1: Setup (Shared Local-Pilot Assets)
 
 **Purpose**: Establish tracked, pinned inputs and common test/script structure

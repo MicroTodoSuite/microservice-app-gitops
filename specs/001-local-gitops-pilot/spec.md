@@ -4,7 +4,24 @@
 
 **Created**: 2026-08-08
 
-**Status**: Draft
+**Status**: Retired — purpose served, superseded by the cloud rollout
+
+> **Decision, 2026-08-30 (maintainer).** The local pilot is considered finished.
+> It existed to prove the GitOps loop end to end before anything was built in the
+> cloud, and it did: `scripts/pilot/` (bootstrap, preflight, publish, verify,
+> cleanup), `bootstrap/local/kind-config.yaml`, `clusters/local-kind/`, and the
+> `20260809T185618Z-git-revert-self-heal` evidence run all exist and were used.
+>
+> Its 44 unchecked tasks are **not** delivered and are deliberately left
+> unchecked rather than ticked: they are the formal evidence harness — an offline
+> `assets.lock`, `scripts/pilot/run-three-clean.sh`, a newcomer-workflow test, a
+> first-time-operator evaluation, and three recorded clean runs. That harness was
+> superseded by the cloud rollout's own evidence contract in spec 009 before it
+> was finished.
+>
+> Ticking them would misrepresent what was built. Retiring the specification
+> records the truth: the pilot achieved its purpose, and the remaining scope was
+> dropped by decision rather than completed.
 
 **Input**: User description: "Provision a fully local Kubernetes pilot that deploys exactly `auth-api` from committed desired state in `microservice-app-gitops`, with ArgoCD reconciliation, reusable base and environment overlays, no direct cluster application path, and no cloud account, paid service, or hosted runtime dependency."
 
