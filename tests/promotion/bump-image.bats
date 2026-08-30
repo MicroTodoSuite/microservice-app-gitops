@@ -39,6 +39,36 @@ grep -Fq "digest: $digest" "$worktree/$expected_path" || {
   exit 1
 }
 
+# A promotion is a digest swap and nothing else.
+#
+# `kustomize edit set image` re-serializes the whole kustomization, so it
+# silently reformats every unrelated block and strips the comments that record
+# why an overlay is configured the way it is. Asserting only "one file changed"
+# lets that through, which is exactly how ten promotion PRs came to rewrite
+# their overlays end to end for a one-line change.
+added="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -cE '^\+[^+]' || true)"
+removed="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -cE '^-[^-]' || true)"
+[[ "$added" -eq 1 && "$removed" -eq 1 ]] || {
+  printf 'FAIL: a promotion must change exactly one line, got +%s/-%s:\n' "$added" "$removed" >&2
+  git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" >&2
+  exit 1
+}
+
+# The changed line must be the digest itself, not a line that merely moved.
+changed_line="$(git -C "$worktree" diff HEAD~1 HEAD -- "$expected_path" | grep -E '^\+[^+]')"
+[[ "$changed_line" == *"digest: $digest"* ]] || {
+  printf 'FAIL: the single changed line is not the digest: %s\n' "$changed_line" >&2
+  exit 1
+}
+
+# Comments carry the overlay's policy; a promotion must not consume them.
+comments_before="$(git -C "$worktree" show "HEAD~1:$expected_path" | grep -c '^\s*#' || true)"
+comments_after="$(grep -c '^\s*#' "$worktree/$expected_path" || true)"
+[[ "$comments_before" -eq "$comments_after" ]] || {
+  printf 'FAIL: promotion dropped overlay comments (%s -> %s).\n' "$comments_before" "$comments_after" >&2
+  exit 1
+}
+
 before_invalid="$(git -C "$worktree" rev-parse HEAD)"
 if (
   cd "$worktree"
