@@ -228,9 +228,9 @@ started here.
 **Status at this revision**: all five service operational contracts have located,
 verified implementations. auth-api (T072/T077) and log-message-processor
 (T074/T079) are merged. todos-api (T075/T080) remains in PR #15 with a blocking
-supply-chain finding. frontend (T073/T078) is in frontend PR #21, and users-api
-(T076/T081) is in users-api PR #21; the latter restores the implementation for
-the failing test-first commit already present on its `main` branch.
+supply-chain finding. frontend (T073/T078) is in frontend PR #21. users-api
+(T076/T081) merged through users-api PR #21, restoring the implementation for
+the failing test-first commit previously present alone on its `main` branch.
 
 Each implementation adds health probes, correlation propagation, non-secret
 runtime configuration with default-off toggles, and bounded dependency calls
