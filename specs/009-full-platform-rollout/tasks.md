@@ -212,29 +212,30 @@ started here.
 - [ ] T070 [P] [US3] Add failing cloud-secret tests for AWS IRSA and Azure workload identity/Key Vault references, exact JWT/Alertmanager/Falco/Grafana/Sonar source-name mappings, production JWT parity metadata, no ad hoc generator for application or operator-supplied runtime/admin values, an explicit generator/consumer/rotation allowlist limited to controller-owned TLS/service-account/internal-bootstrap material, exact full-dev-only Sonar reader scope, and no literal/exported values in `tests/platform/external-secrets.bats`.
 - [ ] T071 [P] [US3] Add failing platform tests for unsigned/unmirrored/mutable images, wrong platform-mirror signature identity, incomplete OCI graph, alert, Falco trigger, ECK recovery, SonarQube/PostgreSQL readiness and retained-volume recovery, audit Jobs, bounded scaling, chaos activation, controlled non-secret runtime configuration, and auditable default-off feature toggles as GitOps-owned manifests in `tests/platform/{platform-image-supply-chain,failure-fixtures,runtime-config}.bats`.
 - [X] T072 [P] [US3] Add auth-api health, correlation, OpenTelemetry, timeout/retry/circuit-breaker, and metrics tests in `../microservice-app-auth-api/main_test.go` and `user_test.go`; confirm failure before T077.
-- [ ] T073 [P] [US3] Add frontend health/config/correlation and failure UX tests in `../microservice-app-frontend/test/unit/operational-contract.test.js` and extend `../microservice-app-frontend/e2e/specs/todos.spec.js`; confirm failure before T078.
+- [X] T073 [P] [US3] Add frontend health/config/correlation and failure UX tests in `../microservice-app-frontend/test/unit/operational-contract.test.js` and extend `../microservice-app-frontend/e2e/specs/todos.spec.js`; confirm failure before T078.
 - [X] T074 [P] [US3] Add log processor health, correlation, OpenTelemetry, Redis retry/backoff, and metrics tests in `../microservice-app-log-message-processor/tests/test_operational_contract.py` and `tests/integration/test_redis_consume.py`; confirm failure before T079.
 - [X] T075 [P] [US3] Add todos API health, correlation, OpenTelemetry, Redis timeout/retry/circuit-breaker, and metrics tests in `../microservice-app-todos-api/test/operational-contract.test.js` and `test/integration/redis-publish.test.js`; confirm failure before T080.
-- [ ] T076 [P] [US3] Add users API Actuator startup/readiness/liveness, correlation, OpenTelemetry, authentication-path, and metrics tests in `../microservice-app-users-api/src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java`; confirm failure before T081.
+- [X] T076 [P] [US3] Add users API Actuator startup/readiness/liveness, correlation, OpenTelemetry, authentication-path, and metrics tests in `../microservice-app-users-api/src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java`; confirm failure before T081.
 
 ### Service implementation
 
 - [X] T077 [P] [US3] Implement the auth-api health/correlation/telemetry/resilience and externally supplied non-secret config/feature-toggle contract in `../microservice-app-auth-api/main.go`, `otel.go`, and `user.go`, update `contracts/openapi.yaml`, and make T072 pass.
-- [ ] T078 [P] [US3] Implement the frontend runtime-config/default-off feature-toggle, health, correlation, and telemetry contract in `../microservice-app-frontend/src/http.js`, `src/main.js`, `entrypoint.sh`, and `nginx.conf.template`; make T073 pass.
+- [X] T078 [P] [US3] Implement the frontend runtime-config/default-off feature-toggle, health, correlation, and telemetry contract in `../microservice-app-frontend/src/http.js`, `src/main.js`, `entrypoint.sh`, and `nginx.conf.template`; make T073 pass.
 - [X] T079 [P] [US3] Implement the log processor health/correlation/telemetry/resilience and externally supplied non-secret config/feature-toggle contract in `../microservice-app-log-message-processor/main.py`, `requirements.in`, and `requirements-dev.in`, regenerate hashed lock files, update `contracts/asyncapi.yaml`, and make T074 pass.
 - [X] T080 [P] [US3] Implement the todos API health/correlation/telemetry/resilience and externally supplied non-secret config/feature-toggle contract in `../microservice-app-todos-api/server.js`, `routes.js`, and `todoController.js`, update OpenAPI/AsyncAPI contracts, and make T075 pass.
-- [ ] T081 [P] [US3] Implement the users API health/correlation/telemetry/authentication and externally supplied non-secret config/feature-toggle contract in `../microservice-app-users-api/pom.xml`, `src/main/java/com/elgris/usersapi/UsersApiApplication.java`, `src/main/java/com/elgris/usersapi/api/{UsersController,CounterController}.java`, `src/main/java/com/elgris/usersapi/configuration/SecurityConfiguration.java`, `src/main/resources/{application.properties,logback-spring.xml}`, and `contracts/openapi.yaml`; make T076 pass.
+- [X] T081 [P] [US3] Implement the users API health/correlation/telemetry/authentication and externally supplied non-secret config/feature-toggle contract in `../microservice-app-users-api/pom.xml`, `src/main/java/com/elgris/usersapi/UsersApiApplication.java`, `src/main/java/com/elgris/usersapi/api/{UsersController,CounterController}.java`, `src/main/java/com/elgris/usersapi/configuration/SecurityConfiguration.java`, `src/main/resources/{application.properties,logback-spring.xml}`, and `contracts/openapi.yaml`; make T076 pass.
 
-**Status at this revision**: three of five service operational contracts are
-complete and open as PRs — auth-api (T072/T077), todos-api (T075/T080), and
-log-message-processor (T074/T079). frontend (T073/T078) and users-api
-(T076/T081) are not started; users-api additionally needs a Maven toolchain that
-is not available in the current environment.
+**Status at this revision**: all five service operational contracts have located,
+verified implementations. auth-api (T072/T077) and log-message-processor
+(T074/T079) are merged. todos-api (T075/T080) remains in PR #15 with a blocking
+supply-chain finding. frontend (T073/T078) is in frontend PR #21, and users-api
+(T076/T081) is in users-api PR #21; the latter restores the implementation for
+the failing test-first commit already present on its `main` branch.
 
-Each landed service gained health probes, correlation propagation, non-secret
-runtime configuration with default-off toggles, and bounded dependency calls.
-Three real defects were found and fixed along the way rather than being
-specified around:
+Each implementation adds health probes, correlation propagation, non-secret
+runtime configuration with default-off toggles, and bounded dependency calls
+where the service owns a network dependency. Five real defects were found and
+fixed along the way rather than being specified around:
 
 - auth-api called users-api through `http.DefaultClient`, which has no timeout,
   so an unresponsive users-api would hang one goroutine per login until the pod
@@ -244,6 +245,11 @@ specified around:
   terminates the process, so a Redis restart was an API outage.
 - log-message-processor let any broker error end the process, handing the pod to
   CrashLoopBackOff whose backoff outlasts the outage that triggered it.
+- frontend issued browser requests without a timeout or correlation identifier;
+  its first runtime-config implementation also tried to write under a root-owned
+  static directory from the non-root container.
+- users-api let malformed signed JWT payloads escape as server errors and logged
+  an unused generated Spring credential during startup.
 
 The platform half of this phase (T068-T071, T082-T091) is blocked behind Phase
 4's applies: the manifests must reference mirrored ECR digests that do not exist
