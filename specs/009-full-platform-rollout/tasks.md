@@ -226,23 +226,25 @@ started here.
 - [X] T081 [P] [US3] Implement the users API health/correlation/telemetry/authentication and externally supplied non-secret config/feature-toggle contract in `../microservice-app-users-api/pom.xml`, `src/main/java/com/elgris/usersapi/UsersApiApplication.java`, `src/main/java/com/elgris/usersapi/api/{UsersController,CounterController}.java`, `src/main/java/com/elgris/usersapi/configuration/SecurityConfiguration.java`, `src/main/resources/{application.properties,logback-spring.xml}`, and `contracts/openapi.yaml`; make T076 pass.
 
 **Status at this revision**: all five service operational contracts have located,
-verified implementations. auth-api (T072/T077) and log-message-processor
-(T074/T079) are merged. todos-api (T075/T080) remains in PR #15 with a blocking
-supply-chain finding. frontend (T073/T078) is in frontend PR #21. users-api
-(T076/T081) merged through users-api PR #21, restoring the implementation for
+verified, merged implementations. auth-api (T072/T077) and
+log-message-processor (T074/T079) were already merged; frontend (T073/T078),
+todos-api (T075/T080), and users-api (T076/T081) merged through their respective
+PRs #21, #15, and #21. The users-api merge also restored the implementation for
 the failing test-first commit previously present alone on its `main` branch.
 
 Each implementation adds health probes, correlation propagation, non-secret
 runtime configuration with default-off toggles, and bounded dependency calls
-where the service owns a network dependency. Five real defects were found and
-fixed along the way rather than being specified around:
+where the service owns a network dependency. Real defects were found and fixed
+along the way rather than being specified around:
 
 - auth-api called users-api through `http.DefaultClient`, which has no timeout,
   so an unresponsive users-api would hang one goroutine per login until the pod
   exhausted memory while liveness kept passing.
 - todos-api registered no Redis `error` handler and published with no callback;
   node-redis surfaces failures as an `error` event, and an unhandled one
-  terminates the process, so a Redis restart was an API outage.
+  terminates the process, so a Redis restart was an API outage. Its final image
+  also omitted the operational module loaded by `server.js`; the packaging
+  contract now prevents that container-startup regression.
 - log-message-processor let any broker error end the process, handing the pod to
   CrashLoopBackOff whose backoff outlasts the outage that triggered it.
 - frontend issued browser requests without a timeout or correlation identifier;
