@@ -41,7 +41,12 @@ for path in \
   tests/bootstrap/managed-cluster-bootstrap.bats \
   tests/contract/namespace-isolation-evidence.sh \
   tests/contract/namespace-isolation.sh \
-  tests/contract/platform-addons.sh
+  tests/contract/platform-addons.sh \
+  tests/evidence/economical-baseline.bats \
+  tests/evidence/fixtures/economical/degraded/aws-identity.json \
+  tests/evidence/fixtures/economical/healthy/aws-identity.json \
+  tests/evidence/fixtures/economical/revision-mismatch/aws-identity.json \
+  tests/evidence/fixtures/economical/unreachable/aws-identity.json
 do
   require_account "$path"
 done
