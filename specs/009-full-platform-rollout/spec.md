@@ -8,6 +8,22 @@
 
 **Input**: User description: "Deliver the literal full architecture from the original MicroTodoSuite evolution plan in parallel with the working economical environment: three isolated AWS environments, an Azure disaster-recovery environment, independent GitOps reconciliation, the full platform, security, observability, progressive delivery, chaos, and FinOps capabilities, while preserving functional behavior through approved quota-compatible infrastructure adaptations."
 
+## Clarifications
+
+### Session 2026-09-07
+
+- Q: How is the economical platform recovered after the original AWS account lost
+  its available credits? → A: Recreate the economical foundation in AWS account
+  `575172595729`, then migrate only the active economical GitOps values and their
+  current operational contracts from typed Terraform outputs. Historical evidence
+  remains immutable. Inactive full-profile account values are not activated or
+  deployed by this recovery and must be replanned for the same new account before
+  any full-profile root may be enabled.
+- Q: When may the new EKS cluster receive direct mutations? → A: Only after the
+  account migration and deployable image digests are merged to protected `main`,
+  and only through the checksum-pinned two-mutation managed bootstrap boundary.
+  Every child Application, platform capability, and workload remains GitOps-owned.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Preserve the economical platform during rollout (Priority: P1)
