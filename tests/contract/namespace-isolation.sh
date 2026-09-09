@@ -199,7 +199,7 @@ for environment in "${environments[@]}"; do
   require_render_text "$render" 'name: external-secrets-jwt' \
     "$environment render lacks its exact JWT synchronization ServiceAccount"
   require_render_text "$render" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::916491575487:role/microtodosuite-${environment}-jwt-reader" \
+    "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-${environment}-jwt-reader" \
     "$environment JWT ServiceAccount role mapping drifted"
   require_render_text "$render" \
     "key: microtodosuite/$environment/auth-api-secrets" \
@@ -286,27 +286,27 @@ fi
 require_file clusters/local-kind/activation-infrastructure.yaml
 require_file clusters/eks-dev/activation-infrastructure.yaml
 require_file clusters/eks-dev/activation-infrastructure-retired.yaml
-if [[ "$(rg -c '^    - env: (dev|staging|prod)$' \
-    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 3 ]]; then
-  fail "managed business activation must list exactly dev, staging, and prod"
+if [[ "$(rg -c '^    - env: (dev|staging|prod|demo)$' \
+    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 4 ]]; then
+  fail "managed business activation must list exactly dev, staging, prod, and demo"
 fi
 if [[ "$(rg -c '^      server: https://kubernetes.default.svc$' \
-    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 3 ]]; then
+    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 4 ]]; then
   fail "every managed business activation must target the in-cluster API server"
 fi
 reject_text clusters/eks-dev/activation-apps.yaml \
   'env: local|env: production' \
   "managed business activation contains an unsupported environment"
 if [[ "$(rg -c '^    - env:' \
-    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 3 ]]; then
+    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 4 ]]; then
   fail "managed environment activation contains an extra or missing element"
 fi
-if [[ "$(rg -c '^    - env: (dev|staging|prod)$' \
-    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 3 ]]; then
-  fail "managed environment activation must list exactly dev, staging, and prod"
+if [[ "$(rg -c '^    - env: (dev|staging|prod|demo)$' \
+    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 4 ]]; then
+  fail "managed environment activation must list exactly dev, staging, prod, and demo"
 fi
 if [[ "$(rg -c '^      server: https://kubernetes.default.svc$' \
-    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 3 ]]; then
+    "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 4 ]]; then
   fail "every managed environment must target the in-cluster API server"
 fi
 reject_text clusters/eks-dev/activation-environments.yaml \
@@ -340,13 +340,13 @@ reject_text clusters/eks-dev/activation-infrastructure-retired.yaml \
 
 for service in todos-api log-message-processor; do
   for environment in "${environments[@]}"; do
-    overlay="apps/$service/overlays/$environment/kustomization.yaml"
+    overlay="apps/$service/profiles/economical/overlays/$environment/kustomization.yaml"
     require_text "$overlay" 'REDIS_HOST' \
       "$service $environment overlay lacks a Redis endpoint override"
     require_text "$overlay" 'REDIS_HOST: redis' \
       "$service $environment overlay does not use namespace-local Redis"
     managed_render="$TMP_DIR/$service-$environment.yaml"
-    render_kustomize "$ROOT/apps/$service/overlays/$environment" >"$managed_render"
+    render_kustomize "$ROOT/apps/$service/profiles/economical/overlays/$environment" >"$managed_render"
     require_render_text "$managed_render" '^  REDIS_HOST: redis$' \
       "$service $environment render does not use namespace-local Redis"
     require_render_text "$managed_render" \
@@ -385,7 +385,9 @@ require_text scripts/managed/verify-namespace-isolation.sh \
 
 if rg -n \
     'kubectl[^#\n]*(apply|create|patch|replace|scale|rollout|delete)|argocd[^#\n]*(sync|app set|app delete)' \
-    "$ROOT/scripts/managed" | rg -v 'auth can-i'; then
+    "$ROOT/scripts/managed" \
+    | rg -v 'scripts/managed/bootstrap-cluster\.sh:' \
+    | rg -v 'auth can-i'; then
   fail "managed observer contains a direct mutation command"
 fi
 require_text tests/fixtures/namespace-isolation/quota-violation/deployment.yaml \

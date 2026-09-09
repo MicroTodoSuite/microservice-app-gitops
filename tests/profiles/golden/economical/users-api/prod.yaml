@@ -107,7 +107,7 @@ spec:
         envFrom:
         - configMapRef:
             name: users-api-config
-        image: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api@sha256:48936907d0b4fb68bd2f0644f8246517c9c9ad8c61e874c8ce3a31b89f11d845
+        image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api@sha256:48936907d0b4fb68bd2f0644f8246517c9c9ad8c61e874c8ce3a31b89f11d845
         livenessProbe:
           httpGet:
             path: /prometheus

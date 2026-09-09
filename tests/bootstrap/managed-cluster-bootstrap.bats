@@ -42,7 +42,7 @@ run_bootstrap() {
   PATH="$FIXTURES/$fixture/bin:$PATH" \
     "$BOOTSTRAP" \
       --cluster "microtodosuite-full-dev" \
-      --expected-account "916491575487" \
+      --expected-account "575172595729" \
       --revision "main" \
       --root-app "clusters/eks-full-dev/root-app.yaml" \
       --transcript "$TMP/$name.transcript" \

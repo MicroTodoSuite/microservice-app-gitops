@@ -110,6 +110,9 @@ jobs:
       - name: Validate single-owner infrastructure inventory
         run: tests/evidence/validate-ownership.bats
 
+      - name: Validate the active economical AWS account
+        run: tests/contract/economical-account-recovery.sh
+
       - name: Reject committed secret material
         run: |
           set -euo pipefail

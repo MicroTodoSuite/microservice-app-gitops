@@ -83,7 +83,7 @@ spec:
         envFrom:
         - configMapRef:
             name: auth-api-config
-        image: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api@sha256:9161a9d737eaee4af013fac39c598583c5ea71786643e2c4658c6281db74425d
+        image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api@sha256:9161a9d737eaee4af013fac39c598583c5ea71786643e2c4658c6281db74425d
         livenessProbe:
           httpGet:
             path: /version

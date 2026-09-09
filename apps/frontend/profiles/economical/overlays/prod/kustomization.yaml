@@ -23,5 +23,5 @@ patches:
                   limits: {cpu: 100m, memory: 128Mi}
 images:
   - name: frontend
-    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
-    digest: sha256:5fe218db17bb8d71d00458c44d8a88e9d7c9875f7e5a4cfee980eef45de0e728
+    newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
+    digest: sha256:ebb0184f1d35d278d92488212358597bf3eb9cbd611d36311ccf91b073cb8e86

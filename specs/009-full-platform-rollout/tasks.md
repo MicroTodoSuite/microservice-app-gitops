@@ -402,6 +402,29 @@ to stay empty at their bootstrap revision.
 
 ---
 
+## Phase 10: Economical AWS Account Recovery (2026-09-07)
+
+**Purpose**: Restore the economical shared-cluster platform in the replacement AWS
+account without activating the full profile or rewriting historical evidence.
+
+- [X] T163 Add a failing account-recovery contract in
+  `tests/contract/economical-account-recovery.sh` that rejects the retired account
+  from active economical image, IRSA, operator-documentation, and managed-bootstrap
+  paths while requiring account `575172595729`.
+- [X] T164 Replace the active economical ECR and IRSA values from the verified dev
+  Terraform outputs, update their current contract fixtures and golden renders,
+  and make T163 plus all affected profile, namespace, platform, and bootstrap tests
+  pass without changing historical evidence or inactive full-profile roots.
+- [X] T165 Publish the five service images through the approved GitHub OIDC release
+  path into the replacement neutral ECR repositories, promote their exact immutable
+  digests into the economical overlays, and pass the render and admission contracts.
+- [ ] T166 Merge the reviewed GitOps revision through protected `main`, run exactly
+  `scripts/managed/bootstrap-cluster.sh` for `microtodosuite-dev`, and verify ArgoCD,
+  platform Applications, External Secrets, workloads, and cross-service behavior
+  using read-only observations after bootstrap.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

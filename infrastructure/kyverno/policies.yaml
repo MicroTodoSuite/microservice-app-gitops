@@ -101,7 +101,7 @@ spec:
                 - "microtodo-*"
       verifyImages:
         - imageReferences:
-            - "916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/*"
+            - "575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/*"
           failureAction: Enforce
           required: true
           mutateDigest: true
