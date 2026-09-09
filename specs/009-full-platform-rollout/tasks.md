@@ -407,7 +407,7 @@ account without activating the full profile or rewriting historical evidence.
   Terraform outputs, update their current contract fixtures and golden renders,
   and make T163 plus all affected profile, namespace, platform, and bootstrap tests
   pass without changing historical evidence or inactive full-profile roots.
-- [ ] T165 Publish the five service images through the approved GitHub OIDC release
+- [X] T165 Publish the five service images through the approved GitHub OIDC release
   path into the replacement neutral ECR repositories, promote their exact immutable
   digests into the economical overlays, and pass the render and admission contracts.
 - [ ] T166 Merge the reviewed GitOps revision through protected `main`, run exactly
