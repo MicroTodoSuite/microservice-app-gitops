@@ -8,9 +8,15 @@ Every section below is required. Where one genuinely does not apply, write
 Title: the same Conventional Commit string as the primary commit, e.g.
   feat(us3): implement the auth-api operational contract
 
+<<<<<<< Updated upstream
 Written in English — title, body, and review comments. See section 3 of the
 conventions. Discussing the change in another language is fine; writing it into
 the repository is not.
+=======
+Written in English — title, body, and review comments. No bilingual sections.
+See section 3 of the conventions. Discussing the change in another language is
+fine; writing it into the repository is not.
+>>>>>>> Stashed changes
 -->
 
 ## What changes
@@ -62,3 +68,7 @@ the repository is not.
        not author an acceptance artifact.
      - Report faithfully: if CI is red, say what is red. If a step was skipped,
        say it was skipped. -->
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
