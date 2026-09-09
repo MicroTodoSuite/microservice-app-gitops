@@ -201,12 +201,12 @@ require_text infrastructure/kyverno/policies.yaml 'livenessProbe' \
 require_text infrastructure/kyverno/policies.yaml 'readinessProbe' \
   "Kyverno health policy does not require readiness probes"
 require_text infrastructure/kyverno/kustomization.yaml \
-  'eks.amazonaws.com/role-arn: arn:aws:iam::916491575487:role/microtodosuite-kyverno-ecr-verifier' \
+  'eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-kyverno-ecr-verifier' \
   "Kyverno admission ServiceAccount lacks its exact ECR verifier IRSA role"
 require_text infrastructure/kyverno/policies.yaml 'verifyImages:' \
   "Kyverno lacks enforcing signature verification"
 require_text infrastructure/kyverno/policies.yaml \
-  '916491575487\.dkr\.ecr\.us-east-1\.amazonaws\.com/microtodosuite/\*' \
+  '575172595729\.dkr\.ecr\.us-east-1\.amazonaws\.com/microtodosuite/\*' \
   "signature verification is not limited to neutral MicroTodoSuite ECR"
 require_text infrastructure/kyverno/policies.yaml \
   'https://token\.actions\.githubusercontent\.com' \

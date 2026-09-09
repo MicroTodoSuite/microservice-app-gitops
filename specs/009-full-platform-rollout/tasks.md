@@ -403,7 +403,7 @@ account without activating the full profile or rewriting historical evidence.
   `tests/contract/economical-account-recovery.sh` that rejects the retired account
   from active economical image, IRSA, operator-documentation, and managed-bootstrap
   paths while requiring account `575172595729`.
-- [ ] T164 Replace the active economical ECR and IRSA values from the verified dev
+- [X] T164 Replace the active economical ECR and IRSA values from the verified dev
   Terraform outputs, update their current contract fixtures and golden renders,
   and make T163 plus all affected profile, namespace, platform, and bootstrap tests
   pass without changing historical evidence or inactive full-profile roots.

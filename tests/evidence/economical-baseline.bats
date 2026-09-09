@@ -48,7 +48,7 @@ if [[ -f "$TMP/healthy.json" ]]; then
     || fail "the baseline must record namespace isolation"
   jq -e '.devPlan.clean == true' "$TMP/healthy.json" >/dev/null \
     || fail "the baseline must record the dev plan verdict"
-  jq -e '.identities.awsAccountId == "916491575487"' "$TMP/healthy.json" >/dev/null \
+  jq -e '.identities.awsAccountId == "575172595729"' "$TMP/healthy.json" >/dev/null \
     || fail "the baseline must record the AWS account it observed"
   # A baseline is comparison evidence; it must not carry secret material.
   grep -qiE '"(token|password|secret|key)":' "$TMP/healthy.json" \
