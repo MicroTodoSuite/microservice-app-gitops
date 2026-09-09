@@ -32,4 +32,4 @@ patches:
 images:
   - name: log-message-processor
     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
-    digest: sha256:17c5848722fe9bc5a7daf618418008e39ea8077a75dca0ed1c7e5a755bcdfc51
+    digest: sha256:251d8e490fa2d8913b3f6bf9f4308291fa7617af1e256d82aee2f78285e4883d
