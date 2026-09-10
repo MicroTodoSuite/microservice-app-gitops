@@ -33,7 +33,7 @@ case "$ENVIRONMENT:$PROFILE:$DESTINATION" in
   local:economical:local-kind)
     OVERLAY_REL="apps/$SERVICE/overlays/local"
     ;;
-  dev:economical:eks-dev|staging:economical:eks-dev|prod:economical:eks-dev)
+  dev:economical:eks-dev|staging:economical:eks-dev|prod:economical:eks-dev|demo:economical:eks-dev)
     OVERLAY_REL="apps/$SERVICE/profiles/economical/overlays/$ENVIRONMENT"
     ;;
   dev:full:eks-full-dev|staging:full:eks-full-staging|prod:full:eks-full-prod|prod:full:aks-dr)
