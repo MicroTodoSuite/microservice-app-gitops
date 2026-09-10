@@ -5,9 +5,11 @@
 #
 # Specifications and evidence are records of what happened and are not
 # checked; a specification's quickstart is an operating instruction and is.
-# Anything else still pinned to another account must be listed, with a reason,
-# in config/aws-account-exceptions.txt. That list exists to shrink: an entry
-# whose file no longer carries a foreign account fails until it is removed.
+# Anything else still pinned to another account must be listed in
+# config/aws-account-exceptions.txt, naming exactly which accounts it may carry
+# and why. An exception never covers an account it does not name, and the list
+# exists to shrink: an entry whose file no longer carries any of its accounts
+# fails until it is removed.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -42,19 +44,22 @@ in_scope() {
   return 0
 }
 
-declare -A excepted=()
+declare -A permitted=()
 if [[ -f "$ROOT/$EXCEPTIONS" ]]; then
   while IFS= read -r line; do
     [[ -z "${line//[[:space:]]/}" || "$line" =~ ^[[:space:]]*# ]] && continue
-    path="${line%%#*}"
-    path="${path//[[:space:]]/}"
+    read -r path accounts <<<"${line%%#*}"
     reason="${line#*#}"
     if [[ "$line" != *"#"* || -z "${reason//[[:space:]]/}" ]]; then
       fail "exception '$path' gives no reason"
       continue
     fi
+    if [[ ! "${accounts:-}" =~ ^[0-9]{12}(,[0-9]{12})*$ ]]; then
+      fail "exception '$path' must name the account(s) it permits, comma-separated"
+      continue
+    fi
     [[ -f "$ROOT/$path" ]] || { fail "exception '$path' names a file that does not exist"; continue; }
-    excepted["$path"]=1
+    permitted["$path"]=",$accounts,"
   done <"$ROOT/$EXCEPTIONS"
 fi
 
@@ -70,7 +75,7 @@ accounts_in() {
     -- "$1" 2>/dev/null | grep -oE '[0-9]{12}' | sort -u || true
 }
 
-declare -A foreign=()
+declare -A still_carries=()
 while IFS= read -r -d '' file; do
   in_scope "$file" || continue
   [[ -f "$ROOT/$file" ]] || continue
@@ -85,15 +90,20 @@ while IFS= read -r -d '' file; do
       found+=" $id"
     fi
   done
-  [[ -z "$found" ]] && continue
-  foreign["$file"]=1
-  [[ -n "${excepted[$file]:-}" ]] && continue
-  fail "$file carries account(s)$found instead of $current"
+  unexcused=""
+  for id in $found; do
+    if [[ "${permitted[$file]:-}" == *",$id,"* ]]; then
+      still_carries["$file"]=1
+    else
+      unexcused+=" $id"
+    fi
+  done
+  [[ -z "$unexcused" ]] || fail "$file carries account(s)$unexcused instead of $current"
 done < <(git -C "$ROOT" ls-files -z)
 
-for path in "${!excepted[@]}"; do
-  [[ -n "${foreign[$path]:-}" ]] \
-    || fail "exception '$path' no longer carries a foreign account; remove it from $EXCEPTIONS"
+for path in "${!permitted[@]}"; do
+  [[ -n "${still_carries[$path]:-}" ]] \
+    || fail "exception '$path' no longer carries any account it names; remove it from $EXCEPTIONS"
 done
 
 if ((failures > 0)); then
@@ -101,4 +111,4 @@ if ((failures > 0)); then
   exit 1
 fi
 printf 'PASS: every checked file targets AWS account %s (%d listed exception(s)).\n' \
-  "$current" "${#excepted[@]}"
+  "$current" "${#permitted[@]}"

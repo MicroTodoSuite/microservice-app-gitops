@@ -17,7 +17,7 @@ fail() {
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-(cd "$ROOT" && git ls-files -co --exclude-standard -z | xargs -0 cp --parents -t "$work")
+(cd "$ROOT" && git ls-files -co --exclude-standard -z | xargs -0 cp -a --parents -t "$work")
 git -C "$work" init -q
 git -C "$work" add -A
 

@@ -425,6 +425,28 @@ account without activating the full profile or rewriting historical evidence.
 
 ---
 
+## Phase 11: The Account as a Parameter (2026-09-10)
+
+**Purpose**: Declare the AWS account once so the next account change is one
+command per repository and one organization variable, not a search for a
+twelve-digit number across every repository.
+
+- [X] T167 Add failing contracts in `tests/contract/aws-account-parameter.sh` and
+  `tests/contract/set-aws-account.sh` requiring one declared account, rejecting any
+  tracked file outside specifications and evidence that carries another or a
+  retired account, and proving a one-command change on a disposable copy.
+- [X] T168 Declare the account in `config/aws-account.env`, implement
+  `scripts/set-aws-account.sh`, list the full-profile paths still pinned to the
+  retired account in `config/aws-account-exceptions.txt` pending the spec 009
+  account amendment, make `tests/contract/economical-account-recovery.sh` read the
+  declaration, and run both contracts in `validate-gitops.yml`.
+- [ ] T169 Create the organization variable `AWS_ACCOUNT_ID`, then merge the six
+  workflow changes that read it in `../.github/.github/workflows/ci.yml` and the
+  five service `.github/workflows/ci.yml` files, and observe one green reviewed-main
+  publication run.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

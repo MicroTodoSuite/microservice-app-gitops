@@ -1,0 +1,39 @@
+# Files that still carry an AWS account other than the one declared in
+# config/aws-account.env, each with the reason it is allowed to.
+#
+# Format: <path>  <account>[,<account>]  # <reason>
+#
+# An entry covers only the accounts it names; any other account in that file is
+# still a violation. The list exists to shrink: tests/contract/aws-account-parameter.sh
+# fails on an entry whose file no longer carries any account it names, so an
+# entry cannot outlive its reason.
+#
+# Decision 1 in microservice-app-docs/full-platform/infrastructure-execution-plan.md:
+# the full profile is pinned to the retired account 916491575487. Re-pointing
+# it amends spec 009, so it is a maintainer decision, not a sweep.
+apps/auth-api/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/auth-api/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/auth-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/frontend/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/frontend/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/frontend/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/log-message-processor/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/log-message-processor/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/log-message-processor/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/todos-api/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/todos-api/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/todos-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/users-api/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/users-api/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+apps/users-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
+scripts/managed/collect-foundational-evidence.sh  916491575487  # decision 1: full-profile evidence collector expects the retired account
+scripts/managed/full-profile-toolchain.lock  916491575487  # decision 1: full-profile platform mirror repository in the retired account
+specs/009-full-platform-rollout/quickstart.md  916491575487  # decision 1: full-profile operating instructions name the retired account
+tests/evidence/fixtures/checksum-mismatch.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+tests/evidence/fixtures/failed-check.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+tests/evidence/fixtures/missing-approval.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+tests/evidence/fixtures/missing-required-field.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+tests/evidence/fixtures/valid.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+#
+# Not account configuration.
+infrastructure/prometheus/vendor/v0.18.0/setup/0alertmanagerConfigCustomResourceDefinition.yaml  698519295917  # vendored upstream: an example SNS topic ARN in the CRD's field documentation
