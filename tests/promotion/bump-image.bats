@@ -71,6 +71,24 @@ comments_after="$(grep -c '^\s*#' "$worktree/$expected_path" || true)"
   exit 1
 }
 
+demo_digest="sha256:2222222222222222222222222222222222222222222222222222222222222222"
+(
+  cd "$worktree"
+  KUSTOMIZE_BIN="$kustomize_bin" \
+    ./scripts/bump-image.sh auth-api demo economical eks-dev "$demo_digest"
+)
+
+expected_demo_path="apps/auth-api/profiles/economical/overlays/demo/kustomization.yaml"
+changed_paths="$(git -C "$worktree" diff-tree --no-commit-id --name-only -r HEAD)"
+[[ "$changed_paths" == "$expected_demo_path" ]] || {
+  printf 'FAIL: expected only %s to change, got:\n%s\n' "$expected_demo_path" "$changed_paths" >&2
+  exit 1
+}
+grep -Fq "digest: $demo_digest" "$worktree/$expected_demo_path" || {
+  printf 'FAIL: demo overlay does not contain the requested digest.\n' >&2
+  exit 1
+}
+
 before_invalid="$(git -C "$worktree" rev-parse HEAD)"
 if (
   cd "$worktree"
