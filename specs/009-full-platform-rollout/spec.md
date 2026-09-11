@@ -8,6 +8,12 @@
 
 **Input**: User description: "Deliver the literal full architecture from the original MicroTodoSuite evolution plan in parallel with the working economical environment: three isolated AWS environments, an Azure disaster-recovery environment, independent GitOps reconciliation, the full platform, security, observability, progressive delivery, chaos, and FinOps capabilities, while preserving functional behavior through approved quota-compatible infrastructure adaptations."
 
+**Amended**: 2026-09-11 — FR-003, user story 5, FR-045, FR-046, the
+active-active assumption, and the scope boundary follow constitution 4.0.0 and
+`microservice-app-docs/docs/ADR-0001 Multicloud strategy.md`: Azure is an
+independent recovery domain reached by failover, and an approved rebuild is not
+a retirement.
+
 ## Clarifications
 
 ### Session 2026-09-07
@@ -148,11 +154,12 @@ production health regression and prove automatic rollback before full exposure.
 
 ---
 
-### User Story 5 - Prove active-active disaster recovery (Priority: P5)
+### User Story 5 - Prove active-passive disaster recovery (Priority: P5)
 
 As the system owner, I can keep an independently reconciled Azure destination
-ready with the production release, route traffic between AWS and Azure based on
-health and latency, and prove failover through an approved game day.
+ready with the production release as a warm standby, fail production traffic
+over to it when AWS health checks fail, and prove that failover through an
+approved game day.
 
 **Why this priority**: The original full profile promises multi-cloud recovery;
 a dormant or untested secondary cluster does not provide that capability.
@@ -164,9 +171,9 @@ traffic, serves the promoted release, and reports all disclosed state loss.
 **Acceptance Scenarios**:
 
 1. **Given** AWS production and Azure disaster recovery are healthy, **When**
-   active-active routing is explicitly enabled after all prerequisite gates,
-   **Then** both destinations receive eligible traffic according to measured
-   latency and health.
+   failover routing is explicitly enabled after all prerequisite gates,
+   **Then** AWS receives all eligible traffic and Azure receives none while AWS
+   stays healthy.
 2. **Given** AWS becomes unhealthy, **When** health checks confirm the failure,
    **Then** Azure absorbs the eligible traffic without an emergency deployment
    or dependency on the AWS reconciler.
@@ -246,7 +253,10 @@ rollback that leaves the economical platform intact.
 - **FR-002**: The economical platform MUST remain operational and under its
   existing ownership throughout the rollout.
 - **FR-003**: This feature MUST NOT authorize retirement, destructive cutover,
-  repurposing, or state migration of the economical platform.
+  repurposing, or state migration of the economical platform. A
+  maintainer-approved rebuild that recreates the economical platform under new
+  resource names (constitution 4.0.0, `microservice-app-ops` spec 004) is outside
+  this feature and is not a retirement.
 - **FR-004**: A failed stage MUST prevent activation of every dependent later
   stage and MUST leave the last accepted stage and economical platform usable.
 - **FR-005**: The platform MUST support the economical and full workload
@@ -391,13 +401,15 @@ rollback that leaves the economical platform intact.
   zone. Registrar delegation to the exact Terraform output name servers MUST be
   verified before destination records, certificates, or production routing are
   accepted; no new record or certificate may use the legacy domain.
-- **FR-045**: Active-active routing and real production traffic MUST remain
+- **FR-045**: Failover routing and real production traffic MUST remain
   disabled until ingress TLS, endpoint health, canary rollback, cross-cloud
   artifact consistency, independent reconciliation, and an approved failover
   game day all pass.
-- **FR-046**: Once separately approved, healthy AWS and Azure destinations MUST
-  receive traffic according to latency, and either healthy destination MUST be
-  able to absorb all eligible traffic when the other destination fails.
+- **FR-046**: Once separately approved, healthy AWS production MUST receive all
+  eligible traffic, and a healthy Azure destination MUST absorb all eligible
+  traffic when AWS fails its health checks. Latency-based active-active routing
+  MUST NOT be enabled until a replicated data store makes a user's requests
+  consistent across clouds (constitution principle 12).
 - **FR-047**: Chaos testing MUST cover pod termination, network latency, Redis
   saturation, and a complete AWS production-cluster outage within explicit
   blast-radius and abort boundaries.
@@ -508,7 +520,7 @@ rollback that leaves the economical platform intact.
 - Redis is not replicated across clouds, todos remain process-local, and users
   remain pod-local unless a separate durability feature is approved. This
   rollout proves availability behavior but does not claim full data continuity.
-- Final active-active production traffic is a gated stage that requires separate
+- Final production failover routing is a gated stage that requires separate
   human approval after all prerequisites and the failover game day pass.
 
 ## Dependencies
@@ -526,7 +538,8 @@ rollback that leaves the economical platform intact.
 ## Scope Boundaries
 
 - Retirement of the economical platform, migration of its Terraform state, and
-  final destructive production cutover require a separate approved decision.
+  final destructive production cutover require a separate approved decision. A
+  rebuild under new resource names is not a retirement (FR-003).
 - Durable cross-cloud databases, Redis replication, and redesign of application
   data storage are not part of this feature; their absence must remain explicit.
 - New end-user business functionality is outside scope. Service changes are
