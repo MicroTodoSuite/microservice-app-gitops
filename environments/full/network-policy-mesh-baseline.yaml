@@ -1,0 +1,46 @@
+# The two L3/L4 flows every sidecar-injected pod needs regardless of which
+# service or environment it belongs to. Layered on top of
+# environments/base/networkpolicy-default-deny.yaml (default-deny is already
+# established there for the economical profile; a full-topology overlay that
+# does not reuse environments/base must bring its own default-deny too).
+#
+# Service-to-service, Redis, ingress-Gateway, and cloud-API flows are
+# intentionally NOT here — see kustomization.yaml's Component comment.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-istiod-discovery
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+          podSelector:
+            matchLabels:
+              app: istiod
+      ports:
+        - port: 15012
+          protocol: TCP

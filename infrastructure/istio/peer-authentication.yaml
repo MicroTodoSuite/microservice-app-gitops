@@ -1,0 +1,13 @@
+# Mesh-wide default. A PeerAuthentication in the root namespace (istio-system)
+# with no selector applies to every workload in every namespace the mesh
+# reaches (Istio's documented mesh-wide default mechanism) — this is what
+# constitution principle 9 means by "verified mTLS" being mandatory in every
+# full-profile workload cluster, not an opt-in per namespace.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT

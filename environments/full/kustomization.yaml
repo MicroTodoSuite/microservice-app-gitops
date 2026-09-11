@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Full-topology mesh policy scaffold (spec 009, T083). A future full-profile
+# environment overlay includes this Component alongside its own Namespace,
+# quota, and RBAC (the environments/{dev,staging,prod} equivalent for a
+# dedicated per-environment cluster does not exist yet — every eks-full-*
+# registration still renders zero Applications per
+# microservice-app-docs/full-platform/plan-reconciliation.md).
+#
+# In scope here: the two mesh flows every sidecar needs regardless of which
+# service or environment it belongs to (DNS, istiod discovery) plus the
+# default-deny mTLS/L7 posture. Explicitly OUT of scope, deferred to the
+# overlay that actually names a service and its dependencies: the
+# service-dependency, Redis, ingress-Gateway, and cloud-API NetworkPolicies
+# T083 also names — those vary per service and belong next to that service's
+# own topology-full component, not in this shared scaffold.
+patches:
+  - target:
+      kind: Namespace
+    patch: |-
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: placeholder
+        labels:
+          istio-injection: enabled
+
+resources:
+  - authorization-policy-default-deny.yaml
+  - network-policy-mesh-baseline.yaml

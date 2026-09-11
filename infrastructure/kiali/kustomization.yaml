@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Kiali, the Istio mesh observability console, deployed by ArgoCD from a
+# rendered, pinned Helm template (spec 009, T083). Full-profile-only, like
+# infrastructure/istio/ — never registered in clusters/local-kind or
+# clusters/eks-dev (constitution principle 9 forbids Istio in the economical
+# cluster, and Kiali has nothing to observe without it).
+#
+# No public ingress (constitution principle 9/10): the Service stays
+# ClusterIP by chart default; see vendor/v2.31.0/README.md for every override.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+resources:
+  - namespace.yaml
+  - vendor/v2.31.0/install.yaml
