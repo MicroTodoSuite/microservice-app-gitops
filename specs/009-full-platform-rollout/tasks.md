@@ -484,7 +484,7 @@ twelve-digit number across every repository.
   retired account in `config/aws-account-exceptions.txt` pending the spec 009
   account amendment, make `tests/contract/economical-account-recovery.sh` read the
   declaration, and run both contracts in `validate-gitops.yml`.
-- [ ] T169 Create the organization variable `AWS_ACCOUNT_ID`, then merge the six
+- [X] T169 Create the organization variable `AWS_ACCOUNT_ID`, then merge the six
   workflow changes that read it in `../.github/.github/workflows/ci.yml` and the
   five service `.github/workflows/ci.yml` files, and observe one green reviewed-main
   publication run.
