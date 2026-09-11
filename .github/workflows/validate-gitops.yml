@@ -80,6 +80,9 @@ jobs:
       - name: Preserve economical renders and validate profile routing
         run: tests/profiles/validate-profile-routing.bats
 
+      - name: Validate economical runtime quiescence
+        run: tests/contract/economical-runtime-quiescence.sh
+
       - name: Validate destination-scoped image promotion
         run: tests/promotion/bump-image.bats
 
