@@ -1,0 +1,11 @@
+dashboard:
+  service:
+    type: ClusterIP
+webhook:
+  certManager:
+    enabled: true
+chaosDaemon:
+  mtls:
+    enabled: false
+controllerManager:
+  chaosdSecurityMode: false

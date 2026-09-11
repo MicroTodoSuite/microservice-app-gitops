@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# OpenCost, deployed by ArgoCD from a rendered, pinned Helm template
+# (spec 009, T087). Reads cost data from this repository's real Prometheus
+# (infrastructure/prometheus/) rather than deploying its own — see
+# vendor/v2.5.29/README.md for the exact wiring and for what "cost labels"
+# this chart gets for free versus the one dimension (cluster ID) left for a
+# future per-cluster registration to decide.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+resources:
+  - namespace.yaml
+  - vendor/v2.5.29/install.yaml

@@ -1,0 +1,6 @@
+opencost:
+  prometheus:
+    internal:
+      serviceName: prometheus-k8s
+      namespaceName: observability
+      port: 9090
