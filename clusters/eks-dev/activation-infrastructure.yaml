@@ -1,5 +1,8 @@
-# Economical runtime quiescence: keep platform add-on Applications inactive
-# while the Terraform-managed EKS runtime is scheduled for teardown.
+# Economical runtime quiescence, dependency-cleanup phase: External Secrets is
+# the sole controller retained until dependent ExternalSecret finalizers clear.
 - op: replace
   path: /spec/generators/0/list/elements
-  value: []
+  value:
+    - name: external-secrets
+      path: infrastructure/external-secrets
+      namespace: external-secrets

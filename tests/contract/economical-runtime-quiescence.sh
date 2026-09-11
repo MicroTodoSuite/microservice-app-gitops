@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Contract for the reviewed GitOps state used before an economical runtime
-# teardown.  The root registration remains present while its generated
-# workloads and platform add-ons are intentionally quiesced.
+# teardown. The root registration remains present while generated workloads
+# are quiesced. External Secrets remains temporarily active until dependent
+# ExternalSecret finalizers complete.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -30,7 +31,17 @@ require_quiescent_patch() {
 
 require_quiescent_patch clusters/eks-dev/activation-apps.yaml
 require_quiescent_patch clusters/eks-dev/activation-environments.yaml
-require_quiescent_patch clusters/eks-dev/activation-infrastructure.yaml
+
+infrastructure_patch="$ROOT/clusters/eks-dev/activation-infrastructure.yaml"
+[[ -f "$infrastructure_patch" ]] || fail "missing infrastructure cleanup patch"
+[[ "$(grep -Ec '^    - name: external-secrets$' "$infrastructure_patch" || true)" == 1 ]] \
+  || fail "External Secrets must be the sole controller active during dependent cleanup"
+[[ "$(grep -Ec '^    - name:' "$infrastructure_patch" || true)" == 1 ]] \
+  || fail "no controller except External Secrets may remain active during dependent cleanup"
+grep -Eq '^      path: infrastructure/external-secrets$' "$infrastructure_patch" \
+  || fail "the cleanup controller must use the reviewed External Secrets path"
+grep -Eq '^      namespace: external-secrets$' "$infrastructure_patch" \
+  || fail "the cleanup controller must use the external-secrets namespace"
 
 [[ -f "$ROOT/clusters/eks-dev/root-app.yaml" ]] \
   || fail "the EKS root registration must remain present"
@@ -58,4 +69,4 @@ for name in apps environments infrastructure; do
   ' "$render" || fail "rendered EKS registration is missing the $name ApplicationSet"
 done
 
-printf 'PASS: economical EKS GitOps activation is quiescent and its root remains registered.\n'
+printf 'PASS: economical EKS GitOps activation is in dependency-cleanup quiescence.\n'
