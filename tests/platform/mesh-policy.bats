@@ -84,7 +84,7 @@ grep -q 'istio-injection: enabled' <<<"$namespace_block" \
 # --- default-deny at L7 (AuthorizationPolicy) and L3/L4 (NetworkPolicy) ----
 grep -q '^kind: AuthorizationPolicy' <<<"$fixture_render" \
   || fail "environments/full must add a default-deny AuthorizationPolicy"
-awk '/^kind: AuthorizationPolicy/{f=1} f&&/^spec: {}/{found=1} /^---/{f=0}END{exit !found}' <<<"$fixture_render" \
+awk '/^kind: AuthorizationPolicy/{f=1} f&&/^spec: \{\}/{found=1} /^---/{f=0}END{exit !found}' <<<"$fixture_render" \
   || fail "the default-deny AuthorizationPolicy must have an empty spec (deny-all)"
 
 for flow in allow-dns allow-istiod-discovery; do
