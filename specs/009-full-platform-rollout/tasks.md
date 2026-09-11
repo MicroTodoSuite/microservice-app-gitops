@@ -506,6 +506,10 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   Application while dependent ExternalSecret finalizers complete, verify the
   stuck observability namespace and generated Applications are deleted, then
   return the infrastructure activation list to empty through a reviewed commit.
+  - [X] Commit a failing contract for the dependency-cleanup activation state.
+  - [X] Retain only the reviewed External Secrets controller through GitOps.
+  - [ ] Verify the dependent finalizers, namespace, and Applications are gone.
+  - [ ] Restore empty infrastructure activation through a reviewed commit.
 
 ---
 

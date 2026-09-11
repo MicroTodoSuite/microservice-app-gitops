@@ -64,13 +64,15 @@ back through a reviewed commit.
 
 ## Economical runtime quiescence
 
-Before an approved Terraform runtime-down operation, the three activation
-patches in `clusters/eks-dev/` are set to `value: []`. This removes generated
-business, environment-policy, and platform add-on Applications while retaining
-the root registration and all source manifests. ArgoCD must reconcile that
-reviewed revision before Terraform destroys the cluster. Reactivation restores
-the reviewed activation lists through Git; it is never performed with a direct
-cluster mutation.
+Before an approved Terraform runtime-down operation, business and environment
+activation in `clusters/eks-dev/` is set to `value: []`. Infrastructure then
+passes through a dependency-cleanup revision that retains only External Secrets
+until dependent ExternalSecret finalizers and their namespaces are gone. A
+second reviewed revision empties infrastructure activation. This removes every
+generated child Application while retaining the root registration and all
+source manifests. ArgoCD must reconcile both revisions before Terraform
+destroys the cluster. Reactivation restores the reviewed activation lists
+through Git; it is never performed with a direct cluster mutation.
 
 ## Full version (prepared, not active)
 
