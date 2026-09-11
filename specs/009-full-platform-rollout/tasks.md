@@ -502,6 +502,10 @@ Terraform runtime teardown while retaining a reversible GitOps root.
 - [ ] T171 After T170 merges, wait for ArgoCD to reconcile the exact Git
   revision, capture read-only live evidence, and bind a fresh Terraform
   runtime-down plan to that quiescent revision before any apply.
+- [ ] T172 [US1] Preserve External Secrets as the sole temporary infrastructure
+  Application while dependent ExternalSecret finalizers complete, verify the
+  stuck observability namespace and generated Applications are deleted, then
+  return the infrastructure activation list to empty through a reviewed commit.
 
 ---
 
