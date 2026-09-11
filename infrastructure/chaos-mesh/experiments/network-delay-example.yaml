@@ -1,0 +1,16 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: example-network-delay
+  labels:
+    app.kubernetes.io/part-of: microtodosuite-platform
+spec:
+  action: delay
+  mode: one
+  selector:
+    namespaces:
+      - CHANGEME-target-namespace
+    labelSelectors:
+      app.kubernetes.io/name: CHANGEME-target-workload
+  delay:
+    latency: 100ms

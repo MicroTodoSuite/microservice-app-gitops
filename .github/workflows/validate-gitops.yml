@@ -151,6 +151,9 @@ jobs:
           fi
           echo "OK: no committed secret material"
 
+      - name: Validate the chaos-mesh and opencost render (spec 009 T087)
+        run: tests/platform/chaos-mesh-opencost.bats
+
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
 
