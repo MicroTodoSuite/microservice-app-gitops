@@ -1,9 +1,11 @@
 # App-of-Apps root for the AWS EKS dev cluster. It targets the in-cluster API,
 # matching the per-cluster ArgoCD topology used by local-kind. Node capacity
-# was raised via VPC CNI prefix delegation and a nodegroup rolling replace, so
-# the full platform profile is restored here.
-# This registration change does not apply the root; bootstrap remains a
-# separate audited action.
+# was raised via VPC CNI prefix delegation and a nodegroup rolling replace;
+# platform children are quiesced separately before runtime teardown.
+# The root remains registered during economical runtime quiescence; its child
+# activation lists are emptied by a separate reviewed Git change. This
+# registration change does not apply the root; bootstrap remains a separate
+# audited action.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

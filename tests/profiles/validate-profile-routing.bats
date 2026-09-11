@@ -74,6 +74,14 @@ do
     printf 'FAIL: missing explicit profile activation %s\n' "$activation" >&2
     exit 1
   }
+  # The shared EKS registration is intentionally allowed to quiesce before a
+  # Terraform runtime teardown. Its empty activation is checked by the
+  # economical-runtime-quiescence contract; sibling registrations must retain
+  # their profile and destination routing metadata.
+  if [[ "$activation" == "$repo_root/clusters/eks-dev/activation-apps.yaml" ]] \
+      && grep -Fq 'value: []' "$activation"; then
+    continue
+  fi
   grep -Fq 'profile: economical' "$activation" || {
     printf 'FAIL: %s does not preserve the economical profile.\n' "$activation" >&2
     exit 1

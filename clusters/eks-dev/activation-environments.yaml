@@ -1,12 +1,5 @@
-# Shared-cluster foundation: activate only environment policy Applications.
+# Economical runtime quiescence: keep environment-policy Applications inactive
+# while the Terraform-managed EKS runtime is scheduled for teardown.
 - op: replace
   path: /spec/generators/0/list/elements
-  value:
-    - env: dev
-      server: https://kubernetes.default.svc
-    - env: staging
-      server: https://kubernetes.default.svc
-    - env: prod
-      server: https://kubernetes.default.svc
-    - env: demo
-      server: https://kubernetes.default.svc
+  value: []

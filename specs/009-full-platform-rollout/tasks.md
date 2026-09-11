@@ -475,6 +475,20 @@ twelve-digit number across every repository.
 
 ---
 
+## Phase 12: Economical Runtime Quiescence
+
+**Purpose**: Remove generated economical workloads before an approved
+Terraform runtime teardown while retaining a reversible GitOps root.
+
+- [X] T170 Add a failing quiescence contract, empty the economical EKS
+  ApplicationSet activation lists in `clusters/eks-dev/`, retain the root
+  registration, and validate the rendered desired state.
+- [ ] T171 After T170 merges, wait for ArgoCD to reconcile the exact Git
+  revision, capture read-only live evidence, and bind a fresh Terraform
+  runtime-down plan to that quiescent revision before any apply.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

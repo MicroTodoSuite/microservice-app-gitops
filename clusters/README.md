@@ -30,12 +30,13 @@ Because every reconciler targets its own cluster, every activation uses
 certificate authority are used only for operator access and the audited,
 one-time bootstrap of that cluster's root Application.
 
-## Economical version (active)
+## Economical version
 
 The existing AWS cluster named `microtodosuite-dev` and its legacy
 `clusters/eks-dev` registration are adopted as the one shared cluster. The
 physical name and GitOps path remain unchanged so the live root Application is
-not replaced or orphaned. Environment policy remains active for this list:
+not replaced or orphaned. During normal operation, environment policy uses
+this list:
 
 ```yaml
 - env: dev
@@ -60,6 +61,16 @@ controllers. Prometheus, Grafana, Jaeger, Loki, Falco, kube-bench, and
 kube-hunter remain fully defined in the parent profile but are not reconciled
 until Terraform-owned node capacity is increased and the root path is changed
 back through a reviewed commit.
+
+## Economical runtime quiescence
+
+Before an approved Terraform runtime-down operation, the three activation
+patches in `clusters/eks-dev/` are set to `value: []`. This removes generated
+business, environment-policy, and platform add-on Applications while retaining
+the root registration and all source manifests. ArgoCD must reconcile that
+reviewed revision before Terraform destroys the cluster. Reactivation restores
+the reviewed activation lists through Git; it is never performed with a direct
+cluster mutation.
 
 ## Full version (prepared, not active)
 
