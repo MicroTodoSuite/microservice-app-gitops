@@ -1,0 +1,14 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: example-pod-kill
+  labels:
+    app.kubernetes.io/part-of: microtodosuite-platform
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - CHANGEME-target-namespace
+    labelSelectors:
+      app.kubernetes.io/name: CHANGEME-target-workload

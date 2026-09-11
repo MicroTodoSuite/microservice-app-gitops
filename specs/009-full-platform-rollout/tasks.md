@@ -267,6 +267,34 @@ to stay empty at their bootstrap revision.
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
 - [ ] T087 [P] [US3] Vendor checksum-pinned Chaos Mesh 2.8.4 and OpenCost 2.5.29 under `infrastructure/chaos-mesh/` and `infrastructure/opencost/`; add disabled experiment roots and cluster/environment/service cost labels.
+
+  > **Partial delivery, gitops PR (Chaos Mesh + OpenCost vendoring).** Both
+  > components are vendored, image-pinned, and render clean. Two chart-level
+  > findings required action, not just documentation — recorded in
+  > `infrastructure/chaos-mesh/vendor/v2.8.4/README.md`: the chart's own
+  > `rollme` annotation is non-deterministic per render (normalized so the
+  > vendor step is reproducible) and its default values would have committed
+  > a **freshly self-signed certificate Secret generated at render time**
+  > (`chaosDaemon.mtls` / `controllerManager.chaosdSecurityMode`, both
+  > disabled here — no cert-manager alternative exists for that specific
+  > cert in this chart version). `infrastructure/chaos-mesh/experiments/` has
+  > two example CRs (pod-kill, network-delay) with `CHANGEME` selectors,
+  > deliberately excluded from the parent `kustomization.yaml`'s resources —
+  > that is the "disabled" half of this task. OpenCost's `cluster/environment/
+  > service cost labels` are mostly free (OpenCost reads existing namespace
+  > and `app.kubernetes.io/name` labels natively); the one dimension it
+  > cannot infer, `CLUSTER_ID`, is deliberately left unset because this is one
+  > shared Kustomize root meant to run in all three full-profile clusters —
+  > see the same README for why hard-coding one cluster's name here would be
+  > wrong.
+  >
+  > No existing test task fits this narrowly: T068/T071 cover it only as part
+  > of a much larger, still-blocked (Phase 4 / ECR mirror) suite. This PR adds
+  > `tests/platform/chaos-mesh-opencost.bats` as its own offline render/policy
+  > test, following the same test-first pattern T069 established for T083,
+  > rather than inventing a new task ID for supporting verification work.
+  > T087 stays unchecked: no cluster registration exists yet, and the
+  > `CLUSTER_ID` decision above is still open.
 - [ ] T088 [P] [US3] Harden `infrastructure/{kyverno,falco,kube-bench,kube-hunter}/` with immutable-digest and signature policies covering all business plus GitOps-installed platform namespaces, accepting only the approved service-CI or platform-mirror workflow identities while explicitly excluding Terraform-managed EKS system add-ons from namespaced admission scope; add unsigned/unmirrored/mutable/wrong-identity failure fixtures, resource bounds, exact RBAC, scheduled audit retention, and GitOps-owned trigger Jobs, remove imperative creation from `scripts/managed/verify-security.sh`, and make T071 pass.
 - [ ] T089 [US3] Add cloud-specific SecretStore/ClusterSecretStore and ExternalSecret overlays in `infrastructure/external-secrets/overlays/{aws,azure}/` and service full overlays for the exact JWT/Alertmanager/Falco/Grafana names, replace the full-profile Grafana generator with a cloud-secret reference, add the full-dev Sonar DB/admin ExternalSecrets, and add External Secret-backed contextual ArgoCD Notifications reusing the approved notification secret in `infrastructure/argocd-notifications/`; use exact IRSA/workload-identity subjects and no committed value, and make T070 pass.
 - [ ] T090 [US3] Add startup/readiness/liveness probes, requests/limits, PodDisruptionBudgets, topology spread, ServiceMonitors, full topology, KEDA ScaledObjects, resilience settings, controlled ConfigMaps, and documented default-off feature toggles for all five services under `apps/*/base/`, `components/topology-full/`, `profiles/full/overlays/*/`, and `environments/full/`; make the runtime-config portion of T071 pass.

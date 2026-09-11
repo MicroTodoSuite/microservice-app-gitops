@@ -107,6 +107,25 @@ jobs:
       - name: Install pinned JSON Schema runtime
         run: python3 -m pip install --disable-pip-version-check --no-cache-dir 'jsonschema==4.25.1'
 
+      - name: Install checksum-locked kustomize and kubeconform
+        run: |
+          set -euo pipefail
+          install_locked_tool() {
+            local name="$1" url checksum archive extract_dir
+            url="$(jq -er --arg name "$name" '.tools[] | select(.name == $name) | .source' scripts/managed/full-profile-toolchain.lock)"
+            checksum="$(jq -er --arg name "$name" '.tools[] | select(.name == $name) | .sha256' scripts/managed/full-profile-toolchain.lock)"
+            archive="$(mktemp)"
+            extract_dir="$(mktemp -d)"
+            curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location "$url" --output "$archive"
+            printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
+            tar -xzf "$archive" -C "$extract_dir" "$name"
+            sudo install -m 0755 "$extract_dir/$name" "/usr/local/bin/$name"
+          }
+          install_locked_tool kustomize
+          install_locked_tool kubeconform
+          kustomize version
+          kubeconform -v
+
       - name: Validate single-owner infrastructure inventory
         run: tests/evidence/validate-ownership.bats
 
@@ -128,6 +147,9 @@ jobs:
             echo "::error::a committed private key was found"; exit 1
           fi
           echo "OK: no committed secret material"
+
+      - name: Validate the chaos-mesh and opencost render (spec 009 T087)
+        run: tests/platform/chaos-mesh-opencost.bats
 
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats

@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Disabled experiment roots (spec 009, T087). Deliberately NOT referenced by
+# ../kustomization.yaml: these render and validate on their own (this file
+# exists so `kustomize build` here proves the CRs are well-formed against the
+# vendored CRDs) but ship nowhere until a reviewed commit points a real
+# ApplicationSet entry or clusters/*/activation-infrastructure.yaml at this
+# path. The two examples mirror the pod-kill and latency experiments named as
+# outstanding in
+# microservice-app-docs/full-platform/plan-reconciliation.md Part D
+# ("Chaos Mesh experiments (pod kill, latency, Redis saturation)" — Redis
+# saturation is not modeled here; it needs a StressChaos or PodChaos target
+# naming the real Redis workload, which does not exist yet for the full
+# profile). CHANGEME placeholders are intentional: activating an experiment
+# for real means naming a real namespace and workload, a decision for whoever
+# runs the game day (spec 009 T135), not a value this scaffold should guess.
+resources:
+  - pod-kill-example.yaml
+  - network-delay-example.yaml
