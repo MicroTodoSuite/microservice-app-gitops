@@ -1,8 +1,5 @@
-# Economical runtime quiescence, dependency-cleanup phase: External Secrets is
-# the sole controller retained until dependent ExternalSecret finalizers clear.
+# Economical runtime quiescence: keep infrastructure Applications inactive
+# after dependent ExternalSecret finalizers and namespaces have cleared.
 - op: replace
   path: /spec/generators/0/list/elements
-  value:
-    - name: external-secrets
-      path: infrastructure/external-secrets
-      namespace: external-secrets
+  value: []
