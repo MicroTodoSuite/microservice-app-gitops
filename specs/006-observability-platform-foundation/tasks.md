@@ -11,13 +11,15 @@ rather than configuration-only success (FR-015, SC-009).
 > **Reconciliation 2026-08-30.** T001 (`tests/contract/observability.sh`) and
 > T002 (`scripts/managed/verify-observability.sh`) were ticked against the tree.
 >
-> **Unresolved: every pinned version in this register drifted and no decision
-> records it.** kube-prometheus v0.16.0 -> v0.18.0, Grafana 11.7.0 -> v13.2.0,
-> Loki 3.6.0 -> v3.7.6, and Jaeger 1.65.0 -> **v2.20.0**, a major version with a
-> different architecture. T004-T007 stay unchecked because the vendoring does not
-> match what they specify. Either this text or the vendoring is wrong; that is a
-> maintainer decision, not a text edit. See section E1 of
-> `microservice-app-docs/full-platform/plan-reconciliation.md`.
+> **Decided 2026-09-11 (plan-reconciliation E1): the vendoring is right and
+> this register was stale.** `plan.md` and `research.md` already record
+> kube-prometheus v0.18.0 (Prometheus Operator v0.92.0, Prometheus v3.12.0,
+> Alertmanager v0.33.0), Grafana 13.2.0, Loki 3.7.6 with Grafana Alloy 1.18.1,
+> and Jaeger 2.20.0 — the versions vendored under `infrastructure/*/vendor/` and
+> run by the cluster. Jaeger v1 reached end of life on 2025-12-31, so returning to
+> 1.65.0 is not an option. T004–T007 now name the vendored versions; each stays
+> unchecked until its owner inspects the provenance record it names. The decision
+> was taken by the drafting agent under the maintainer's explicit delegation.
 >
 > T049 is real documentation debt: `docs/platform-addons.md` mentions none of
 > Prometheus, Grafana, Jaeger, or Loki.
@@ -47,16 +49,16 @@ before any capability resource is introduced.
 Prometheus bundle passes its checksum and all five Kustomize roots render
 locally.
 
-- [ ] T004 [P] Vendor `kube-prometheus` v0.16.0 (Prometheus Operator v0.82.0,
-  Prometheus v3.5.0, Alertmanager v0.28.0) with provenance and checksum under
-  `infrastructure/prometheus/vendor/v0.16.0/`
-- [ ] T005 [P] Record Grafana 11.7.0 image source/digest provenance in
-  `infrastructure/grafana/vendor/v11.7.0/README.md` (no bundle to checksum)
-- [ ] T006 [P] Record Loki 3.6.0 and Grafana Alloy 1.5.0 image source/digest
-  provenance in `infrastructure/loki/vendor/v3.6.0/README.md` (no bundle to
+- [ ] T004 [P] Vendor `kube-prometheus` v0.18.0 (Prometheus Operator v0.92.0,
+  Prometheus v3.12.0, Alertmanager v0.33.0) with provenance and checksum under
+  `infrastructure/prometheus/vendor/v0.18.0/`
+- [ ] T005 [P] Record Grafana 13.2.0 image source/digest provenance in
+  `infrastructure/grafana/vendor/v13.2.0/README.md` (no bundle to checksum)
+- [ ] T006 [P] Record Loki 3.7.6 and Grafana Alloy 1.18.1 image source/digest
+  provenance in `infrastructure/loki/vendor/v3.7.6/README.md` (no bundle to
   checksum)
-- [ ] T007 [P] Record Jaeger 1.65.0 (all-in-one) image source/digest
-  provenance in `infrastructure/jaeger/vendor/v1.65.0/README.md` (no bundle to
+- [ ] T007 [P] Record Jaeger 2.20.0 (all-in-one) image source/digest
+  provenance in `infrastructure/jaeger/vendor/v2.20.0/README.md` (no bundle to
   checksum)
 - [x] T008 Removed: no separate OpenTelemetry Collector component (Jaeger
   2.x receives OTLP natively; see research.md's amended decision and T033)
