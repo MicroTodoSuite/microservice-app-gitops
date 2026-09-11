@@ -50,6 +50,8 @@ fine; writing it into the repository is not.
      For a guard whose job is to refuse: the mutation result.
      For infrastructure: the plan summary, from the plan JSON. -->
 
+- [ ] Infrastructure changes: the documentation consulted through the required MCP servers is listed above (`microservice-app-ai-agents/rules/mcp.md`)
+
 ## Risk and rollback
 
 <!-- What could break, and how to undo it. For GitOps this is normally
