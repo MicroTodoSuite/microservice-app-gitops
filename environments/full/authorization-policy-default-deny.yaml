@@ -1,0 +1,11 @@
+# An AuthorizationPolicy with an empty spec and no selector denies every
+# request in its namespace at L7 (Istio's documented default-deny idiom).
+# This is the mesh-aware complement to environments/base's L3/L4
+# networkpolicy-default-deny.yaml: PeerAuthentication STRICT (mesh-wide,
+# infrastructure/istio/peer-authentication.yaml) proves *who* is calling;
+# this proves nothing is *allowed* to call until a service names the flow.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: default-deny
+spec: {}

@@ -1,0 +1,11 @@
+deployment:
+  image_digest: "sha256"
+  image_version: "df636734606c220263c1eae85f473940b52ced3c026abfe7110c64014098fb41"
+  namespace: kiali
+  network_policy:
+    enabled: true
+  pod_disruption_budget:
+    spec:
+      minAvailable: 1
+  ingress:
+    enabled: false

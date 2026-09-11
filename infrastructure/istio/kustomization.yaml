@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Istio mesh control plane (istiod + istio-ingressgateway), deployed by ArgoCD
+# from a generated, pinned render (spec 009, T083). Full-profile-only: per
+# constitution principle 9, Istio is forbidden in the economical cluster, so
+# this folder is registered exclusively in full-topology cluster registrations
+# (clusters/eks-full-*), never in clusters/local-kind or clusters/eks-dev.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+resources:
+  - namespace.yaml
+  - vendor/v1.30.3/install.yaml
+  - peer-authentication.yaml
+  - network-policy.yaml
+
+images:
+  - name: registry.istio.io/release/pilot
+    digest: sha256:6b37817f7f8f8e0f6f6fffc832c44ae4d7e50feec7ef7f1f3719638d1bbdc45a
+  - name: registry.istio.io/release/proxyv2
+    digest: sha256:485c87f71654b14e89911a9424a208d92b347b59c2bfefdc9707aaa83fe5618e

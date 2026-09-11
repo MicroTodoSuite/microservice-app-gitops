@@ -126,6 +126,9 @@ jobs:
           kustomize version
           kubeconform -v
 
+      - name: Validate the full-topology mesh policy render (spec 009 T069)
+        run: tests/platform/mesh-policy.bats
+
       - name: Validate single-owner infrastructure inventory
         run: tests/evidence/validate-ownership.bats
 

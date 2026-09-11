@@ -259,6 +259,22 @@ until the mirror workflow runs against real infrastructure, and the activation
 waves cannot be written while the full clusters' activation lists are required
 to stay empty at their bootstrap revision.
 
+> **Partial delivery, gitops PR (Istio + Kiali mesh scaffold).** T069 and the
+> Istio/Kiali third of T083 are staged ahead of Phase 4 to make them
+> render-testable offline, with one deliberate deviation from T083's literal
+> text: `infrastructure/istio/kustomization.yaml` and
+> `infrastructure/kiali/kustomization.yaml` pin images to their **upstream**
+> digest (`registry.istio.io/release/*`, `quay.io/kiali/kiali`), not the
+> `microtodosuite/platform` ECR mirror digest T083 specifies — T082's mirror
+> workflow does not exist yet, and neither does the account it would mirror
+> into. Repointing the `images:` name field once T082 lands is mechanical.
+> Also not in this PR: AWS Load Balancer Controller (needs a real
+> Terraform-output IRSA role ARN from Phase 4), cert-manager-managed webhook
+> certificates for Istio, the ingress Gateway's real NLB wiring, DestinationRule/
+> VirtualService for any of the five services, and live-cluster proof (render
+> tests only — `tests/platform/mesh-policy.bats`). T069 and T083 stay
+> unchecked below; neither is complete.
+
 ### Platform implementation
 
 - [ ] T082 [P] [US3] Implement and contract-test the exact-workflow OIDC platform-image mirror in `../.github/.github/workflows/mirror-platform-images.yml` and `../.github/tests/workflows/mirror-platform-images.bats`; copy every locked upstream digest to `microtodosuite/platform`, scan it, record source/mirror digests, and keyless-sign the complete graph without rebuilding or granting access to any service repository.

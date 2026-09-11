@@ -1,0 +1,94 @@
+# istiod is the mesh control plane: every sidecar in every full-profile
+# workload namespace must reach it for xDS (15010/15012), so ingress on the
+# control-plane ports is intentionally cluster-wide rather than scoped to one
+# namespace — that breadth is istiod's function, not a policy gap. Webhook
+# ingress (15017) is reachable from the API server, which NetworkPolicy cannot
+# select by namespace or pod label, so it is scoped by port only. Prometheus
+# scrape (15014) mirrors environments/base/networkpolicy-allow-observability-scrape.yaml.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: istio-system
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: istio-system
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-control-plane-ports
+  namespace: istio-system
+spec:
+  podSelector:
+    matchLabels:
+      app: istiod
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 15010
+          protocol: TCP
+        - port: 15012
+          protocol: TCP
+        - port: 15017
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-observability-scrape
+  namespace: istio-system
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: 15014
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kube-apiserver-egress
+  namespace: istio-system
+spec:
+  podSelector:
+    matchLabels:
+      app: istiod
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - port: 443
+          protocol: TCP
