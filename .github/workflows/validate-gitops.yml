@@ -132,6 +132,12 @@ jobs:
       - name: Validate the active economical AWS account
         run: tests/contract/economical-account-recovery.sh
 
+      - name: Validate the single declared AWS account
+        run: tests/contract/aws-account-parameter.sh
+
+      - name: Validate the one-command account change
+        run: tests/contract/set-aws-account.sh
+
       - name: Reject committed secret material
         run: |
           set -euo pipefail

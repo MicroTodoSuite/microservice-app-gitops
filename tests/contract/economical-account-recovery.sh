@@ -2,8 +2,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-EXPECTED_ACCOUNT="575172595729"
-RETIRED_ACCOUNT="916491575487"
+# The account is declared once, in config/aws-account.env; read it, never repeat it.
+EXPECTED_ACCOUNT="$(sed -n 's/^AWS_ACCOUNT_ID=\([0-9]*\)[[:space:]]*$/\1/p' "$ROOT/config/aws-account.env")"
+RETIRED_ACCOUNTS="$(sed -n 's/^RETIRED_AWS_ACCOUNT_IDS="\([0-9 ]*\)"[[:space:]]*$/\1/p' "$ROOT/config/aws-account.env")"
+[[ "$EXPECTED_ACCOUNT" =~ ^[0-9]{12}$ ]] || fail "config/aws-account.env does not declare the AWS account"
 
 fail() {
   printf 'FAIL: %s\n' "$*" >&2
@@ -13,10 +15,13 @@ fail() {
 require_account() {
   local path="$1"
   grep -Fq "$EXPECTED_ACCOUNT" "$ROOT/$path" \
-    || fail "$path does not reference replacement account $EXPECTED_ACCOUNT"
-  if grep -Fq "$RETIRED_ACCOUNT" "$ROOT/$path"; then
-    fail "$path still references retired account $RETIRED_ACCOUNT"
-  fi
+    || fail "$path does not reference the declared account $EXPECTED_ACCOUNT"
+  local retired
+  for retired in $RETIRED_ACCOUNTS; do
+    if grep -Fq "$retired" "$ROOT/$path"; then
+      fail "$path still references retired account $retired"
+    fi
+  done
 }
 
 for service in auth-api frontend log-message-processor todos-api users-api; do

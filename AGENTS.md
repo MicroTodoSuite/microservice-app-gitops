@@ -69,6 +69,8 @@ scripts/bump-image.sh auth-api <env> sha256:<64hex>
 
 ## Notes for infrastructure integration
 
+- The AWS account is declared once, in `config/aws-account.env`. Change it only with `scripts/set-aws-account.sh <account-id>`, never by editing literals: `tests/contract/aws-account-parameter.sh` fails on any tracked file that carries another account, unless `config/aws-account-exceptions.txt` names that file, the exact account, and the reason. Manifests keep the account as a literal on purpose — ArgoCD renders plain Git — so the declaration is the source and the contract keeps every copy honest.
+
 - Managed environment overlays remain inactive scaffolds. A reviewed cluster
   registration and immutable destination image values activate them; this local
   workflow requires no hosted credential or registry.
