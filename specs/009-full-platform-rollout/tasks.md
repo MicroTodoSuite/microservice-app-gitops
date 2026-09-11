@@ -394,11 +394,11 @@ to stay empty at their bootstrap revision.
 - [ ] T136 [US5] Execute pod, latency, Redis, and individual destination-outage experiments through reviewed Git activation/revert commits; collect read-only health, mesh, alert, trace/log/metric, release, and economical-baseline evidence in `evidence/runs/<timestamp>-dr-game-day/scenarios/`.
 - [ ] T137 [US5] Run the approved complete-AWS-production-outage game day with destination-specific test traffic; prove AKS independent reconciliation and full eligible traffic within ten minutes, then restore AWS through the reviewed rollback and retain the UTC timeline in `evidence/runs/<timestamp>-dr-game-day/aws-outage/`.
 - [ ] T138 [US5] Record every sampled Redis message, todo, and user as observed/lost/duplicate/divergent in `evidence/runs/<timestamp>-dr-game-day/continuity.json`, set `durabilityClaim` to `none`, and obtain operator acknowledgement.
-- [ ] T139 [US5] After T137-T138, issue and verify trusted `app.microtodosuite.online` certificates sequentially through reviewed GitOps commits and T134's DNS-01 roles: annotate only the AWS-production cert-manager ServiceAccount with its role ARN, then enable only AKS cert-manager's exact projected-token/env contract with its separate role ARN; prove no shared application routing record, broad trust, or static credential exists, then produce the final dev-owner Route 53 saved plan and Infracost with `enable_active_active=true`, two health-evaluated latency CNAME records targeting the exact AWS/Azure provider FQDNs, and trusted HTTPS health checks, and require a separate named human approval for that exact plan and cost.
-- [ ] T140 [US5] If and only if T139 receives separate exact-plan approval, create an external dev state backup, apply only that saved Route 53 plan, verify healthy latency routing and either-side failover, and retain immediate rollback evidence; otherwise record `traffic-disabled-ready` as the truthful outcome.
+- [ ] T139 [US5] After T137-T138, issue and verify trusted `app.microtodosuite.online` certificates sequentially through reviewed GitOps commits and T134's DNS-01 roles: annotate only the AWS-production cert-manager ServiceAccount with its role ARN, then enable only AKS cert-manager's exact projected-token/env contract with its separate role ARN; prove no shared application routing record, broad trust, or static credential exists, then produce the final dev-owner Route 53 saved plan and Infracost with failover routing enabled — a health-evaluated primary record for the exact AWS provider FQDN and a health-evaluated secondary record for the exact Azure provider FQDN — and trusted HTTPS health checks, and require a separate named human approval for that exact plan and cost.
+- [ ] T140 [US5] If and only if T139 receives separate exact-plan approval, create an external dev state backup, apply only that saved Route 53 plan, verify that AWS serves all eligible traffic while healthy and that Azure absorbs it when AWS fails, and retain immediate rollback evidence; otherwise record `traffic-disabled-ready` as the truthful outcome.
 - [ ] T141 [US5] Validate `evidence/runs/<timestamp>-dr-game-day/evidence.json` against SC-010 and SC-011 plus the DR contract, and accept US5 only with independent reconciliation, digest equality, failover, continuity disclosure, rollback, and economical post-baseline proof.
 
-**Checkpoint**: DR is proven. Real active-active traffic is either separately approved and verified or explicitly remains disabled-ready.
+**Checkpoint**: DR is proven. Real failover traffic is either separately approved and verified or explicitly remains disabled-ready.
 
 ---
 
@@ -503,7 +503,7 @@ twelve-digit number across every repository.
 - **US4 (Phase 6)**: depends on accepted US3 health/telemetry/admission contracts.
 - **US5 (Phase 7)**: Azure foundation preparation may begin after Foundational, but DR promotion/game day depends on the production-validated US4 digest and accepted US3 platform. T140 always needs a separate human approval.
 - **US6 (Phase 8)**: its validator foundation exists from Phase 1; final acceptance depends on every selected prior stage.
-- **Final Verification (Phase 9)**: depends on all implemented story checkpoints; incomplete traffic approval is allowed only when truthfully reported as `traffic-disabled-ready`, not as active-active complete.
+- **Final Verification (Phase 9)**: depends on all implemented story checkpoints; incomplete traffic approval is allowed only when truthfully reported as `traffic-disabled-ready`, not as failover complete.
 
 ### User Story Dependencies
 
@@ -558,7 +558,7 @@ Complete Phases 1-3 and stop. This delivers an enforceable economical safety bou
 3. Promote the accepted slice to staging and production, still traffic-disabled.
 4. Prove immutable canary promotion and rollback under US4.
 5. Add independent AKS DR, mirror the complete signed platform graph and production service digest, and run the US5 game day.
-6. Enable real active-active traffic only through T139-T140's separate approval.
+6. Enable real failover traffic only through T139-T140's separate approval; latency-based active-active stays unavailable until a replicated data store exists.
 7. Close US6 and final verification from actual evidence.
 
 ## Notes
