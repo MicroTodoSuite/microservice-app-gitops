@@ -53360,7 +53360,7 @@ spec:
 #
 ---
 # Source: chaos-mesh/templates/cert-manager-certs.yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: chaos-mesh-ca
@@ -53384,7 +53384,7 @@ spec:
     rotationPolicy: Never
 ---
 # Source: chaos-mesh/templates/cert-manager-certs.yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: chaos-mesh-cert
@@ -53410,7 +53410,7 @@ spec:
     rotationPolicy: Never
 ---
 # Source: chaos-mesh/templates/cert-manager-certs.yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: chaos-daemon-client-cert
@@ -53434,7 +53434,7 @@ spec:
     rotationPolicy: Never
 ---
 # Source: chaos-mesh/templates/cert-manager-certs.yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: chaos-daemon-cert
@@ -53458,7 +53458,7 @@ spec:
     rotationPolicy: Never
 ---
 # Source: chaos-mesh/templates/cert-manager-certs.yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: chaos-mesh-selfsigned
@@ -53475,7 +53475,7 @@ spec:
   selfSigned: {}
 ---
 # Source: chaos-mesh/templates/cert-manager-certs.yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: chaos-mesh-ca
