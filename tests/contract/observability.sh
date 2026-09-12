@@ -166,12 +166,13 @@ require_text infrastructure/grafana/datasources.yaml 'type: loki' \
   "Grafana must have a Loki datasource once Loki exists"
 
 # --- auth-api OTLP wiring points at Jaeger directly ---
-# The economical dev overlay moved under profiles/ when services were routed by
-# runtime profile (680dbbf); apps/auth-api/overlays/ now holds only local.
-require_text apps/auth-api/profiles/economical/overlays/dev/kustomization.yaml \
+# Spec 010 moved the endpoint from auth-api's dev overlay into every service's
+# base ConfigMap, so each environment inherits the same destination;
+# tests/contract/service-tracing.sh checks the rendered overlays.
+require_text apps/auth-api/base/configmap.yaml \
   'OTEL_EXPORTER_OTLP_ENDPOINT' \
-  "auth-api economical dev overlay must set the OTLP endpoint"
-require_text apps/auth-api/profiles/economical/overlays/dev/kustomization.yaml \
+  "auth-api's base ConfigMap must set the OTLP endpoint"
+require_text apps/auth-api/base/configmap.yaml \
   'jaeger-collector\.observability\.svc' \
   "auth-api must point OTLP directly at Jaeger, not an otel-collector"
 
