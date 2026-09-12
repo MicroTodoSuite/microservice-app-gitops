@@ -1,5 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
+# Deliberately no DestinationRule/VirtualService (spec 009, T083), unlike the
+# four HTTP services. log-message-processor is a Redis Pub/Sub subscriber with
+# no HTTP Service (its base Service exposes only a metrics port) — nothing
+# routes mesh HTTP traffic to it, so there is no host to apply retries,
+# timeouts, connection pools, or outlier detection to. It is still a full mesh
+# member: the sidecar is injected below and mesh-wide STRICT mTLS
+# (infrastructure/istio/peer-authentication.yaml) covers its Redis egress.
 labels:
   - includeSelectors: false
     pairs: {microtodosuite.io/topology: full}

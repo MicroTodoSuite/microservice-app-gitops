@@ -24,3 +24,9 @@ patches:
           metadata:
             annotations:
               sidecar.istio.io/inject: "true"
+
+# Full-profile traffic policy (spec 009, T083). Components support resources;
+# these render into every full overlay that includes this component.
+resources:
+  - destination-rule.yaml
+  - virtual-service.yaml
