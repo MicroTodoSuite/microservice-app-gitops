@@ -29,16 +29,29 @@ require_file() {
   [[ -f "$ROOT/$1" ]] || fail "required file is missing: $1"
 }
 
+# GNU grep, not ripgrep: the validate-gitops runner image ships grep but not
+# ripgrep. -r lets the same helpers check a single file or a whole directory.
 require_text() {
   local path="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
+  grep -rEq -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
 }
 
 reject_text() {
   local path="$1" pattern="$2" description="$3"
-  if rg -q -- "$pattern" "$ROOT/$path"; then
+  if grep -rEq -- "$pattern" "$ROOT/$path"; then
     fail "$description ($path)"
   fi
+}
+
+# An approved economical teardown quiesces eks-dev by replacing every activation
+# list with exactly `value: []` (spec 009 T170, clusters/README.md), a state that
+# tests/contract/economical-runtime-quiescence.sh owns. Registration entries can
+# be asserted only while the infrastructure list is active; a quiesced list is
+# reported as skipped, never as a pass.
+infrastructure_activation_is_quiesced() {
+  local path="$ROOT/clusters/eks-dev/activation-infrastructure.yaml"
+  [[ "$(grep -Ec '^  value: \[\]$' "$path" || true)" == 1 ]] \
+    && ! grep -Eq '^    - ' "$path"
 }
 
 check_rendered_images() {
@@ -130,7 +143,7 @@ require_text infrastructure/kube-bench/cronjob.yaml 'ttlSecondsAfterFinished' \
   "kube-bench Job must not leave a standing workload after it completes"
 reject_text infrastructure/kube-bench/cronjob.yaml 'kind: ClusterRole' \
   "kube-bench needs no ClusterRole (verified against the real upstream job)"
-reject_text infrastructure/kube-bench/cronjob.yaml '\-\-outputfile' \
+reject_text infrastructure/kube-bench/cronjob.yaml '--outputfile' \
   "kube-bench must not write a persisted report file (findings stay in Job logs only)"
 
 # --- kube-hunter resources ---
@@ -147,14 +160,20 @@ reject_text infrastructure/kube-hunter/cronjob.yaml '^\s*hostPID: true\s*$' \
   "kube-hunter needs no hostPID (verified against the real upstream job)"
 
 # --- Registration contract ---
-for name in falco kube-bench kube-hunter; do
-  require_text clusters/eks-dev/activation-infrastructure.yaml "name: $name" \
-    "eks-dev infrastructure activation omits $name"
-  if [[ "$(rg -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | rg -c 'namespace: security')" -lt 1 ]]; then
-    fail "eks-dev activation entry $name is not destined to the security namespace"
-  fi
-done
+registration="asserted"
+if infrastructure_activation_is_quiesced; then
+  registration="skipped, eks-dev infrastructure activation is quiesced"
+  printf 'SKIP: registration contract: %s\n' "$registration" >&2
+else
+  for name in falco kube-bench kube-hunter; do
+    require_text clusters/eks-dev/activation-infrastructure.yaml "name: $name$" \
+      "eks-dev infrastructure activation omits $name"
+    if [[ "$(grep -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | grep -c 'namespace: security')" -lt 1 ]]; then
+      fail "eks-dev activation entry $name is not destined to the security namespace"
+    fi
+  done
+fi
 require_text clusters/base/project.yaml 'namespace: security' \
   "AppProject destinations omit the security namespace"
 
-pass "runtime security hardening static contract (falco, kube-bench, kube-hunter)"
+pass "runtime security hardening static contract (falco, kube-bench, kube-hunter); registration $registration"
