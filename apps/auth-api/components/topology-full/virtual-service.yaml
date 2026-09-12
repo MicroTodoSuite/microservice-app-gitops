@@ -1,0 +1,22 @@
+# Full-topology traffic policy for auth-api (spec 009, T083): the retries + timeout
+# half. Retries cover transient connection/stream failures and 5xx; a 5s
+# request timeout bounds tail latency. Namespace-relative host, full-profile
+# only — see destination-rule.yaml.
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: auth-api
+spec:
+  hosts:
+    - auth-api
+  http:
+    - route:
+        - destination:
+            host: auth-api
+            port:
+              number: 8000
+      timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: connect-failure,refused-stream,5xx
