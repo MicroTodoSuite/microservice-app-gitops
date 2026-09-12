@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Kibana, deployed by ArgoCD as an ECK-managed resource (spec 009, T084).
+# Requires infrastructure/eck-operator/ and infrastructure/elasticsearch/
+# to be Healthy first.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+namespace: kibana
+
+resources:
+  - namespace.yaml
+  - kibana.yaml

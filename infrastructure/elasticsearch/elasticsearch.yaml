@@ -1,0 +1,42 @@
+# Single-node, resource-bounded (T084). The economical profile substitutes
+# Loki for the full ELK stack (constitution, "operational baseline"); this is
+# the full-profile target, not a duplicate of Loki. No storageClassName is
+# set — PVCs use whichever StorageClass the cluster marks default, so this
+# renders and runs unmodified on kind (local verification) and on any
+# EKS/AKS cluster with a sane default. The gp3-on-EKS / Azure-Disk-on-AKS
+# encrypted overlay T084 also asks for is a separate, cloud-specific patch
+# for whichever cluster registration activates this addon — not invented
+# here, the same boundary already documented for
+# infrastructure/karpenter/node-provisioning/.
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: platform
+spec:
+  version: 9.4.4
+  image: docker.elastic.co/elasticsearch/elasticsearch@sha256:a3545404e436e348721786bed638042a81f2181ebe2e2636501bb43940677747
+  nodeSets:
+    - name: default
+      count: 1
+      config:
+        node.store.allow_mmap: false
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 2Gi
+                limits:
+                  cpu: "1"
+                  memory: 2Gi
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
