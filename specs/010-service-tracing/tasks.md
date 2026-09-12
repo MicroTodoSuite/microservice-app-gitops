@@ -44,7 +44,7 @@ implementation.
 **Purpose**: Give every service a reachable tracing destination. Nothing a
 service emits can reach Jaeger until this lands.
 
-- [ ] T002 Add a failing render contract in `tests/contract/service-tracing.sh`
+- [X] T002 Add a failing render contract in `tests/contract/service-tracing.sh`
   that, for every service (`auth-api`, `todos-api`, `users-api`, `frontend`,
   `log-message-processor`) and every economical overlay (`dev`, `staging`,
   `prod`, `demo`), asserts the rendered Deployment receives
@@ -54,7 +54,7 @@ service emits can reach Jaeger until this lands.
   `allow-tracing-egress` exactly as `contracts/tracing-configuration.md`
   defines (one rule, one peer with both selectors, TCP 4317 only); run it in
   the `policy-contracts` job of `.github/workflows/validate-gitops.yml`
-- [ ] T003 Add `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_SERVICE_NAME` to
+- [X] T003 Add `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_SERVICE_NAME` to
   `apps/{auth-api,todos-api,users-api,frontend,log-message-processor}/base/configmap.yaml`,
   remove the per-overlay `OTEL_EXPORTER_OTLP_ENDPOINT` env patches from
   `apps/auth-api/profiles/economical/overlays/{dev,demo}/kustomization.yaml`
