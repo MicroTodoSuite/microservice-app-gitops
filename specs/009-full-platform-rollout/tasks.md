@@ -253,6 +253,15 @@ along the way rather than being specified around:
 - users-api let malformed signed JWT payloads escape as server errors and logged
   an unused generated Spring credential during startup.
 
+> **Reconciliation 2026-09-12 (spec 010).** T072 to T081 name OpenTelemetry.
+> The operational contracts they delivered (health, correlation, resilience,
+> and runtime configuration) are real, but tracing is not: only auth-api
+> exports OpenTelemetry traces. todos-api, users-api, and log-message-processor
+> still export Zipkin to an endpoint that is not deployed, the frontend does not
+> trace, and the economical default-deny egress lets no service reach Jaeger.
+> These tasks stay ticked for what they delivered; the tracing half is specified
+> and delivered by `specs/010-service-tracing/`.
+
 The platform half of this phase (T068-T071, T082-T091) is blocked behind Phase
 4's applies: the manifests must reference mirrored ECR digests that do not exist
 until the mirror workflow runs against real infrastructure, and the activation
