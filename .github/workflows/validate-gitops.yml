@@ -163,6 +163,12 @@ jobs:
       - name: Validate the chaos-mesh and opencost render (spec 009 T087)
         run: tests/platform/chaos-mesh-opencost.bats
 
+      - name: Validate the aws-load-balancer-controller render (spec 009 T083)
+        run: tests/platform/aws-load-balancer-controller.bats
+
+      - name: Validate the karpenter render (spec 009 T086)
+        run: tests/platform/karpenter.bats
+
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
 
