@@ -53,6 +53,20 @@ patch, once a real `clusters/eks-full-*/activation-infrastructure.yaml` entry
 exists for this addon — is a decision for that follow-up, not this vendor
 step.
 
+**Prometheus is a hard, fatal dependency at startup — confirmed live, not
+assumed.** Applied to a cluster with no Prometheus reachable at
+`prometheus-k8s.observability.svc.cluster.local:9090` (a throwaway test
+cluster running only Istio/Kiali/Chaos Mesh, deliberately without
+`infrastructure/prometheus/`), the `opencost` container logs `FTL Failed to
+create Prometheus data source` and CrashLoopBackOffs — unlike Kiali, which
+degrades gracefully (warns, keeps serving) when Prometheus is absent. This is
+expected behavior given a genuinely missing dependency, not a defect in this
+vendor step; it means whichever cluster registration activates
+`infrastructure/opencost/` must sequence it after `infrastructure/prometheus/`
+is Healthy (an ArgoCD sync-wave, matching how `infrastructure/istio/namespace.yaml`
+and `infrastructure/kiali/namespace.yaml` already use
+`argocd.argoproj.io/sync-wave: "-1"` for their own ordering needs).
+
 Upgrade by regenerating into a new version directory with the command above,
 recording the new checksum, and re-running
 `tests/platform/chaos-mesh-opencost.bats`.

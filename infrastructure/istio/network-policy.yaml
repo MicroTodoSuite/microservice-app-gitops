@@ -73,6 +73,15 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: prometheus
+        # Found on a live kind cluster: Kiali queries istiod:15014 for
+        # control-plane version info on every namespace/cluster refresh.
+        # Without this, that one call times out — cosmetic (Kiali still
+        # discovers the mesh and serves traffic data), but a real gap between
+        # what this policy allowed and what infrastructure/kiali/ actually
+        # needs, caught only by running both together, not by rendering.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kiali
       ports:
         - port: 15014
           protocol: TCP
@@ -91,4 +100,34 @@ spec:
   egress:
     - ports:
         - port: 443
+          protocol: TCP
+---
+# Found on a live kind cluster, not by rendering: allow-control-plane-ports
+# above only grants istiod's INGRESS side. Every other pod in this namespace
+# — istio-ingressgateway today, any future istio-system component — also
+# needs its own EGRESS allowed to reach istiod, or default-deny blocks the
+# connection from the caller's side regardless of what istiod permits.
+# Without this, istio-ingressgateway's Envoy never gets past
+# "failed to sign CSR ... dial tcp <istiod-ip>:15012: i/o timeout" and never
+# becomes Ready.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-control-plane-egress
+  namespace: istio-system
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: istiod
+      ports:
+        - port: 15010
+          protocol: TCP
+        - port: 15012
+          protocol: TCP
+        - port: 15017
           protocol: TCP

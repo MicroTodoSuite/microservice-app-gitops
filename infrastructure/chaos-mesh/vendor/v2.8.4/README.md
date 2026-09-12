@@ -20,6 +20,7 @@ echo "ae4abd385649771300e4d33a44627c0df3618be0780c385bf30cc2fdf2ad93fa  chaos-me
 tar -xzf chaos-mesh-2.8.4.tgz
 helm template chaos-mesh chaos-mesh --namespace chaos-mesh --include-crds \
   -f values.yaml \
+  --api-versions cert-manager.io/v1 \
   | sed -E 's/rollme: "[A-Za-z0-9]{5}"/rollme: "vendored"/' \
   > install.yaml
 sha256sum -c SHA256SUMS
@@ -28,7 +29,22 @@ sha256sum -c SHA256SUMS
 Generated via `docker run --platform linux/amd64 alpine/helm:3.16.4` to match
 the toolchain-lock platform.
 
-**Two chart quirks required action, not just documentation.**
+**`--api-versions cert-manager.io/v1` is required, not optional — found by
+applying the render to a live cluster, not by reading the chart.**
+`templates/cert-manager-certs.yaml` picks its Certificate/Issuer `apiVersion`
+by probing `.Capabilities.APIVersions.Has(...)` against whichever cert-manager
+API versions the chart *thinks* are installed, falling through v1 → v1beta1 →
+v1alpha3 → v1alpha2 in that order. `helm template` run offline (no live
+cluster, as every vendor step in this repository does) reports zero installed
+API versions unless told otherwise, so without this flag the chart silently
+picks its last, oldest fallback — `cert-manager.io/v1alpha2`, an API version
+cert-manager v1.21.0 (the version this repository vendors, `infrastructure/cert-manager/`)
+no longer serves at all. The first live-cluster apply attempt failed outright:
+`no matches for kind "Certificate" in version "cert-manager.io/v1alpha2"`.
+Confirmed the fix by grepping the render for every `apiVersion: cert-manager`
+line — all four now read `v1` — and by a second live apply that succeeded.
+
+**Two more chart quirks required action, not just documentation.**
 
 1. The chart's `controller-manager-deployment.yaml` and
    `chaos-daemon-daemonset.yaml` templates hard-code
@@ -65,6 +81,18 @@ The toolchain lock also pins `chaos-mesh-kernel` and `chaos-mesh-dlv`
 `grep -c` against the vendored file — because nothing in this chart's default
 values enables the debug/dlv profile that would reference them. No digest pin
 needed for an image that never gets scheduled.
+
+**Applying this bundle client-side fails on three CRDs, unrelated to anything
+above.** `schedules.chaos-mesh.org`, `workflownodes.chaos-mesh.org`, and
+`workflows.chaos-mesh.org` embed enough nested OpenAPI schema that
+`kubectl apply`'s `last-applied-configuration` annotation exceeds
+Kubernetes' 262144-byte annotation limit —
+`metadata.annotations: Too long: may not be more than 262144 bytes`. This is
+a `kubectl apply` client-side-apply limitation, not a defect in these CRDs
+themselves: `kubectl apply --server-side` (which carries no such annotation)
+applies the identical bundle cleanly, confirmed live. Whichever cluster
+registration eventually activates `infrastructure/chaos-mesh/` needs
+ArgoCD's `ServerSideApply=true` sync option for this reason.
 
 Upgrade by regenerating into a new version directory with the command above,
 recording the new checksum, and re-running

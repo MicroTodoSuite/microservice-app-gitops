@@ -51,6 +51,18 @@ if grep -q '^kind: Secret' <<<"$chaos_mesh_render"; then
   fail "infrastructure/chaos-mesh must not render a Secret (chart defaults generate a fresh self-signed cert at render time — see vendor README)"
 fi
 
+# --- chaos-mesh: cert-manager Certificates/Issuers must target v1 -----------
+# Found on a live cluster, not by rendering: the chart's cert-manager
+# templates pick their apiVersion by probing live cluster capabilities, and
+# offline `helm template` (no live cluster) silently falls back to the
+# oldest, deprecated cert-manager.io/v1alpha2 — an API cert-manager v1.21.0
+# (infrastructure/cert-manager/) no longer serves at all. See the vendor
+# README's "--api-versions cert-manager.io/v1" note.
+cert_manager_versions="$(grep -oE 'apiVersion: cert-manager\.io/[A-Za-z0-9]+' <<<"$chaos_mesh_render" | sort -u)"
+if [[ -n "$cert_manager_versions" ]] && grep -qv '^apiVersion: cert-manager\.io/v1$' <<<"$cert_manager_versions"; then
+  fail "infrastructure/chaos-mesh must render only cert-manager.io/v1 Certificates/Issuers, found: $cert_manager_versions"
+fi
+
 # --- chaos-mesh: experiments are disabled by construction -------------------
 # Only the resources: list matters here — the file's own comments legitimately
 # mention "experiments" to explain the exclusion.
