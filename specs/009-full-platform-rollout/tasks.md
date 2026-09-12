@@ -280,6 +280,32 @@ to stay empty at their bootstrap revision.
 - [ ] T082 [P] [US3] Implement and contract-test the exact-workflow OIDC platform-image mirror in `../.github/.github/workflows/mirror-platform-images.yml` and `../.github/tests/workflows/mirror-platform-images.bats`; copy every locked upstream digest to `microtodosuite/platform`, scan it, record source/mirror digests, and keyless-sign the complete graph without rebuilding or granting access to any service repository.
 - [ ] T083 [US3] Vendor checksum-pinned AWS Load Balancer Controller 3.5.0, Istio 1.30.3, and Kiali 2.31.0 under `infrastructure/aws-load-balancer-controller/`, `infrastructure/istio/`, and `infrastructure/kiali/` using only locked mirrored ECR digests, a GitOps-owned EKS ServiceAccount annotated with the exact Terraform-output IRSA role ARN, cert-manager-managed webhook certificates, resource budgets, network policy, Prometheus integration, and no public Kiali ingress; add full-profile namespace labels, PeerAuthentication, AuthorizationPolicy, DestinationRule, VirtualService, ingress Gateway, trusted-certificate references, and default-deny plus exact required-flow NetworkPolicies under `environments/full/` and each service's `components/topology-full/`, and make T069 pass.
 - [ ] T084 [P] [US3] Vendor checksum-pinned ECK 3.5.0 and add resource-bounded Elasticsearch, Kibana, Logstash, and Filebeat desired state under `infrastructure/{eck-operator,elasticsearch,kibana,logstash,filebeat}/` with cloud-specific encrypted retained-storage overlays (`gp3` on EKS and the Terraform-approved Azure Disk class on AKS); harden `infrastructure/sonarqube/` for its full-dev-only tooling role with SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`, mirrored manifest digests, encrypted retained gp3 PVCs, dedicated taint/toleration and GitOps-owned EC2NodeClass user data that sets `vm.max_map_count` without a privileged pod, probes, PDBs, NetworkPolicy, resource budget, backup/recovery tests, and rollback documentation.
+
+  > **Partial delivery, gitops PR (SonarQube hardening).** The SonarQube half
+  > of T084: both images pinned to the exact toolchain-lock digests
+  > (SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`); the
+  > privileged `init-sysctl` container removed and replaced by a dedicated
+  > `microtodosuite.io/tooling` toleration on both pods (the node-level
+  > `vm.max_map_count` and matching taint come from a Karpenter tooling
+  > NodePool/EC2NodeClass — Phase-4, needs the real cluster name); a
+  > PodDisruptionBudget per singleton; a default-deny NetworkPolicy plus the
+  > exact DB/HTTP/DNS flows; a nightly `pg_dump` backup CronJob to a retained
+  > PVC with a documented restore procedure. Verified live on a local `kind`
+  > cluster: SonarQube reached "Web Server is operational" (Community Edition
+  > 26.8.0.126808, embedded Elasticsearch started with NO privileged pod —
+  > the kind node's default vm.max_map_count is 262144); PostgreSQL 16.15
+  > Running; ESO generated the DB password; a triggered backup Job produced a
+  > 5.4 MiB dump and the NetworkPolicy allowed the backup→DB flow.
+  > **Deferred (cloud-specific, documented in the vendor README):** the
+  > gp3-encrypted retained StorageClass overlay, ingress/TLS exposure, and
+  > the tooling NodePool/EC2NodeClass userData. T084 stays unchecked: both
+  > this SonarQube half and the ECK half must land, and the storage overlay
+  > is deferred on both.
+  >
+  > NOTE: the ECK-stack PR (#116) adds its own T084 annotation immediately
+  > below this line; whichever of the two merges second will need the two
+  > adjacent blockquotes reconciled by hand — trivial, flagged here so it is
+  > not a surprise.
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
 - [ ] T087 [P] [US3] Vendor checksum-pinned Chaos Mesh 2.8.4 and OpenCost 2.5.29 under `infrastructure/chaos-mesh/` and `infrastructure/opencost/`; add disabled experiment roots and cluster/environment/service cost labels.

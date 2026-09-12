@@ -46,6 +46,13 @@ spec:
     spec:
       serviceAccountName: sonarqube-postgres
       automountServiceAccountToken: false
+      # Co-located with SonarQube on the dedicated tooling node — same taint
+      # toleration; see sonarqube.yaml for why the taint/NodePool is Phase-4.
+      tolerations:
+        - key: microtodosuite.io/tooling
+          operator: Equal
+          value: sonarqube
+          effect: NoSchedule
       securityContext:
         runAsNonRoot: true
         runAsUser: 999
@@ -54,7 +61,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: postgres
-          image: postgres:16-alpine
+          image: postgres:16.15-alpine3.24
           ports:
             - name: postgres
               containerPort: 5432

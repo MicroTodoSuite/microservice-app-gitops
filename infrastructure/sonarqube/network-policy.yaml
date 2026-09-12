@@ -1,0 +1,103 @@
+# Namespace isolation for the tooling database and server (T084). Same idiom
+# as environments/base/networkpolicy-*.yaml and infrastructure/istio/. The DB
+# is the sensitive part: only SonarQube and the backup CronJob may reach it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: sonarqube
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: sonarqube
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+# PostgreSQL accepts connections only from SonarQube and the backup CronJob.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-ingress
+  namespace: sonarqube
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sonarqube-postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sonarqube
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sonarqube-db-backup
+      ports:
+        - port: 5432
+          protocol: TCP
+---
+# SonarQube and the backup job may egress to the DB.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-egress
+  namespace: sonarqube
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - sonarqube
+          - sonarqube-db-backup
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sonarqube-postgres
+      ports:
+        - port: 5432
+          protocol: TCP
+---
+# The SonarQube HTTP port. CI runners reach it through an ingress path that is
+# itself deferred (see kustomization.yaml / README): NetworkPolicy cannot name
+# an external GitHub-Actions runner, so ingress is scoped to the port only.
+# Once a real ingress/mesh front exists, an Istio AuthorizationPolicy (the mesh
+# scaffold in environments/full/) narrows this to the ingress gateway identity.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-sonarqube-http
+  namespace: sonarqube
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sonarqube
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 9000
+          protocol: TCP

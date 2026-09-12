@@ -1,0 +1,26 @@
+# Both workloads are single-replica stateful singletons (Recreate strategy,
+# RWO volumes), so minAvailable: 1 means "never voluntarily evict the only
+# replica". The deliberate trade-off: an unforced node drain is blocked until
+# an operator scales the workload down first — correct for a stateful singleton
+# whose eviction is a real outage, not a routine reschedule.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sonarqube
+  namespace: sonarqube
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sonarqube
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sonarqube-postgres
+  namespace: sonarqube
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sonarqube-postgres
