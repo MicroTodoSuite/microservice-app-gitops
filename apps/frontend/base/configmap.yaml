@@ -8,3 +8,6 @@ data:
   # The template requires a syntactically valid value. No tracing service is
   # installed by this feature; failed optional exports do not affect health.
   ZIPKIN_URL: "http://127.0.0.1:9411/api/v2/spans"
+  # Tracing destination and reported name for every environment (spec 010).
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector.observability.svc:4317"
+  OTEL_SERVICE_NAME: "frontend"

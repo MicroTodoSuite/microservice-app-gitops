@@ -11,3 +11,6 @@ data:
   USERS_API_ADDRESS: "http://users-api:8083"
   # ZIPKIN_URL is intentionally omitted: when empty, tracing is disabled
   # (main.go:93).
+  # Tracing destination and reported name for every environment (spec 010).
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector.observability.svc:4317"
+  OTEL_SERVICE_NAME: "auth-api"

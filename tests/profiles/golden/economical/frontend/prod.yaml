@@ -13,6 +13,8 @@ metadata:
 apiVersion: v1
 data:
   AUTH_API_ADDRESS: http://auth-api:8000
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger-collector.observability.svc:4317
+  OTEL_SERVICE_NAME: frontend
   TODOS_API_ADDRESS: http://todos-api:8082
   ZIPKIN_URL: http://127.0.0.1:9411/api/v2/spans
 kind: ConfigMap

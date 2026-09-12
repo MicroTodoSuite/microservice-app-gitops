@@ -14,6 +14,8 @@ apiVersion: v1
 data:
   JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Xss512k -XX:MaxMetaspaceSize=112m -XX:ReservedCodeCacheSize=48m
     -XX:MaxDirectMemorySize=32m -XX:+UseSerialGC
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger-collector.observability.svc:4317
+  OTEL_SERVICE_NAME: users-api
   SERVER_PORT: "8083"
   SPRING_APPLICATION_NAME: users-api
 kind: ConfigMap
