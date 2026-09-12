@@ -1,0 +1,46 @@
+# Disabled by construction — see ec2nodeclass.yaml's header comment.
+#
+# Spot-only, 2-vCPU/8-GiB baseline (T086), matching the non-burstable x86
+# family already approved for the economical bootstrap node group
+# (microservice-app-ops dev.tfvars: bootstrap_node_instance_types =
+# ["m7i-flex.large"]). The 24-vCPU aggregate ceiling caps this NodePool at
+# roughly twelve 2-vCPU nodes regardless of how many pods request capacity.
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: full-profile-spot
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: full-profile-spot
+      requirements:
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values:
+            - spot
+        - key: kubernetes.io/arch
+          operator: In
+          values:
+            - amd64
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values:
+            - m
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: In
+          values:
+            - "2"
+        - key: karpenter.k8s.aws/instance-memory
+          operator: Gt
+          values:
+            - "7000"
+  limits:
+    cpu: "24"
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 5m
+    budgets:
+      - nodes: "1"

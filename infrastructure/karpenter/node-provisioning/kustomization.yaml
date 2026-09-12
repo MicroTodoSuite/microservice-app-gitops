@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Disabled node-provisioning roots (spec 009, T086). Deliberately NOT
+# referenced by ../kustomization.yaml's resources — both files use
+# CHANGEME-full-cluster-name, which nothing should ever apply as-is.
+# Renders and validates on its own for review; ships nowhere until a real
+# cluster registration replaces every CHANGEME with a reviewed value.
+resources:
+  - ec2nodeclass.yaml
+  - nodepool.yaml
