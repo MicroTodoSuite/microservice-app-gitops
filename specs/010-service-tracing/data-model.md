@@ -19,7 +19,7 @@ operation message. See [contracts/trace-context.md](contracts/trace-context.md).
 | `service.name` | Resource attribute naming the reporting service | One of `frontend`, `auth-api`, `todos-api`, `users-api`, `log-message-processor` |
 | `kind` | Role of the span | `SERVER` for inbound HTTP, `CLIENT` for outbound HTTP, `PRODUCER` for the audit publish, `CONSUMER` for its processing |
 | `parent` | The span this one continues | Present when a valid incoming `TraceContext` exists |
-| `status` | Outcome | `ERROR` when the operation fails (for example a 401 sign-in); otherwise unset or `OK` |
+| `status` | Outcome | Follows the OpenTelemetry HTTP semantic conventions: `ERROR` for a 5xx server response and for a 4xx or 5xx client response; left unset for a 4xx server response such as a rejected sign-in, whose status code is still recorded; `ERROR` for a failed publish or message processing |
 | attributes | OpenTelemetry semantic-convention attributes | MUST NOT include passwords, JWTs, `Authorization` headers, or secret values |
 
 ## TodoOperationMessage

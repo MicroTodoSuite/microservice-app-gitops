@@ -47,7 +47,10 @@ tracestate:
 | `users-api` | Each non-excluded request | `SERVER` | HTTP method, route, status code |
 | `log-message-processor` | `log_channel process` | `CONSUMER` | `messaging.system=redis`, `messaging.destination.name=log_channel`, `messaging.operation.type=process` |
 
-A failed operation sets span status `ERROR`. No span carries a password, a JWT,
+Span status follows the OpenTelemetry HTTP semantic conventions: `ERROR` for a
+5xx server response and for a 4xx or 5xx client response, unset for a 4xx
+server response such as a rejected sign-in (its status code is still recorded),
+and `ERROR` for a failed publish or message processing. No span carries a password, a JWT,
 an `Authorization` header, or any secret value.
 
 ## Requests that MUST NOT produce spans

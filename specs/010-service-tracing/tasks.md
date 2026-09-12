@@ -176,8 +176,10 @@ spans from all three services; a failed sign-in marks its span as an error.
   with an in-memory span exporter: `/health/startup`, `/health/ready`,
   `/health/live`, and `/metrics` produce no spans; a `/login` request produces
   a `SERVER` span and a `CLIENT` span whose outgoing request to `users-api`
-  carries a `traceparent` from the same trace; a rejected sign-in sets span
-  status `ERROR`; no span attribute contains the password or a JWT
+  carries a `traceparent` from the same trace; a rejected sign-in records HTTP
+  status 401 on its `SERVER` span and leaves the span status unset, per the
+  OpenTelemetry HTTP semantic conventions; no span attribute contains the
+  password or a JWT
 - [ ] T014 [P] [US2] [in `users-api` repo] Add failing tests in
   `src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java` (and a
   focused `TracingConfigurationTests.java` beside it): no Zipkin exporter class
