@@ -144,6 +144,12 @@ jobs:
       - name: Validate the one-command account change
         run: tests/contract/set-aws-account.sh
 
+      - name: Validate the observability platform static contract (spec 006)
+        run: tests/contract/observability.sh
+
+      - name: Validate the runtime security static contract (spec 008)
+        run: tests/contract/security.sh
+
       - name: Reject committed secret material
         run: |
           set -euo pipefail

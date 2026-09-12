@@ -201,11 +201,9 @@ reject_text "infrastructure/prometheus/rules/golden-signals.yaml" \
   "golden-signal rules must not group by unbounded-cardinality labels"
 
 # --- Registration contract ---
-require_text clusters/eks-dev/activation-infrastructure.yaml 'name: prometheus' \
-  "eks-dev infrastructure activation omits prometheus"
-require_text clusters/eks-dev/activation-infrastructure.yaml 'name: grafana' \
-  "eks-dev infrastructure activation omits grafana"
-for name in prometheus grafana; do
+for name in prometheus grafana jaeger loki; do
+  require_text clusters/eks-dev/activation-infrastructure.yaml "name: $name" \
+    "eks-dev infrastructure activation omits $name"
   if [[ "$(rg -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | rg -c 'namespace: observability')" -lt 1 ]]; then
     fail "eks-dev activation entry $name is not destined to the observability namespace"
   fi
