@@ -163,6 +163,9 @@ jobs:
       - name: Validate the chaos-mesh and opencost render (spec 009 T087)
         run: tests/platform/chaos-mesh-opencost.bats
 
+      - name: Validate the sonarqube hardening render (spec 009 T084)
+        run: tests/platform/sonarqube.bats
+
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
 
