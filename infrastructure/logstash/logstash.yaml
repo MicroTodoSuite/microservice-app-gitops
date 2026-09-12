@@ -1,0 +1,60 @@
+# Resource-bounded (T084). Single pipeline: receive from Filebeat (Beats
+# input, port 5044) and index into Elasticsearch — the path
+# infrastructure/filebeat/ feeds into.
+#
+# Two things only a live cluster caught:
+# - apiVersion is v1alpha1, not v1: ECK 3.5.0 has not graduated the Logstash
+#   CRD yet (confirmed via `kubectl get crd logstashes.logstash.k8s.elastic.co
+#   -o jsonpath='{.spec.versions[*].name}'`), unlike Elasticsearch/Kibana.
+# - the elasticsearch output's `cacert` setting is obsolete in Logstash
+#   9.4.4; the pod stayed Running with the pipeline silently failed to load
+#   until this was replaced with `ssl_certificate_authorities`.
+# The ${PLATFORM_ES_*} variables are correct as written — ECK injects them
+# from elasticsearchRefs[].clusterName; confirmed live ("Connected to ES
+# instance ... platform-logstash-user@platform-es-http...").
+apiVersion: logstash.k8s.elastic.co/v1alpha1
+kind: Logstash
+metadata:
+  name: platform
+spec:
+  version: 9.4.4
+  image: docker.elastic.co/logstash/logstash@sha256:c1aeca2bbf56148c1c868957e1d0ea5aa020cba5b3dca3493a097f54c0efc544
+  count: 1
+  elasticsearchRefs:
+    - name: platform
+      namespace: elasticsearch
+      clusterName: platform
+  pipelines:
+    - pipeline.id: main
+      config.string: |
+        input {
+          beats {
+            port => 5044
+          }
+        }
+        output {
+          elasticsearch {
+            hosts => [ "${PLATFORM_ES_HOSTS}" ]
+            ssl_certificate_authorities => ["${PLATFORM_ES_SSL_CERTIFICATE_AUTHORITY}"]
+            user => "${PLATFORM_ES_USER}"
+            password => "${PLATFORM_ES_PASSWORD}"
+          }
+        }
+  services:
+    - name: beats
+      service:
+        spec:
+          ports:
+            - port: 5044
+              name: beats
+  podTemplate:
+    spec:
+      containers:
+        - name: logstash
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: 500m
+              memory: 1Gi
