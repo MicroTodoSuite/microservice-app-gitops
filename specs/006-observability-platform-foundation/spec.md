@@ -21,7 +21,7 @@
 
 ### User Story 1 - See the four golden signals for every business workload (Priority: P1)
 
-As a platform operator, I can open a dashboard and see latency, traffic, error
+A platform operator can open a dashboard and see latency, traffic, error
 rate, and saturation for every deployed business workload, built from metrics
 the workloads actually emit while serving real requests.
 
@@ -54,7 +54,7 @@ that traffic.
 
 ### User Story 2 - Gate production canaries on real metrics instead of a synthetic probe (Priority: P2)
 
-As a release manager, I can trust that a production canary rolls back
+A release manager can trust that a production canary rolls back
 automatically when the new version's real error rate or latency crosses a
 threshold, not only when a synthetic HTTP probe fails to connect.
 
@@ -88,7 +88,7 @@ human intervention.
 
 ### User Story 3 - Get paged in Slack when a golden signal breaches its threshold (Priority: P3)
 
-As an on-call operator, I receive a Slack notification when a business
+An on-call operator receives a Slack notification when a business
 workload's error rate, latency, or saturation crosses an actionable
 threshold, without needing to watch a dashboard.
 
@@ -121,7 +121,7 @@ notification.
 
 ### User Story 4 - Trace a real request end-to-end for the pilot service (Priority: P4)
 
-As a developer debugging a slow or failing request, I can find its trace in
+A developer debugging a slow or failing request can find its trace in
 the tracing backend and see the request's path and timing through the pilot
 service, correlated with the structured log lines it produced.
 
@@ -151,7 +151,7 @@ same trace ID appears in that request's structured log entry.
 
 ### User Story 5 - Search centralized, correlated logs across the platform (Priority: P5)
 
-As an operator investigating an incident, I can search structured logs from
+An operator investigating an incident can search structured logs from
 business workloads in a centralized log viewer, filter by workload and time
 range, and pivot from a log line to its trace.
 

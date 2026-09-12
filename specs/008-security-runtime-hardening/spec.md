@@ -19,7 +19,7 @@
 
 ### User Story 1 - Get notified in Slack when a workload does something suspicious at runtime (Priority: P1)
 
-As an on-call operator, I receive a Slack notification when a running
+An on-call operator receives a Slack notification when a running
 container does something a container normally never does (spawn a shell,
 write to a sensitive system path, open an unexpected outbound connection),
 without needing to watch anything.
@@ -56,7 +56,7 @@ the alert's configured delivery window.
 
 ### User Story 2 - Prove the cluster meets the CIS Kubernetes Benchmark (Priority: P2)
 
-As a security auditor, I can run a CIS Kubernetes Benchmark scan against the
+A security auditor can run a CIS Kubernetes Benchmark scan against the
 live cluster and get a real pass/fail report per control, rather than an
 assumption that the cluster is configured correctly.
 
@@ -88,7 +88,7 @@ resource.
 
 ### User Story 3 - Prove the cluster has no obvious exploitable misconfiguration (Priority: P3)
 
-As a security auditor, I can run kube-hunter against the live cluster and
+A security auditor can run kube-hunter against the live cluster and
 get a real report of exploitable attack paths it found (or confirmation it
 found none), rather than assuming the cluster is safe from common
 Kubernetes attack techniques.

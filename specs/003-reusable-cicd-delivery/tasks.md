@@ -50,7 +50,7 @@ not new test suites.
 
 **Purpose**: The shared building blocks every story extends. **No user-story work may begin until this phase is complete.**
 
-**⚠️ CRITICAL**: The reusable `ci.yml` backbone and composite actions are created here; stories add behavior onto them.
+**Critical**: The reusable `ci.yml` backbone and composite actions are created here; stories add behavior onto them.
 
 - [X] T005 [.github] Create composite action `setup-stack` (branches for `go`/`node`/`java`/`python`, fail-fast on unsupported) in `.github/actions/setup-stack/action.yml`
 - [X] T006 [P] [.github] Create composite action `sbom` (Syft SPDX/CycloneDX, subject = image digest) in `.github/actions/sbom/action.yml`
@@ -62,7 +62,7 @@ not new test suites.
 
 ---
 
-## Phase 3: User Story 1 - One reusable pipeline replaces copy-paste (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - One reusable pipeline replaces copy-paste (Priority: P1), MVP
 
 **Goal**: Every service consumes one shared CI definition via a thin caller; legacy imperative pipelines are gone.
 

@@ -20,7 +20,7 @@
 
 ### User Story 1 - One reusable pipeline replaces the copy-pasted per-repo workflows (Priority: P1)
 
-As a platform engineer maintaining eight repositories, I can define the continuous-integration behavior once in the organization's shared workflow repository and have every service repository consume it through a minimal caller, so that a change to the pipeline is made in exactly one place instead of being copy-pasted and drifting across repositories.
+A platform engineer maintaining eight repositories can define the continuous-integration behavior once in the organization's shared workflow repository and have every service repository consume it through a minimal caller, so that a change to the pipeline is made in exactly one place instead of being copy-pasted and drifting across repositories.
 
 **Why this priority**: The duplication is the core defect this feature exists to remove. Every other improvement (immutable promotion, gates, supply-chain evidence) is only sustainable if it lives in one shared definition rather than five near-identical copies. Delivering just this story already retires the copy-paste debt.
 
@@ -36,7 +36,7 @@ As a platform engineer maintaining eight repositories, I can define the continuo
 
 ### User Story 2 - Build once and promote the same immutable image through environments via Git (Priority: P1)
 
-As a release owner, I can have an image built exactly once, published under an immutable content-addressed identifier, and promoted through development, staging, and production by committing that same identifier to the gitops repository, so that what runs in production is provably the same artifact that was tested, and any rollback is a Git revert.
+A release owner can have an image built exactly once, published under an immutable content-addressed identifier, and promoted through development, staging, and production by committing that same identifier to the gitops repository, so that what runs in production is provably the same artifact that was tested, and any rollback is a Git revert.
 
 **Why this priority**: This is the delivery mechanism the whole platform depends on and the behavior the current mutable-tag, imperative-deploy pipelines most directly violate. It is the connective tissue between CI and ArgoCD.
 
@@ -53,7 +53,7 @@ As a release owner, I can have an image built exactly once, published under an i
 
 ### User Story 3 - Full quality-and-supply-chain gate structure, honestly scoped (Priority: P2)
 
-As an engineering lead, I can rely on the pipeline exposing the complete set of quality and supply-chain gates the constitution requires, with the gates that can run today enforced and the gates that depend on artifacts we have not written yet present but inert, so that the pipeline is structurally complete and honest about what it actually verifies.
+An engineering lead can rely on the pipeline exposing the complete set of quality and supply-chain gates the constitution requires, with the gates that can run today enforced and the gates that depend on artifacts not yet written present but inert, so that the pipeline is structurally complete and honest about what it actually verifies.
 
 **Why this priority**: The constitution mandates the full gate set, but the repositories currently have essentially no tests and no API contracts. Cabling every gate now — while only activating those with real inputs — delivers the required structure without pretending to verify things that do not exist, and without turning this feature into "write every test suite."
 
@@ -70,7 +70,7 @@ As an engineering lead, I can rely on the pipeline exposing the complete set of 
 
 ### User Story 4 - Onboard the remaining services onto the GitOps delivery contract (Priority: P2)
 
-As a platform engineer, I can bring the four remaining business services into the gitops repository using the same base/overlay onboarding contract the pilot established, so that all services share one delivery shape and none requires bespoke structure.
+A platform engineer can bring the four remaining business services into the gitops repository using the same base/overlay onboarding contract the pilot established, so that all services share one delivery shape and none requires bespoke structure.
 
 **Why this priority**: The pilot proved the contract with one service. The roadmap task is only complete when every service travels the same path; leaving four services on the legacy path would keep the divergence the feature is meant to end.
 
@@ -87,7 +87,7 @@ As a platform engineer, I can bring the four remaining business services into th
 
 ### User Story 5 - Produce cloud-ready, verifiable supply-chain evidence without depending on unbuilt infrastructure (Priority: P3)
 
-As a security-conscious release owner, I can have the pipeline produce a signed, inventoried artifact using keyless identity and a design that targets the future managed registry and credential-less authentication, while the legs that require the not-yet-provisioned cloud remain inert, so that the moment the infrastructure lands, activation is a value change rather than a redesign.
+A security-conscious release owner can have the pipeline produce a signed, inventoried artifact using keyless identity and a design that targets the future managed registry and credential-less authentication, while the legs that require the not-yet-provisioned cloud remain inert, so that the moment the infrastructure lands, activation is a value change rather than a redesign.
 
 **Why this priority**: The supply-chain evidence (inventory and signature) is what the platform's later admission control will verify, and credential-less authentication is a non-negotiable. But the registry, cluster, and admission controller are other roadmap tasks; this feature must be ready for them without being blocked by them.
 

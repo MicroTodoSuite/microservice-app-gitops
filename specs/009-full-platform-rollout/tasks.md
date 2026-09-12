@@ -44,7 +44,7 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
 
 **Purpose**: Introduce reusable contracts and concurrent profile rendering without changing the economical Terraform plan or GitOps output.
 
-**⚠️ CRITICAL**: No new cloud foundation or full-profile activation starts until T030 passes.
+**Critical**: No new cloud foundation or full-profile activation starts until T030 passes.
 
 ### Tests first
 
@@ -102,7 +102,7 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
 
 ---
 
-## Phase 3: User Story 1 — Preserve the Economical Platform (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 — Preserve the Economical Platform (Priority: P1), MVP
 
 **Goal**: Make the working economical platform an enforced, measured invariant around every later stage.
 
@@ -134,7 +134,7 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
     the evidence being accepted. Recording it is still a maintainer's action, not an
     automated one — writing one's own acceptance is precisely what this gate exists to
     prevent. To close this task, add an artifact with `"kind": "approval"`,
-    `"result": "pass"`, and your own `approvedBy` to the drill bundle's `artifacts`,
+    `"result": "pass"`, and the approving maintainer's own `approvedBy` to the drill bundle's `artifacts`,
     then set `"decision": "accepted"` and re-run
     `scripts/managed/validate-full-profile-evidence.sh` on it.
 
