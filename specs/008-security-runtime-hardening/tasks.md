@@ -32,14 +32,24 @@ Kustomize roots render locally and the AppProject's existing generic RBAC
 whitelist is confirmed to already cover this feature's needs (research.md
 found no new entry is required).
 
-- [ ] T003 Confirm the `microtodosuite` AppProject's existing generic
+- [X] T003 Confirm the `microtodosuite` AppProject's existing generic
   `ClusterRole`/`ClusterRoleBinding` whitelist entries in
   `clusters/base/project.yaml` already cover Falco's and kube-bench/kube-
   hunter's RBAC (no CRDs are introduced by this feature); add only the
   exact missing kind if not
+  Verified 2026-09-12: rendering `infrastructure/{falco,kube-bench,kube-hunter}`
+  with Kustomize 5.8.1 yields no cluster-scoped kind at all, not even the
+  `ClusterRole` this task anticipated (T006, T015, and T020 established that
+  none is needed), and every resource renders into `security`, an existing
+  destination. No kind was added.
 - [ ] T004 Verify the three-element registration contract renders correctly
   against `clusters/base/infrastructure.yaml`'s explicit `list` generator
   with `tests/contract/security.sh`
+  Partial 2026-09-12: the contract now runs in `validate-gitops` and its
+  static part passes. Its registration check reports itself skipped, because
+  the eks-dev infrastructure activation list is quiesced (gitops spec 009
+  T170), so the registration is verified only when the economical platform is
+  reactivated (ai-agents `specs/001-governance-and-iac-program` T031).
 
 **Checkpoint**: The AppProject can represent every resource this feature
 introduces without a wildcard, and no live publication has happened yet.

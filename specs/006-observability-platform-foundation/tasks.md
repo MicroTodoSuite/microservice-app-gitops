@@ -33,8 +33,14 @@ new infrastructure folders.
 - [X] T002 Create the read-only composite verifier skeleton and expected
   application/controller/capability inventory in
   `scripts/managed/verify-observability.sh`
-- [ ] T003 [P] Confirm `--context`/`--namespace` override support exists (or
+- [X] T003 [P] Confirm `--context`/`--namespace` override support exists (or
   add it) without changing the safe default in `scripts/managed/lib/common.sh`
+  Verified 2026-09-12, with a path discrepancy: `scripts/managed/lib/common.sh`
+  was never created, and `scripts/managed/lib/` holds only
+  `namespace-isolation.sh`. The override exists in
+  `scripts/managed/verify-observability.sh` itself (`--context` and
+  `--namespace`, lines 19-25), and its safe defaults `eks-dev` and
+  `microtodo-dev` are unchanged (lines 15-16). Nothing was added.
 
 ---
 
@@ -60,13 +66,27 @@ locally.
   checksum)
 - [x] T008 Removed: no separate OpenTelemetry Collector component (Jaeger
   2.x receives OTLP natively; see research.md's amended decision and T033)
-- [ ] T009 Confirm the `microtodosuite` AppProject's exact cluster-scoped
+- [X] T009 Confirm the `microtodosuite` AppProject's exact cluster-scoped
   resource allowlist in `clusters/base/project.yaml` already covers every
   Prometheus Operator CRD/kind this bundle introduces, and add only the exact
   missing kinds if not
+  Verified 2026-09-12: rendering `infrastructure/{prometheus,grafana,jaeger,loki}`
+  with Kustomize 5.8.1 yields four cluster-scoped kinds,
+  `CustomResourceDefinition`, `ClusterRole`, `ClusterRoleBinding`, and
+  `Namespace`, all already in `clusterResourceWhitelist`. The ten
+  `monitoring.coreos.com` CRDs declare `scope: Namespaced`, so their custom
+  resources need no entry, and every namespaced resource renders into
+  `observability`, an existing destination. No kind was added.
 - [ ] T010 Verify the five-element registration contract renders correctly
   against `clusters/base/infrastructure.yaml`'s explicit `list` generator
   with `tests/contract/observability.sh`
+  Partial 2026-09-12: the contract now runs in `validate-gitops` and its
+  static part passes. Its registration check reports itself skipped, because
+  the eks-dev infrastructure activation list is quiesced (spec 009 T170), so
+  the registration is verified only when the economical platform is
+  reactivated (ai-agents `specs/001-governance-and-iac-program` T031). The
+  registration contract names four elements, not five: the fifth was the
+  OpenTelemetry Collector that T008 removed.
 
 **Checkpoint**: The Prometheus bundle matches its recorded checksum, every
 other component's provenance is recorded, and the AppProject can represent
