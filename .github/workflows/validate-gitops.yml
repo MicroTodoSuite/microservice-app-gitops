@@ -138,6 +138,11 @@ jobs:
       - name: Validate single-owner infrastructure inventory
         run: tests/evidence/validate-ownership.bats
 
+      - name: Validate full-profile evidence integrity (spec 009 T142/T145)
+        env:
+          EVIDENCE_MAX_AGE_DAYS: "30"
+        run: tests/evidence/validate-evidence.bats
+
       - name: Validate the active economical AWS account
         run: tests/contract/economical-account-recovery.sh
 
