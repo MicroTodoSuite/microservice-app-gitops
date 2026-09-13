@@ -37,7 +37,7 @@ matches `contracts/preserved-series.md`.
 
 > Write these tests first and commit them failing before T004 to T006.
 
-- [ ] T001 [P] [US1] [in `todos-api` repo] Add failing tests in
+- [X] T001 [P] [US1] [in `todos-api` repo] Add failing tests in
   `test/metrics.test.js` that render `/metrics` and assert
   `todo_api_requests_total` with `method` and `status`, and
   `todo_api_request_duration_seconds_bucket`, `_sum`, and `_count` with
@@ -45,7 +45,8 @@ matches `contracts/preserved-series.md`.
   `otel_scope_` label, `target_info`, or `todos_api_` runtime family appears;
   that `package.json` does not list `prom-client`; and that no source file
   requires `prom-client`
-- [ ] T002 [P] [US1] [in `auth-api` repo] Add failing tests in
+  Delivered in MicroTodoSuite/microservice-app-todos-api#24 (commit `fd6bd1b`).
+- [X] T002 [P] [US1] [in `auth-api` repo] Add failing tests in
   `metrics_test.go` that render `/metrics` through the operational routes and
   assert `auth_api_requests_total` with `method` and `status`, and
   `auth_api_request_duration_seconds_bucket`, `_sum`, and `_count` with
@@ -53,35 +54,40 @@ matches `contracts/preserved-series.md`.
   `target_info`, `go_*`, or `process_*` family appears; and that no non-test
   source registers a metric through `client_golang`'s `prometheus.New*`
   constructors
-- [ ] T003 [P] [US1] [in `log-message-processor` repo] Add failing tests in
+  Delivered in MicroTodoSuite/microservice-app-auth-api#28 (commit `4b8afa0`).
+- [X] T003 [P] [US1] [in `log-message-processor` repo] Add failing tests in
   `tests/test_metrics.py` that render the metrics endpoint and assert
   `log_messages_processed_total`, `log_messages_failed_total`, and
   `log_message_processing_duration_seconds_bucket`, `_sum`, and `_count` with
   the contract boundaries; that no `otel_scope_` label, `target_info`,
   `process_*`, or `python_*` family appears; and that `main.py` creates no
   `prometheus_client` `Counter` or `Histogram`
+  Delivered in MicroTodoSuite/microservice-app-log-message-processor#25 (commit `7d23bef`).
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] [in `todos-api` repo] Add `metrics.js` (a `MeterProvider`
+- [X] T004 [US1] [in `todos-api` repo] Add `metrics.js` (a `MeterProvider`
   with `@opentelemetry/exporter-prometheus` 0.222.0 per research R1, the R3
   view, and the request counter and histogram), serve it from the existing
   `/metrics` route, remove `prom-client` from `server.js`, `package.json`, and
   `package-lock.json`, describe the change in `AGENTS.md` and `README.md`,
   and make T001 pass
-- [ ] T005 [US1] [in `auth-api` repo] Add `metrics.go` (a `MeterProvider`
+  Delivered in MicroTodoSuite/microservice-app-todos-api#24 (commit `a4c9bc1`); the `README.md` description landed in MicroTodoSuite/microservice-app-todos-api#25.
+- [X] T005 [US1] [in `auth-api` repo] Add `metrics.go` (a `MeterProvider`
   with `go.opentelemetry.io/otel/exporters/prometheus` v0.67.0 on its own
   registry per R1, the R3 view, and the request instruments), use it in the
   metrics middleware and the `/metrics` route, remove the `client_golang`
   metric constructors, update `go.mod` and `go.sum`, describe the change in
   `AGENTS.md`, and make T002 pass
-- [ ] T006 [US1] [in `log-message-processor` repo] Replace the
+  Delivered in MicroTodoSuite/microservice-app-auth-api#28 (commit `4ce77cf`).
+- [X] T006 [US1] [in `log-message-processor` repo] Replace the
   `prometheus_client` instruments in `main.py` with an OpenTelemetry meter and
   `PrometheusMetricReader` on its own `CollectorRegistry` per R1 and R3, add
   `opentelemetry-exporter-prometheus==0.65b0` to `requirements.in`,
   regenerate the hashed `requirements.txt` with `pip-compile
   --generate-hashes` on Python 3.13, describe the change in `AGENTS.md` and
   `README.md`, and make T003 pass
+  Delivered in MicroTodoSuite/microservice-app-log-message-processor#25 (commit `502dce8`); the `README.md` description landed in MicroTodoSuite/microservice-app-log-message-processor#26.
 
 **Checkpoint**: The three migrated services expose the preserved series
 through OpenTelemetry; tracing tests still pass.
@@ -100,16 +106,18 @@ dashboard contract finds the Business row and its queries.
 
 > Write these tests first and commit them failing before T010 to T012.
 
-- [ ] T007 [P] [US2] [in `todos-api` repo] Add failing tests in
+- [X] T007 [P] [US2] [in `todos-api` repo] Add failing tests in
   `test/metrics.test.js`: creating a todo increases
   `todo_api_todos_created_total` by one; deleting an existing todo increases
   `todo_api_todos_deleted_total` by one; deleting a missing id and a request
   rejected for a missing JWT change neither; and both series have no labels
-- [ ] T008 [P] [US2] [in `auth-api` repo] Add failing tests in
+  Delivered in MicroTodoSuite/microservice-app-todos-api#24 (commit `d88db72`).
+- [X] T008 [P] [US2] [in `auth-api` repo] Add failing tests in
   `metrics_test.go`: an accepted login increases
   `auth_api_sign_ins_total{outcome="accepted"}` by one, a wrong-credentials
   login increases `outcome="rejected"` by one, a login failing with a server
   error changes neither, and the series has only the `outcome` label
+  Delivered in MicroTodoSuite/microservice-app-auth-api#28 (commit `d2859cd`).
 - [X] T009 [P] [US2] Add failing assertions to
   `tests/contract/observability.sh` that the rendered Grafana root's
   golden-signals dashboard contains a row titled `Business` and queries
@@ -118,11 +126,13 @@ dashboard contract finds the Business row and its queries.
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] [in `todos-api` repo] Add the two business counters to
+- [X] T010 [US2] [in `todos-api` repo] Add the two business counters to
   `metrics.js` and increment them in `todoController.js` per research R6, and
   make T007 pass
-- [ ] T011 [US2] [in `auth-api` repo] Add the sign-in counter to `metrics.go`
+  Delivered in MicroTodoSuite/microservice-app-todos-api#24 (commit `37fc416`).
+- [X] T011 [US2] [in `auth-api` repo] Add the sign-in counter to `metrics.go`
   and increment it in the login handler per research R6, and make T008 pass
+  Delivered in MicroTodoSuite/microservice-app-auth-api#28 (commit `2347344`).
 - [X] T012 [US2] Add the Business row and its two panels to
   `infrastructure/grafana/dashboards/golden-signals.yaml` per research R7, and
   make T009 pass
