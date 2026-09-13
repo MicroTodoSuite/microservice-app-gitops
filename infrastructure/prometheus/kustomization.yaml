@@ -123,3 +123,14 @@ patches:
       - op: replace
         path: /spec/image
         value: quay.io/prometheus/alertmanager@sha256:af26fbe4dd1886ac0efd7bd55cd9027da262e105b137a376522b7c14c3626e4a
+      # Prometheus Operator's default matcher strategy, OnNamespace, appends
+      # namespace="observability" to every route of an AlertmanagerConfig in
+      # this namespace (pkg/alertmanager/amcfg.go, namespaceEnforcer.processRoute).
+      # The golden-signal alerts aggregate by workload and carry no namespace
+      # label, so none of them matched the Slack route. None keeps the routes
+      # as written; only AlertmanagerConfigs in this namespace are selected,
+      # because alertmanagerConfigNamespaceSelector stays unset.
+      - op: add
+        path: /spec/alertmanagerConfigMatcherStrategy
+        value:
+          type: None

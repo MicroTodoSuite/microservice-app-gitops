@@ -377,6 +377,16 @@ request against exact evidence.
 - [X] T051 Add a `startupProbe` to each of those five containers on the
   endpoint its `livenessProbe` already uses, leaving the existing probes
   unchanged, and make T050 pass
+- [X] T052 Add a failing assertion to `tests/contract/observability.sh` that
+  the rendered `Alertmanager` `main` sets
+  `alertmanagerConfigMatcherStrategy.type: None`. Its default, `OnNamespace`,
+  adds `namespace="observability"` to every route of the
+  `slack-golden-signals` `AlertmanagerConfig`, and the golden-signal alerts
+  aggregate `by (workload)` and carry no `namespace` label, so no firing alert
+  would reach Slack (FR-006)
+- [X] T053 Set `alertmanagerConfigMatcherStrategy.type: None` on `Alertmanager`
+  `main` through a patch in `infrastructure/prometheus/kustomization.yaml`,
+  leaving the vendored manifest and its checksum unchanged, and make T052 pass
 
 ---
 
