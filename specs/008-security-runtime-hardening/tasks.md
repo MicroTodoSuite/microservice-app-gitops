@@ -212,11 +212,11 @@ non-destructively.
   `docs/platform-addons.md` or a new `docs/security-runtime.md`, mirroring
   how `003-platform-addons` and `006-observability-platform-foundation`
   documented their own boundaries
-- [ ] T028 Add a failing assertion to `tests/contract/security.sh` that the
+- [X] T028 Add a failing assertion to `tests/contract/security.sh` that the
   rendered `falcosidekick` container declares `livenessProbe`,
   `readinessProbe`, and `startupProbe` (evolution plan section 10 requires all
   three probes; it declares only the first two)
-- [ ] T029 Add a `startupProbe` to the `falcosidekick` container on the
+- [X] T029 Add a `startupProbe` to the `falcosidekick` container on the
   endpoint its `livenessProbe` already uses, leaving the existing probes
   unchanged, and make T028 pass
 
