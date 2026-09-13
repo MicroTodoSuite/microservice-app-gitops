@@ -13,9 +13,6 @@ replicas:
 - count: 1
   name: auth-api
 
-                  # Only the on/off switch and target for tracing (otel.go
-                  # in the auth-api repo); the OpenTelemetry SDK reads this
-                  # standard env var itself, no code-level endpoint literal.
 patches:
 - patch: |-
     apiVersion: apps/v1
@@ -27,12 +24,6 @@ patches:
         spec:
           containers:
             - name: auth-api
-              env:
-                # Only the on/off switch and target for tracing (otel.go
-                # in the auth-api repo); the OpenTelemetry SDK reads this
-                # standard env var itself, no code-level endpoint literal.
-                - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: http://jaeger-collector.observability.svc:4317
               resources:
                 requests:
                   cpu: 50m

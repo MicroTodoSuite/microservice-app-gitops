@@ -12,6 +12,8 @@ metadata:
 ---
 apiVersion: v1
 data:
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger-collector.observability.svc:4317
+  OTEL_SERVICE_NAME: log-message-processor
   PORT: "9090"
   REDIS_CHANNEL: log_channel
   REDIS_HOST: redis

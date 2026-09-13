@@ -153,6 +153,9 @@ jobs:
       - name: Validate the runtime security static contract (spec 008)
         run: tests/contract/security.sh
 
+      - name: Validate the service tracing configuration (spec 010)
+        run: tests/contract/service-tracing.sh
+
       - name: Reject committed secret material
         run: |
           set -euo pipefail

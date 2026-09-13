@@ -13,6 +13,8 @@ metadata:
 apiVersion: v1
 data:
   AUTH_API_PORT: "8000"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger-collector.observability.svc:4317
+  OTEL_SERVICE_NAME: auth-api
   USERS_API_ADDRESS: http://users-api:8083
 kind: ConfigMap
 metadata:

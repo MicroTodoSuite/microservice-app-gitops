@@ -6,3 +6,6 @@ data:
   REDIS_HOST: "redis.redis.svc.cluster.local"
   REDIS_PORT: "6379"
   REDIS_CHANNEL: "log_channel"
+  # Tracing destination and reported name for every environment (spec 010).
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector.observability.svc:4317"
+  OTEL_SERVICE_NAME: "log-message-processor"
