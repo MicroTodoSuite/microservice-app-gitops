@@ -20,6 +20,17 @@ kube-bench/kube-hunter are normally installed via Helm chart or ad-hoc
 `kubectl run`), so manifests are hand-authored with the same digest-pinning
 discipline as `infrastructure/grafana`/`loki`/`jaeger`.
 
+**Amendment 2026-09-13 (User Story 4)**: Trivy Operator 0.34.0, running
+Trivy 0.74.0, continuously scans the images running in the five suite
+namespaces for vulnerabilities only. Unlike the three tools above, it has a
+genuine upstream raw-YAML bundle (`deploy/static/trivy-operator.yaml`), which
+is vendored with its own SHA-256 checksum. Its counts reach the existing
+Prometheus through a ServiceMonitor, a PrometheusRule notifies Slack on HIGH
+or CRITICAL through spec 006's route (which depends on spec 006 T053), and a
+Grafana dashboard shows them. Private ECR images are read through a
+read-only IRSA role for the scanner's ServiceAccount, added to
+`microservice-app-ops`.
+
 ## Technical Context
 
 **Language/Version**: Kubernetes YAML; Kustomize v5
@@ -29,10 +40,20 @@ rules), Falcosidekick 2.34.1 (Slack output), kube-bench v0.16.0 (`eks` target
 profile), kube-hunter 0.6.8 (internal/passive mode) - all real current
 releases, verified via the GitHub API and `docker buildx imagetools inspect`
 
+Amended 2026-09-13: Trivy Operator 0.34.0
+(`mirror.gcr.io/aquasec/trivy-operator:0.34.0@sha256:0e4f11e9632f34097f259f3a59d34bab4eea8cee9aef510d15cdfc7481d5e49c`)
+and Trivy 0.74.0
+(`mirror.gcr.io/aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969`),
+verified with `docker buildx imagetools inspect`.
+
 **Storage**: None - Falco is stateless (forwards findings, does not persist
 them); kube-bench/kube-hunter Jobs write their report to stdout/logs, kept
 only as long as the Job's pod (`ttlSecondsAfterFinished`), consistent with
 this feature not claiming a findings-archival capability.
+
+Amended 2026-09-13: vulnerability reports are `VulnerabilityReport` custom
+resources in etcd, replaced when they expire (24 hours by default); no
+persistent volume is added.
 
 **Testing**: Kustomize render + `kubeconform`, SHA-256/provenance
 verification for hand-authored components, a Bash contract script (mirroring
@@ -64,6 +85,11 @@ the same ESO/SecretStore pattern as spec 006, never a committed webhook.
 infrastructure Applications (`falco`, `kube-bench`, `kube-hunter`), zero
 service-repo changes.
 
+Amended 2026-09-13: one more namespace-scoped Application
+(`trivy-operator`, namespace `security`), one Deployment plus short-lived
+scan Jobs limited to one at a time, and one AWS IAM role in
+`microservice-app-ops`.
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
@@ -86,6 +112,16 @@ service-repo changes.
 Post-design re-check: PASS. Phase 1 design (below) introduces no enforcement
 behavior, no new standing privileged workload beyond Falco's own necessary
 host access, and no ingress/TLS surface.
+
+Amendment 2026-09-13 re-check (User Story 4): PASS. Cost-Governed Design:
+one operator Deployment and one scan Job at a time, bounded by the upstream
+scan-job requests and limits. Quality and Supply-Chain Gates: the vendored
+bundle is checksum-pinned and both images are digest-pinned. Least Privilege
+and Secret Hygiene: the operator's ClusterRole creates and deletes scan Jobs
+and report resources, which is its function; the ECR role is read-only and
+trusts only `system:serviceaccount:security:trivy-operator`; no credential
+is committed. Observable and Resilient Operations: findings reuse spec 006's
+metrics, dashboard, and alert route.
 
 ## Project Structure
 
@@ -128,6 +164,25 @@ infrastructure/
     ├── cronjob.yaml                  # CronJob, internal/passive mode, read-only RBAC
     └── vendor/v0.6.8/README.md
 
+infrastructure/trivy-operator/        # User Story 4 (amended 2026-09-13)
+├── kustomization.yaml                # namespace security, digests, scanner and target-namespace settings
+├── networkpolicy.yaml                # default deny; DNS and HTTPS egress; metrics ingress from Prometheus
+└── vendor/v0.34.0/
+    ├── trivy-operator.yaml           # upstream deploy/static/trivy-operator.yaml at v0.34.0
+    ├── SHA256SUMS
+    └── README.md                     # source URL, image digests, what the Kustomize root changes
+
+infrastructure/prometheus/
+├── servicemonitors/trivy-operator.yaml   # scrapes the operator's metrics Service in security
+└── rules/trivy-vulnerabilities.yaml      # HIGH/CRITICAL notification
+
+infrastructure/grafana/dashboards/
+└── trivy-vulnerabilities.yaml        # dashboard ConfigMap
+
+../microservice-app-ops/aws/modules/environment-foundation/
+├── security-irsa.tf                  # read-only ECR role for security:trivy-operator
+└── tests/observability_security_irsa.tftest.hcl
+
 scripts/managed/
 └── verify-security.sh                # read-only composite live evidence
 
@@ -157,3 +212,10 @@ chart) is inherent to a runtime syscall detector's function, not a design
 choice to justify away; it is scoped to Falco's own ServiceAccount/
 DaemonSet only, and does not extend to kube-bench/kube-hunter's Job RBAC,
 which stays read-only.
+
+Amendment 2026-09-13: Trivy Operator's ClusterRole includes write verbs on
+Jobs and on its own report resources, because creating scan Jobs and writing
+reports is how it works; it reads, never modifies, the workloads it scans
+(FR-018). Its CustomResourceDefinitions, ClusterRoles, and
+ClusterRoleBinding are kinds the `microtodosuite` AppProject already
+whitelists, so no new whitelist entry is required.

@@ -6,6 +6,10 @@
 
 **Status**: Draft
 
+**Amended**: 2026-09-13 - User Story 4, continuous in-cluster vulnerability
+scanning with Trivy (evolution plan section 11 requires Trivy both in CI and
+continuously in the cluster)
+
 **Input**: User description: "Add the MicroTodoSuite runtime security baseline that constitution principle 10 marks as claim-gated and deferred: deploy Falco for in-cluster runtime threat detection (syscall-level anomaly detection using its default/community rules) with alerts routed to the same Slack channel the observability alerting already uses; run kube-bench as a periodic CIS Kubernetes Benchmark audit against the eks-dev cluster; run kube-hunter as a periodic penetration-test-style scan for exploitable cluster misconfigurations. All three must be GitOps-managed, namespace-scoped, pinned-and-vendored, and Audit-before-Enforce where applicable, matching the same economical profile and conventions already used for keda/cert-manager/kyverno/prometheus. Findings must produce real, actionable evidence (not a passing claim with no output), and must not block or mutate existing business workloads."
 
 ## Clarifications
@@ -14,6 +18,14 @@
 
 - Q: Which syscall-capture driver does Falco use on eks-dev? → A: Modern eBPF probe. It is Falco's current recommended default for standard EKS node kernels (Amazon Linux 2/2023) and does not require compiling a kernel-version-specific module, which would be fragile against node upgrades in a Karpenter/managed-node-group cluster.
 - Q: Which mode does kube-bench run in, given eks-dev's control plane is AWS-managed and not directly accessible? → A: The `eks` target profile. It skips control-plane checks the cluster cannot actually audit (AWS owns that plane) and evaluates only what applies: worker-node configuration and cluster policies, avoiding false FAILs on inapplicable components.
+
+### Session 2026-09-13
+
+- Q: Which Trivy scanners run in the cluster? → A: Vulnerability scanning of running workload images only. Configuration audit, RBAC assessment, infrastructure assessment, exposed-secret scanning, compliance reports, and SBOM generation stay off; kube-bench and kube-hunter already cover configuration and exposure, and the economical cluster has two nodes.
+- Q: Which namespaces are scanned? → A: This suite's own: `microtodo-dev`, `microtodo-staging`, `microtodo-prod`, `observability`, and `security`, matching this feature's Assumptions.
+- Q: How are findings surfaced? → A: Vulnerability reports stay in the cluster, their counts are scraped by the existing Prometheus and shown on a Grafana dashboard, and a HIGH or CRITICAL vulnerability notifies the Slack channel spec 006 uses. The maintainer asked for notifications and dashboards unless they proved heavy; the scanner exposes its own metrics and the rest reuses spec 006's Prometheus, Grafana, and Alertmanager, so no new runtime component is added for it.
+- Q: From which severity must a finding be remediated or excepted (FR-010)? → A: HIGH and CRITICAL, the same threshold the CI Trivy gate fails on. Reports still show every severity.
+- Q: How does the scanner read the private ECR images? → A: Through a dedicated read-only registry identity bound to the scanner's own ServiceAccount (IRSA), provisioned in `microservice-app-ops` alongside the existing security IRSA role. Nodes block pods from using the node's credentials, and the alternative (scanning each workload's filesystem inside the business namespaces as root) was rejected.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -117,6 +129,42 @@ disrupting any finding it discovers.
    discovered path, **Then** it does not actually exploit the path or
    disrupt a running business workload.
 
+### User Story 4 - See the known vulnerabilities in the images the cluster is running (Priority: P4)
+
+An on-call operator can see, at any time, which known vulnerabilities are
+present in the images actually running in this suite's namespaces, is
+notified in Slack when a HIGH or CRITICAL one appears, and can follow the
+counts on a dashboard, instead of relying only on the scan that ran when the
+image was built.
+
+**Why this priority**: The CI Trivy gate only knows the vulnerability
+database of the day an image was built; new CVEs are published against
+images already running. Continuous scanning closes that gap, and it is the
+last detection layer once runtime detection and the two audits exist.
+
+**Independent Test**: With the scanner running, list the vulnerability
+reports for every workload in the suite namespaces, confirm the dashboard
+shows the same counts by severity, and confirm a running image with a HIGH or
+CRITICAL vulnerability produces a Slack notification.
+
+**Acceptance Scenarios**:
+
+1. **Given** a workload is running in one of the suite namespaces, **When**
+   the scanner completes its cycle, **Then** a vulnerability report exists
+   for each of its container images, with counts per severity.
+2. **Given** a workload's image changes, **When** the new revision is
+   running, **Then** the scanner produces a report for the new image without
+   manual action.
+3. **Given** a running image has at least one HIGH or CRITICAL
+   vulnerability, **When** its report is produced, **Then** a Slack
+   notification names the namespace, workload, and image.
+4. **Given** reports exist, **When** the dashboard is opened, **Then** it
+   shows vulnerability counts by severity, namespace, and image that match
+   the reports.
+5. **Given** a HIGH or CRITICAL finding, **When** it is reviewed, **Then** it
+   is remediated or recorded as an explicit, justified, time-bounded
+   exception.
+
 ### Edge Cases
 
 - Falco's default ruleset can flag a legitimate platform action (e.g. a
@@ -138,6 +186,16 @@ disrupting any finding it discovers.
   economical profile's `dev`/`staging`/`prod` namespaces on one cluster)
   must not be mistaken for permission to probe or disrupt another team's
   workload; scope is this suite's own namespaces only.
+
+- A scan that cannot pull an image (registry identity missing or denied) or
+  cannot download the vulnerability database MUST be visible as a failed
+  scan, never read as an image with no vulnerabilities.
+- Scanning must not starve a two-node cluster: scan jobs run one at a time
+  with bounded CPU and memory, and never block, restart, or modify the
+  workload being scanned.
+- A workload outside the suite namespaces (for example `kube-system` or a
+  platform add-on) is not scanned; narrowing scope that way is the decided
+  boundary, not a way to hide findings inside the suite (FR-010).
 
 ## Requirements *(mandatory)*
 
@@ -177,16 +235,37 @@ disrupting any finding it discovers.
   through `eks-dev`'s explicit activation list, never auto-discovered.
 - **FR-009**: No component in this feature MAY introduce a service mesh or
   mTLS dependency, matching the economical profile's prohibition on Istio.
-- **FR-010**: A finding from any of the three tools MUST result in either a
+- **FR-010**: A finding from any tool in this feature (for the vulnerability
+  scanner, every HIGH or CRITICAL vulnerability) MUST result in either a
   remediation or an explicit, justified, time-bounded documented exception;
   a finding MUST NOT be silently dropped or hidden by narrowing scan scope.
 - **FR-011**: Final verification MUST capture live evidence - a real Falco
-  finding delivered to Slack, a real kube-bench report, and a real
-  kube-hunter report - never a claim based on rendered manifests alone.
+  finding delivered to Slack, a real kube-bench report, a real kube-hunter
+  report, and real vulnerability reports with their Slack notification and
+  dashboard - never a claim based on rendered manifests alone.
 - **FR-012**: Repository validation MUST fail on unpinned component
   versions, missing vendor checksums or provenance records, a Falco rule
   disabled outright instead of tuned/exempted, or a claimed capability
   without corresponding live evidence.
+- **FR-013**: Trivy MUST run as a GitOps-managed, continuous vulnerability
+  scanner of the images running in `microtodo-dev`, `microtodo-staging`,
+  `microtodo-prod`, `observability`, and `security`, keeping one current
+  vulnerability report per workload container image and rescanning when an
+  image changes and when a report expires.
+- **FR-014**: Only the vulnerability scanner MAY be enabled; configuration
+  audit, RBAC assessment, infrastructure assessment, exposed-secret scanning,
+  compliance reports, and SBOM generation MUST stay disabled.
+- **FR-015**: Vulnerability counts per severity, namespace, workload, and
+  image MUST be scraped by the existing Prometheus and shown on a Grafana
+  dashboard.
+- **FR-016**: A running image with at least one HIGH or CRITICAL
+  vulnerability MUST notify the Slack channel spec 006 uses, through its
+  existing Alertmanager route.
+- **FR-017**: The scanner MUST read private registry images through a
+  dedicated read-only registry identity bound to its own ServiceAccount,
+  never through static credentials in Git or the node's credentials.
+- **FR-018**: The scanner MUST NOT block, mutate, or restart any workload,
+  and its scan jobs MUST NOT remain after they complete.
 
 ### Key Entities
 
@@ -198,6 +277,9 @@ disrupting any finding it discovers.
   exploitable paths (or none) with severity.
 - **Documented exception**: A finding from any of the three tools that is
   not remediated, with an explicit justification and a review date.
+- **Image vulnerability report**: The result of scanning one workload
+  container image - namespace, workload, image reference, counts per
+  severity, and scan time.
 
 ## Success Criteria *(mandatory)*
 
@@ -222,6 +304,15 @@ disrupting any finding it discovers.
 - **SC-007**: Live evidence connects every success claim above to the exact
   `gitops` revision and cluster observation it was drawn from; no capability
   is reported successful from configuration alone.
+- **SC-008**: Within 24 hours of the scanner becoming healthy, every workload
+  container image running in the five suite namespaces has a vulnerability
+  report.
+- **SC-009**: A running image with a HIGH or CRITICAL vulnerability produces
+  a Slack notification within 30 minutes of its report.
+- **SC-010**: The dashboard's counts by severity equal the counts in the
+  reports for the same namespaces.
+- **SC-011**: Every HIGH or CRITICAL vulnerability from the first complete
+  scan is remediated or recorded as a documented exception.
 
 ## Assumptions
 
@@ -247,3 +338,12 @@ disrupting any finding it discovers.
   out of scope; this feature is detection and audit only, matching
   constitution principle 10's "claim-gated" framing for these specific
   tools.
+- Trivy (User Story 4) scans only this suite's namespaces and only for
+  vulnerabilities (Clarifications 2026-09-13); its release, scan interval,
+  and resource bounds are planning decisions. Its registry identity is an
+  AWS IAM role in `microservice-app-ops`, the one AWS dependency this
+  feature adds, and it is applied with the rest of the rebuilt economical
+  cluster's infrastructure.
+- Like Falco, kube-bench, and kube-hunter, the scanner is defined in the
+  full `eks-dev` registration but is not reconciled while the replacement
+  cluster runs the `eks-dev-capacity-constrained` profile.

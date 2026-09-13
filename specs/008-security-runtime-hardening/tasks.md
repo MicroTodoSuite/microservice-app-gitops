@@ -222,6 +222,77 @@ non-destructively.
 
 ---
 
+## Phase 7: User Story 4 - See the known vulnerabilities in the images the cluster is running (Priority: P4)
+
+**Goal**: Trivy continuously scans the images running in the suite
+namespaces, and HIGH/CRITICAL findings reach Slack and a Grafana dashboard
+(amended 2026-09-13; evolution plan section 11).
+
+**Independent Test**: List the vulnerability reports in the suite
+namespaces, compare them with the dashboard, and see a HIGH/CRITICAL
+notification in Slack.
+
+### Tests for User Story 4
+
+> Write these tests first and commit them failing before T033 to T036.
+
+- [ ] T030 [P] [US4] Add failing assertions to `tests/contract/security.sh`:
+  `infrastructure/trivy-operator/vendor/v0.34.0` passes its `SHA256SUMS`;
+  the rendered root has no `trivy-system` Namespace and every namespaced
+  resource in `security`; the operator and Trivy images are digest-pinned;
+  only `OPERATOR_VULNERABILITY_SCANNER_ENABLED` is `"true"` among the
+  scanner, compliance, and SBOM flags; `OPERATOR_TARGET_NAMESPACES` is
+  exactly the five suite namespaces; `OPERATOR_CONCURRENT_SCAN_JOBS_LIMIT`
+  is `"1"`; the `trivy-operator` ServiceAccount carries the ECR reader role
+  ARN; the default-deny and allow NetworkPolicies exist; and the operator
+  container declares liveness, readiness, and startup probes
+- [ ] T031 [P] [US4] Add failing assertions to `tests/contract/observability.sh`:
+  the rendered Prometheus root contains a `trivy-operator` ServiceMonitor
+  selecting the operator's `metrics` port in `security`, and a
+  PrometheusRule alert on `trivy_image_vulnerabilities` with severity
+  `Critical` or `High`; the rendered Grafana root contains the vulnerability
+  dashboard
+- [ ] T032 [P] [US4] [in `microservice-app-ops` repo] Add failing assertions
+  to `aws/modules/environment-foundation/tests/observability_security_irsa.tftest.hcl`
+  for a Trivy ECR reader role: trust only
+  `system:serviceaccount:security:trivy-operator` on each shared issuer,
+  ECR pull permissions only, the permissions boundary, and an output with
+  its ARN
+
+### Implementation for User Story 4
+
+- [ ] T033 [US4] Vendor `deploy/static/trivy-operator.yaml` from tag
+  `v0.34.0` under `infrastructure/trivy-operator/vendor/v0.34.0/` with
+  `SHA256SUMS` and a `README.md` recording the source URL, both image
+  digests, and what the Kustomize root changes
+- [ ] T034 [US4] Create `infrastructure/trivy-operator/kustomization.yaml`
+  and `networkpolicy.yaml` per research.md (namespace, digests, scanner and
+  target-namespace settings, concurrency, ServiceAccount annotation, startup
+  probe, NetworkPolicies) and make T030 pass
+- [ ] T035 [US4] [in `microservice-app-ops` repo] Add the Trivy ECR reader
+  role and its output to `security-irsa.tf` and `outputs.tf`, and make T032
+  pass
+- [ ] T036 [US4] Add `infrastructure/prometheus/servicemonitors/trivy-operator.yaml`,
+  `infrastructure/prometheus/rules/trivy-vulnerabilities.yaml`, and
+  `infrastructure/grafana/dashboards/trivy-vulnerabilities.yaml`, register
+  them in their kustomizations, and make T031 pass
+- [ ] T037 [US4] Add `trivy-operator` to the registration contract's expected
+  elements in `tests/contract/security.sh` and to
+  `scripts/managed/verify-security.sh`'s expected inventory; the
+  activation entry itself lands when `eks-dev` infrastructure is reactivated
+- [ ] T038 [US4] After the cluster is rebuilt and the scanner is healthy,
+  run `quickstart.md` section 7 and retain the reports, the dashboard
+  comparison, and the Slack notification under
+  `evidence/runs/<timestamp>-security/` (SC-008 to SC-010)
+- [ ] T039 [US4] Review every HIGH/CRITICAL entry from the first complete
+  scan and record each as remediated or as a documented exception (SC-011)
+
+**Checkpoint**: The scanner, its alert, and its dashboard render and pass
+the static contracts; live evidence joins T025 and T026 once the cluster is
+rebuilt. The Slack delivery depends on spec 006 T053.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase dependencies
@@ -232,6 +303,7 @@ Setup validation
         -> US1 Falco + Falcosidekick (independent of US2/US3)
             -> US2 kube-bench (independent of US1/US3)
             -> US3 kube-hunter (independent of US1/US2)
+            -> US4 Trivy (independent of US1-US3; Slack delivery needs spec 006 T053)
                 -> Final static and live acceptance
 ```
 
@@ -241,6 +313,9 @@ Setup validation
   Kustomize root with its own CronJob/DaemonSet and its own RBAC, and none
   reads another's output. They may be built and published in any order, or
   in parallel by different contributors.
+- US4 (T030-T039, amended 2026-09-13) spans `microservice-app-gitops` and
+  `microservice-app-ops`; T032 and T035 ship in an ops pull request, and
+  T038-T039 need the rebuilt cluster.
 - T024-T027 run only after the final source revision is healthy.
 
 ## Parallel Opportunities
@@ -248,6 +323,7 @@ Setup validation
 ```text
 T006 Falco DaemonSet || T015 kube-bench CronJob || T020 kube-hunter CronJob
 T010 Falco/Falcosidekick provenance || T016 kube-bench provenance || T021 kube-hunter provenance
+T030 Trivy security contract || T031 Trivy observability contract || T032 ops IRSA test
 ```
 
 Tasks that publish commits to `eks-dev` or observe the shared live cluster
