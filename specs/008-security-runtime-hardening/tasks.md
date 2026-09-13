@@ -207,7 +207,7 @@ non-destructively.
   Slack delivery, and both audit reports against FR-001 through FR-012 and
   SC-001 through SC-007 in
   `specs/008-security-runtime-hardening/checklists/acceptance.md`
-- [ ] T027 Document the three components, the `security` namespace
+- [X] T027 Document the three components, the `security` namespace
   boundary, and the Audit-only (no enforcement) scope in
   `docs/platform-addons.md` or a new `docs/security-runtime.md`, mirroring
   how `003-platform-addons` and `006-observability-platform-foundation`

@@ -364,7 +364,7 @@ request against exact evidence.
   canary abort/promote outcomes, alert firing/resolution, and trace/log
   correlation against FR-001 through FR-017 and SC-001 through SC-009 in
   `specs/006-observability-platform-foundation/checklists/acceptance.md`
-- [ ] T049 Update `docs/platform-addons.md` or add
+- [X] T049 Update `docs/platform-addons.md` or add
   `docs/observability-platform.md` documenting the five new components, the
   economical-profile Loki/Jaeger substitution, and the port-forward-only
   access model, mirroring how `003-platform-addons` documented its boundary
