@@ -252,12 +252,13 @@ notification in Slack.
   PrometheusRule alert on `trivy_image_vulnerabilities` with severity
   `Critical` or `High`; the rendered Grafana root contains the vulnerability
   dashboard
-- [ ] T032 [P] [US4] [in `microservice-app-ops` repo] Add failing assertions
+- [X] T032 [P] [US4] [in `microservice-app-ops` repo] Add failing assertions
   to `aws/modules/environment-foundation/tests/observability_security_irsa.tftest.hcl`
   for a Trivy ECR reader role: trust only
   `system:serviceaccount:security:trivy-operator` on each shared issuer,
   ECR pull permissions only, the permissions boundary, and an output with
   its ARN
+  Delivered in MicroTodoSuite/microservice-app-ops#63 (commits `dae651c`, corrected in `340d7ad`).
 
 ### Implementation for User Story 4
 
@@ -269,9 +270,10 @@ notification in Slack.
   and `networkpolicy.yaml` per research.md (namespace, digests, scanner and
   target-namespace settings, concurrency, ServiceAccount annotation, startup
   probe, NetworkPolicies) and make T030 pass
-- [ ] T035 [US4] [in `microservice-app-ops` repo] Add the Trivy ECR reader
+- [X] T035 [US4] [in `microservice-app-ops` repo] Add the Trivy ECR reader
   role and its output to `security-irsa.tf` and `outputs.tf`, and make T032
   pass
+  Delivered in MicroTodoSuite/microservice-app-ops#63; the role `microtodosuite-security-trivy-ecr-reader` matches the ARN gitops #133 annotates.
 - [X] T036 [US4] Add `infrastructure/prometheus/servicemonitors/trivy-operator.yaml`,
   `infrastructure/prometheus/rules/trivy-vulnerabilities.yaml`, and
   `infrastructure/grafana/dashboards/trivy-vulnerabilities.yaml`, register
