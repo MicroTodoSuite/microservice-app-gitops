@@ -26,7 +26,7 @@ lands on short-lived branches in each affected repository
 
 ### User Story 1 - Follow a todo from the browser to the audit worker (Priority: P1)
 
-As a developer investigating a slow or failing todo operation, I can open the
+A developer investigating a slow or failing todo operation can open the
 tracing backend and find one trace that shows the whole path of that
 operation: the frontend that received it, the todos API that stored it, and
 the log message processor that consumed the resulting audit message.
@@ -57,7 +57,7 @@ identifier, with the consumer's span connected to the publisher's span.
 
 ### User Story 2 - Follow a login across the authentication path (Priority: P2)
 
-As a developer, I can find one trace for a login that shows the frontend, the
+A developer can find one trace for a login that shows the frontend, the
 authentication API, and the users API it calls, so a slow or failed login can
 be attributed to the service that caused it.
 
@@ -84,8 +84,8 @@ users API under one trace identifier.
 
 ### User Story 3 - Every service reports to the tracing backend in every economical environment (Priority: P3)
 
-As a platform operator, I can see all five services listed in the tracing
-backend for each economical environment, and I can confirm that no service
+A platform operator can see all five services listed in the tracing
+backend for each economical environment, and can confirm that no service
 still depends on the retired Zipkin tracing path.
 
 **Why this priority**: Stories 1 and 2 prove the flows in one environment.
