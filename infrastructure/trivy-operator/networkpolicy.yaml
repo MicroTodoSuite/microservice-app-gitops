@@ -1,0 +1,82 @@
+# The operator reads and writes Kubernetes objects over HTTPS and serves its
+# metrics to Prometheus in observability; nothing else reaches it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: trivy-operator-default-deny
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: trivy-operator-allow
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    # The Kubernetes API over HTTPS, and DNS.
+    - ports:
+        - port: 443
+          protocol: TCP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+# Scan Jobs carry app.kubernetes.io/managed-by: trivy-operator. They pull the
+# scanned image from ECR and the vulnerability database from mirror.gcr.io over
+# HTTPS; a blocked download fails the scan visibly instead of hiding findings.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: trivy-scan-jobs-default-deny
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: trivy-operator
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: trivy-scan-jobs-allow-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: trivy-operator
+  policyTypes: ["Egress"]
+  egress:
+    - ports:
+        - port: 443
+          protocol: TCP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP

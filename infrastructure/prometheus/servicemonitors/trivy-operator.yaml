@@ -1,0 +1,18 @@
+# Trivy Operator's vulnerability counts (spec 008 FR-015). Its headless
+# metrics Service in security exposes trivy_image_vulnerabilities per workload
+# image and severity; per-CVE series stay off (OPERATOR_METRICS_VULN_ID_ENABLED).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: trivy-operator
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["security"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  endpoints:
+    - port: metrics
+      interval: 60s

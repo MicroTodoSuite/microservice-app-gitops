@@ -7,5 +7,6 @@ resources:
   - datasources.yaml
   - dashboards/providers.yaml
   - dashboards/golden-signals.yaml
+  - dashboards/trivy-vulnerabilities.yaml
 
 namespace: observability

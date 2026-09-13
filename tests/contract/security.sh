@@ -264,7 +264,7 @@ if infrastructure_activation_is_quiesced; then
   registration="skipped, eks-dev infrastructure activation is quiesced"
   printf 'SKIP: registration contract: %s\n' "$registration" >&2
 else
-  for name in falco kube-bench kube-hunter; do
+  for name in falco kube-bench kube-hunter trivy-operator; do
     require_text clusters/eks-dev/activation-infrastructure.yaml "name: $name$" \
       "eks-dev infrastructure activation omits $name"
     if [[ "$(grep -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | grep -c 'namespace: security')" -lt 1 ]]; then
@@ -275,4 +275,4 @@ fi
 require_text clusters/base/project.yaml 'namespace: security' \
   "AppProject destinations omit the security namespace"
 
-pass "runtime security hardening static contract (falco, kube-bench, kube-hunter); registration $registration"
+pass "runtime security hardening static contract (falco, kube-bench, kube-hunter, trivy-operator); registration $registration"

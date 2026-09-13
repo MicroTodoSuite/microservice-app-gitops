@@ -1,0 +1,137 @@
+# Spec 008 FR-015: vulnerability counts from Trivy Operator by severity,
+# namespace, and workload image.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-trivy-vulnerabilities
+  namespace: observability
+data:
+  trivy-vulnerabilities.json: |
+    {
+      "title": "MicroTodoSuite - Running Image Vulnerabilities",
+      "uid": "microtodosuite-trivy-vulnerabilities",
+      "tags": [
+        "microtodosuite",
+        "security",
+        "trivy"
+      ],
+      "timezone": "utc",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "5m",
+      "time": {
+        "from": "now-7d",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Critical vulnerabilities in running images",
+          "type": "stat",
+          "gridPos": {
+            "h": 5,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "targets": [
+            {
+              "expr": "sum(trivy_image_vulnerabilities{severity=\"Critical\"}) or vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "High vulnerabilities in running images",
+          "type": "stat",
+          "gridPos": {
+            "h": 5,
+            "w": 6,
+            "x": 6,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "targets": [
+            {
+              "expr": "sum(trivy_image_vulnerabilities{severity=\"High\"}) or vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Vulnerabilities by severity",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "targets": [
+            {
+              "expr": "sum by (severity) (trivy_image_vulnerabilities)",
+              "legendFormat": "{{severity}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Vulnerabilities by namespace",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 5
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "targets": [
+            {
+              "expr": "sum by (namespace) (trivy_image_vulnerabilities)",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "High and Critical by workload image",
+          "type": "table",
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 13
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "targets": [
+            {
+              "expr": "sum by (namespace, resource_name, container_name, image_repository, image_tag, severity) (trivy_image_vulnerabilities{severity=~\"Critical|High\"})",
+              "format": "table",
+              "instant": true,
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    }

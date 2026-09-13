@@ -44,7 +44,9 @@ resources:
   - vendor/v0.18.0/alertmanager-service.yaml
   - servicemonitors/business-workloads.yaml
   - servicemonitors/canary-workloads.yaml
+  - servicemonitors/trivy-operator.yaml
   - rules/golden-signals.yaml
+  - rules/trivy-vulnerabilities.yaml
   - alertmanager-config.yaml
   - rbac-servicemonitor-discovery.yaml
 

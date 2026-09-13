@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: trivy-vulnerabilities
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+    app.kubernetes.io/component: security
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  groups:
+    - name: microtodosuite.trivy.vulnerabilities
+      rules:
+        # Spec 008 FR-016: a running image with at least one HIGH or CRITICAL
+        # vulnerability notifies Slack. The Slack route groups and titles
+        # alerts by `workload`, so it is copied from resource_name. The
+        # series' own severity label (Critical or High) is kept, so this rule
+        # sets no severity label of its own. A report is replaced every 24
+        # hours, so a remediated image clears on its next scan.
+        - alert: RunningImageHighOrCriticalVulnerabilities
+          expr: |
+            label_replace(
+              sum by (namespace, resource_kind, resource_name, container_name, image_repository, image_tag, severity) (
+                trivy_image_vulnerabilities{severity=~"Critical|High"}
+              ),
+              "workload", "$1", "resource_name", "(.*)"
+            ) > 0
+          for: 15m
+          annotations:
+            summary: "{{ $labels.workload }} runs an image with {{ $labels.severity }} vulnerabilities"
+            description: "{{ $labels.namespace }}/{{ $labels.resource_kind }}/{{ $labels.resource_name }} container {{ $labels.container_name }} runs {{ $labels.image_repository }}:{{ $labels.image_tag }} with {{ $value }} {{ $labels.severity }} vulnerabilities. Remediate them or record a documented exception (spec 008 FR-010)."
