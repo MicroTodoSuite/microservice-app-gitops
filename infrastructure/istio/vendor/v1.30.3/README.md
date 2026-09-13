@@ -38,7 +38,7 @@ split already used by `infrastructure/external-secrets/`.
 
 The manifest contains one additional image reference, `busybox:1.28`, inside
 the `istio-sidecar-injector` ConfigMap's inert `grpc-simple` injection-template
-string (an opt-in template our default profile never activates). It is text
+string (an opt-in template the default profile installed here never activates). It is text
 data, not a scheduled container, so Kustomize's image transformer correctly
 leaves it untouched; it needs no digest pin here.
 
