@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# ECK operator, deployed by ArgoCD from the vendored, pinned static release
+# (spec 009, T084). Full-profile-only, like infrastructure/istio/. Owns the
+# Elasticsearch/Kibana/Logstash/Filebeat CRDs consumed by
+# infrastructure/{elasticsearch,kibana,logstash,filebeat}/.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+resources:
+  - vendor/v3.5.0/crds.yaml
+  - vendor/v3.5.0/operator.yaml
+
+images:
+  - name: docker.elastic.co/eck/eck-operator
+    digest: sha256:b6f261372d9d9af7b00aab03efea25263314d16063c4d440ac322e52c2fdf314

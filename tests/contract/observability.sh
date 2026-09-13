@@ -29,16 +29,29 @@ require_file() {
   [[ -f "$ROOT/$1" ]] || fail "required file is missing: $1"
 }
 
+# GNU grep, not ripgrep: the validate-gitops runner image ships grep but not
+# ripgrep. -r lets the same helpers check a single file or a whole directory.
 require_text() {
   local path="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
+  grep -rEq -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
 }
 
 reject_text() {
   local path="$1" pattern="$2" description="$3"
-  if rg -q -- "$pattern" "$ROOT/$path"; then
+  if grep -rEq -- "$pattern" "$ROOT/$path"; then
     fail "$description ($path)"
   fi
+}
+
+# An approved economical teardown quiesces eks-dev by replacing every activation
+# list with exactly `value: []` (spec 009 T170, clusters/README.md), a state that
+# tests/contract/economical-runtime-quiescence.sh owns. Registration entries can
+# be asserted only while the infrastructure list is active; a quiesced list is
+# reported as skipped, never as a pass.
+infrastructure_activation_is_quiesced() {
+  local path="$ROOT/clusters/eks-dev/activation-infrastructure.yaml"
+  [[ "$(grep -Ec '^  value: \[\]$' "$path" || true)" == 1 ]] \
+    && ! grep -Eq '^    - ' "$path"
 }
 
 check_checksum() {
@@ -135,7 +148,9 @@ require_text infrastructure/loki/alloy-config.yaml 'stage.structured_metadata' \
   "trace_id/span_id must be structured metadata, not labels"
 # trace_id/span_id must appear only inside stage.structured_metadata, never
 # inside stage.labels (that would be an unbounded-cardinality Loki label).
-if awk '/stage\.labels \{/{f=1} f && /trace_id/{found=1} f && /^\s*\}\s*$/{f=0} END{exit !found}' \
+# POSIX classes, not \s: mawk has no \s, never closed the stage.labels block,
+# and flagged the trace_id that correctly sits in stage.structured_metadata.
+if awk '/stage\.labels \{/{f=1} f && /trace_id/{found=1} f && /^[[:space:]]*\}[[:space:]]*$/{f=0} END{exit !found}' \
     "$ROOT/infrastructure/loki/alloy-config.yaml"; then
   fail "trace_id must never be promoted to a Loki label (unbounded cardinality)"
 fi
@@ -151,10 +166,13 @@ require_text infrastructure/grafana/datasources.yaml 'type: loki' \
   "Grafana must have a Loki datasource once Loki exists"
 
 # --- auth-api OTLP wiring points at Jaeger directly ---
-require_text apps/auth-api/overlays/dev/kustomization.yaml \
+# Spec 010 moved the endpoint from auth-api's dev overlay into every service's
+# base ConfigMap, so each environment inherits the same destination;
+# tests/contract/service-tracing.sh checks the rendered overlays.
+require_text apps/auth-api/base/configmap.yaml \
   'OTEL_EXPORTER_OTLP_ENDPOINT' \
-  "auth-api dev overlay must set the OTLP endpoint"
-require_text apps/auth-api/overlays/dev/kustomization.yaml \
+  "auth-api's base ConfigMap must set the OTLP endpoint"
+require_text apps/auth-api/base/configmap.yaml \
   'jaeger-collector\.observability\.svc' \
   "auth-api must point OTLP directly at Jaeger, not an otel-collector"
 
@@ -201,15 +219,19 @@ reject_text "infrastructure/prometheus/rules/golden-signals.yaml" \
   "golden-signal rules must not group by unbounded-cardinality labels"
 
 # --- Registration contract ---
-require_text clusters/eks-dev/activation-infrastructure.yaml 'name: prometheus' \
-  "eks-dev infrastructure activation omits prometheus"
-require_text clusters/eks-dev/activation-infrastructure.yaml 'name: grafana' \
-  "eks-dev infrastructure activation omits grafana"
-for name in prometheus grafana; do
-  if [[ "$(rg -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | rg -c 'namespace: observability')" -lt 1 ]]; then
-    fail "eks-dev activation entry $name is not destined to the observability namespace"
-  fi
-done
+registration="asserted"
+if infrastructure_activation_is_quiesced; then
+  registration="skipped, eks-dev infrastructure activation is quiesced"
+  printf 'SKIP: registration contract: %s\n' "$registration" >&2
+else
+  for name in prometheus grafana jaeger loki; do
+    require_text clusters/eks-dev/activation-infrastructure.yaml "name: $name$" \
+      "eks-dev infrastructure activation omits $name"
+    if [[ "$(grep -A2 "name: $name$" "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" | grep -c 'namespace: observability')" -lt 1 ]]; then
+      fail "eks-dev activation entry $name is not destined to the observability namespace"
+    fi
+  done
+fi
 
 require_text clusters/base/project.yaml 'namespace: observability' \
   "AppProject destinations omit the observability namespace"
@@ -221,4 +243,4 @@ reject_text infrastructure/grafana/admin-secret.yaml \
   'GF_SECURITY_ADMIN_PASSWORD: [^"{]' \
   "Grafana admin password must be ESO-generated, never a literal value"
 
-pass "observability platform static contract (prometheus, grafana, jaeger, loki)"
+pass "observability platform static contract (prometheus, grafana, jaeger, loki); registration $registration"

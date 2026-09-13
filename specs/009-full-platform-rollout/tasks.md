@@ -253,6 +253,15 @@ along the way rather than being specified around:
 - users-api let malformed signed JWT payloads escape as server errors and logged
   an unused generated Spring credential during startup.
 
+> **Reconciliation 2026-09-12 (spec 010).** T072 to T081 name OpenTelemetry.
+> The operational contracts they delivered (health, correlation, resilience,
+> and runtime configuration) are real, but tracing is not: only auth-api
+> exports OpenTelemetry traces. todos-api, users-api, and log-message-processor
+> still export Zipkin to an endpoint that is not deployed, the frontend does not
+> trace, and the economical default-deny egress lets no service reach Jaeger.
+> These tasks stay ticked for what they delivered; the tracing half is specified
+> and delivered by `specs/010-service-tracing/`.
+
 The platform half of this phase (T068-T071, T082-T091) is blocked behind Phase
 4's applies: the manifests must reference mirrored ECR digests that do not exist
 until the mirror workflow runs against real infrastructure, and the activation
@@ -279,8 +288,56 @@ to stay empty at their bootstrap revision.
 
 - [ ] T082 [P] [US3] Implement and contract-test the exact-workflow OIDC platform-image mirror in `../.github/.github/workflows/mirror-platform-images.yml` and `../.github/tests/workflows/mirror-platform-images.bats`; copy every locked upstream digest to `microtodosuite/platform`, scan it, record source/mirror digests, and keyless-sign the complete graph without rebuilding or granting access to any service repository.
 - [ ] T083 [US3] Vendor checksum-pinned AWS Load Balancer Controller 3.5.0, Istio 1.30.3, and Kiali 2.31.0 under `infrastructure/aws-load-balancer-controller/`, `infrastructure/istio/`, and `infrastructure/kiali/` using only locked mirrored ECR digests, a GitOps-owned EKS ServiceAccount annotated with the exact Terraform-output IRSA role ARN, cert-manager-managed webhook certificates, resource budgets, network policy, Prometheus integration, and no public Kiali ingress; add full-profile namespace labels, PeerAuthentication, AuthorizationPolicy, DestinationRule, VirtualService, ingress Gateway, trusted-certificate references, and default-deny plus exact required-flow NetworkPolicies under `environments/full/` and each service's `components/topology-full/`, and make T069 pass.
+
+  > **Partial delivery, gitops PR (per-service mesh traffic policy).** The
+  > DestinationRule + VirtualService half of T083, in each service's
+  > `components/topology-full/`. The four HTTP services (auth-api, todos-api,
+  > users-api, frontend) each get a DestinationRule (ISTIO_MUTUAL mesh mTLS,
+  > connection pool, outlier detection) and a VirtualService (retries +
+  > request timeout) — the "retries/timeouts/connection pools/outlier
+  > detection" T083 names. log-message-processor deliberately gets neither
+  > (it is a Redis Pub/Sub subscriber with no HTTP Service — nothing to route
+  > to), documented in its component. Hosts are namespace-relative so the
+  > component stays environment-neutral, and everything lives under
+  > topology-full so it is full-profile-only (zero leak into the economical
+  > overlays, asserted by the test). Verified live on a local kind cluster
+  > against Istio 1.30.3's real validating webhook: all eight DR/VS were
+  > accepted by server-side dry-run with istiod Ready, and a negative control
+  > (invalid `tls.mode` enum) was correctly rejected — validation offline
+  > `kubeconform` cannot do, since it skips the Istio CRDs.
+  > **Still not done on T083** (stays unchecked): the AWS Load Balancer
+  > Controller IRSA ARN (Phase 4, see the LBC PR's separate note), the
+  > ingress Gateway + its trusted-certificate references and NLB wiring
+  > (AWS-blocked), and the mirrored-ECR-digest requirement (T082 mirror does
+  > not exist yet).
+  >
+  > NOTE: the AWS-LBC/Karpenter PR (#117) adds its own T083 annotation
+  > around this same task line; whichever merges second needs the adjacent
+  > blockquotes reconciled by hand — trivial, flagged here.
 - [ ] T084 [P] [US3] Vendor checksum-pinned ECK 3.5.0 and add resource-bounded Elasticsearch, Kibana, Logstash, and Filebeat desired state under `infrastructure/{eck-operator,elasticsearch,kibana,logstash,filebeat}/` with cloud-specific encrypted retained-storage overlays (`gp3` on EKS and the Terraform-approved Azure Disk class on AKS); harden `infrastructure/sonarqube/` for its full-dev-only tooling role with SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`, mirrored manifest digests, encrypted retained gp3 PVCs, dedicated taint/toleration and GitOps-owned EC2NodeClass user data that sets `vm.max_map_count` without a privileged pod, probes, PDBs, NetworkPolicy, resource budget, backup/recovery tests, and rollback documentation.
 
+  > **Partial delivery, gitops PR (ECK stack).** The ECK half of T084:
+  > `infrastructure/eck-operator/` (vendored, checksum-verified) plus
+  > hand-authored `infrastructure/{elasticsearch,kibana,logstash,filebeat}/`
+  > resources. No cloud-specific storage overlay (`gp3` on EKS, Azure Disk on
+  > AKS) exists yet: PVCs use the cluster's default StorageClass, which
+  > renders and ran correctly on local `kind` verification but is not the
+  > "cloud-specific encrypted retained-storage overlay" this task names —
+  > that overlay is a registration-level patch for whichever cluster
+  > activates this addon, the same boundary already documented for
+  > `infrastructure/karpenter/node-provisioning/`.
+  >
+  > Confirmed live on a dedicated local `kind` cluster, not just rendered:
+  > Elasticsearch reached `HEALTH: green`; Kibana reached `HEALTH: green`;
+  > Logstash connected to Elasticsearch and its pipeline started; Filebeat
+  > harvested real container logs and had over 6,000 events acknowledged by
+  > Elasticsearch. Three real defects were found and fixed only by this live
+  > run — the Logstash CRD is `v1alpha1` in ECK 3.5.0, not `v1`; Logstash
+  > 9.4.4 rejects the obsolete `cacert` Elasticsearch-output setting in favor
+  > of `ssl_certificate_authorities`; and Filebeat's Kubernetes autodiscover
+  > needs an explicit `NODE_NAME` env var that nothing injects by default —
+  > none of the three would have been caught by rendering alone.
+  >
   > **Partial delivery, gitops PR (SonarQube hardening).** The SonarQube half
   > of T084: both images pinned to the exact toolchain-lock digests
   > (SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`); the
@@ -296,16 +353,11 @@ to stay empty at their bootstrap revision.
   > the kind node's default vm.max_map_count is 262144); PostgreSQL 16.15
   > Running; ESO generated the DB password; a triggered backup Job produced a
   > 5.4 MiB dump and the NetworkPolicy allowed the backup→DB flow.
-  > **Deferred (cloud-specific, documented in the vendor README):** the
-  > gp3-encrypted retained StorageClass overlay, ingress/TLS exposure, and
-  > the tooling NodePool/EC2NodeClass userData. T084 stays unchecked: both
-  > this SonarQube half and the ECK half must land, and the storage overlay
-  > is deferred on both.
   >
-  > NOTE: the ECK-stack PR (#116) adds its own T084 annotation immediately
-  > below this line; whichever of the two merges second will need the two
-  > adjacent blockquotes reconciled by hand — trivial, flagged here so it is
-  > not a surprise.
+  > **T084 stays unchecked**: both halves are live-verified, but the
+  > cloud-specific encrypted `gp3`/Azure-Disk storage overlay, ingress/TLS
+  > exposure, and the tooling NodePool/EC2NodeClass userData remain deferred
+  > to the activating registration (Phase 4).
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
 - [ ] T087 [P] [US3] Vendor checksum-pinned Chaos Mesh 2.8.4 and OpenCost 2.5.29 under `infrastructure/chaos-mesh/` and `infrastructure/opencost/`; add disabled experiment roots and cluster/environment/service cost labels.
