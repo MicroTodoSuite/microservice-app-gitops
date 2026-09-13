@@ -82,7 +82,9 @@ require_resource() {
 
 # A container passes only if its own list item (not a sibling container, and not
 # initContainers) declares the probe. Rendered YAML sorts keys, so the item is
-# read as a whole rather than assuming "- name:" comes first. POSIX awk only.
+# read as a whole rather than assuming "- name:" comes first; comment and blank
+# lines are skipped, since a source manifest may annotate a container between
+# list items. POSIX awk only.
 require_container_probes() {
   local file="$1" container="$2" probe
   for probe in livenessProbe readinessProbe startupProbe; do
@@ -91,7 +93,7 @@ require_container_probes() {
       function flush() { if (item_name == wanted && item_has) found = 1; item_name = ""; item_has = 0 }
       /^ *containers: *$/ { flush(); in_list = 1; list_indent = -1; next }
       in_list {
-        if ($0 ~ /^ *$/) next
+        if ($0 ~ /^ *(#|$)/) next
         i = indent($0)
         if (list_indent < 0) {
           if ($0 ~ /^ *- /) list_indent = i
