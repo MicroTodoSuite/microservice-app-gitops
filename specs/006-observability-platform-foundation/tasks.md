@@ -184,7 +184,7 @@ minutes; confirm a normal-error-rate canary still promotes.
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Add PromQL-provider, threshold, and window assertions
+- [X] T022 [P] [US2] Add PromQL-provider, threshold, and window assertions
   (5xx ratio > 5% over 5 minutes) to `tests/contract/observability.sh` for
   `infrastructure/argo-rollouts/cluster-analysis-template.yaml`
 
@@ -355,6 +355,15 @@ request against exact evidence.
 - [ ] T046 Run `kustomize build` and `kubeconform` (when available) for all
   five components plus the updated `eks-dev` registration, run
   `tests/contract/observability.sh`, and run `git diff --check`
+  Partial 2026-09-13, on `main` `7ac077b` with kustomize 5.8.1 and kubeconform
+  0.7.0: `infrastructure/prometheus`, `grafana`, `jaeger`, `loki` (Loki and
+  Alloy), `argo-rollouts`, and `clusters/eks-dev` render, and
+  `kubeconform -strict -ignore-missing-schemas` reports Invalid 0 and Errors 0
+  for each; `tests/contract/observability.sh` passes; `git diff --check` is
+  clean. The registration part stays open: the eks-dev infrastructure
+  activation list is quiesced (spec 009 T170), so the rendered registration
+  carries no observability entry until the economical platform is
+  reactivated (ai-agents `specs/001-governance-and-iac-program` T031).
 - [ ] T047 Run `scripts/managed/verify-observability.sh --context eks-dev
   --namespace microtodo-dev`, inspect ArgoCD application conditions and
   component logs for hidden degradation, and retain the final evidence set

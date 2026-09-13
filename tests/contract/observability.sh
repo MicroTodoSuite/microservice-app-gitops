@@ -251,6 +251,36 @@ require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
   'revision="canary"' \
   "canary analysis must scope its query to the canary revision"
+# Provider, threshold, and window decided in spec 006's Clarifications session:
+# the canary fails when its 5xx ratio exceeds 5% over a 5-minute window (T022).
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'address: http://prometheus-k8s\.observability\.svc:9090$' \
+  "canary analysis must query the in-cluster Prometheus service"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'workload:http_errors:ratio5m\{workload="\{\{ args\.workload \}\}", revision="canary"\}' \
+  "canary analysis must read the workload's 5xx ratio recording rule for the canary revision"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'failureCondition: result\[0\] > 0\.05$' \
+  "canary analysis must fail when the 5xx ratio exceeds 5%"
+require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
+  'successCondition: result\[0\] <= 0\.05$' \
+  "canary analysis must succeed only while the 5xx ratio is at most 5%"
+# The 5-minute window lives in the recording rule the gate reads: every range
+# selector in workload:http_errors:ratio5m must be [5m].
+awk '
+  /- record: workload:http_errors:ratio5m$/ { in_rule = 1; next }
+  in_rule && /- (record|alert):/ { in_rule = 0 }
+  in_rule {
+    line = $0
+    while (match(line, /\[[^]]*\]/)) {
+      ranges++
+      if (substr(line, RSTART, RLENGTH) != "[5m]") bad = 1
+      line = substr(line, RSTART + RLENGTH)
+    }
+  }
+  END { exit (ranges > 0 && !bad) ? 0 : 1 }
+' "$ROOT/infrastructure/prometheus/rules/golden-signals.yaml" \
+  || fail "workload:http_errors:ratio5m must compute every rate over a 5-minute window"
 for svc in auth-api todos-api users-api frontend log-message-processor; do
   require_text "apps/$svc/components/strategy-canary/rollout.yaml" \
     'name: workload' \
