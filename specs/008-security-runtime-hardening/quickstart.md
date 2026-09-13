@@ -11,7 +11,8 @@ reconciles - never a direct `kubectl apply` against the managed cluster.
 ./tests/contract/security.sh
 ```
 
-Expected: all three Kustomize roots (`falco`, `kube-bench`, `kube-hunter`)
+Expected: all four Kustomize roots (`falco`, `kube-bench`, `kube-hunter`,
+`trivy-operator`)
 render, every rendered image is pinned by digest, the infrastructure
 ApplicationSet's activation list contains exactly the three expected new
 elements at namespace `security`, kube-bench/kube-hunter RBAC contains no
@@ -21,7 +22,7 @@ feature.
 Optional schema validation when `kubeconform` is installed:
 
 ```bash
-for addon in falco kube-bench kube-hunter; do
+for addon in falco kube-bench kube-hunter trivy-operator; do
   kustomize build "infrastructure/$addon" |
     kubeconform -strict -ignore-missing-schemas -summary
 done
@@ -100,3 +101,21 @@ Any non-Synced/non-Healthy application, missing Falco pod on a node, a
 Job that never completes, or a report that is empty/placeholder is a
 failed run. Correct desired state by commit or `git revert`; never bypass
 ArgoCD with apply, patch, scale, or rollout commands.
+
+## 7. Prove continuous vulnerability scanning (amended 2026-09-13)
+
+```bash
+kubectl --context eks-dev get deploy trivy-operator -n security
+for ns in microtodo-dev microtodo-staging microtodo-prod observability security; do
+  kubectl --context eks-dev get vulnerabilityreports -n "$ns" \
+    -o custom-columns=NAME:.metadata.name,CRITICAL:.report.summary.criticalCount,HIGH:.report.summary.highCount
+done
+kubectl --context eks-dev get jobs -n security   # no completed scan Job left behind
+```
+
+Expected: one report per workload container image in each namespace, and
+the same counts on the Grafana vulnerability dashboard (port-forward only,
+spec 006 FR-017). For an image with a HIGH or CRITICAL count above zero,
+the Slack channel shows the notification naming its namespace, workload,
+and image. Record each HIGH or CRITICAL entry as remediated or as a
+documented exception (FR-010, SC-011).

@@ -6,13 +6,14 @@
 `list` generator with an empty base element list; folder discovery is
 intentionally forbidden. Activation happens only through `clusters/eks-dev/
 activation-infrastructure.yaml`'s `op: replace` patch. This feature appends
-three elements to that patch:
+four elements to that patch (the fourth added by the 2026-09-13 amendment):
 
 | Application (`infra-{{name}}`) | Source path | Destination namespace |
 | --- | --- | --- |
 | `infra-falco` | `infrastructure/falco` | `security` |
 | `infra-kube-bench` | `infrastructure/kube-bench` | `security` |
 | `infra-kube-hunter` | `infrastructure/kube-hunter` | `security` |
+| `infra-trivy-operator` | `infrastructure/trivy-operator` | `security` |
 
 Every generated Application inherits from the shared template: the
 registration-injected repository URL/revision, the in-cluster Kubernetes API
@@ -29,6 +30,12 @@ its own. kube-bench/kube-hunter's Jobs need only namespace-scoped `Role`/
 verbs on nodes/pods (also covered by the existing generic RBAC whitelist
 entries). No new `clusterResourceWhitelist` entry is required.
 
+Amended 2026-09-13: `infra-trivy-operator` adds twelve
+`aquasecurity.github.io` CustomResourceDefinitions, four ClusterRoles, and
+one ClusterRoleBinding. `CustomResourceDefinition`, `ClusterRole`, and
+`ClusterRoleBinding` are already in `clusterResourceWhitelist`, so no new
+entry is required.
+
 ## Component folder contract
 
 Every component folder must contain:
@@ -44,18 +51,27 @@ Every component folder must contain:
 - no enforcement/blocking configuration - Falco stays in alert-only output
   mode, and kube-bench/kube-hunter never mutate cluster state (FR-004,
   FR-007).
+- Exception (amended 2026-09-13): `infrastructure/trivy-operator` has a
+  genuine upstream bundle, retained at `vendor/v0.34.0/trivy-operator.yaml`
+  with `SHA256SUMS` and a `README.md` naming its source URL and image
+  digests; the Kustomize root drops the upstream `trivy-system` Namespace,
+  enables only the vulnerability scanner, and never adds an admission
+  webhook or enforcement.
 
 ## Live controller contract
 
 | Namespace | Expected controllers |
 | --- | --- |
-| `security` | `falco` (DaemonSet, one pod per node), `falcosidekick` (Deployment), `kube-bench` (CronJob), `kube-hunter` (CronJob) |
+| `security` | `falco` (DaemonSet, one pod per node), `falcosidekick` (Deployment), `kube-bench` (CronJob), `kube-hunter` (CronJob), `trivy-operator` (Deployment) |
 
 Passing means: Falco's DaemonSet has `.status.numberReady ==
 .status.desiredNumberScheduled` with no pod Pending/Failed/CrashLoopBackOff;
 `falcosidekick`'s Deployment has all desired replicas Available; both
 CronJobs exist with a valid schedule and their most recent triggered Job
 completed (`.status.succeeded == 1`) without leaving a running pod behind.
+
+Amended 2026-09-13: `trivy-operator`'s Deployment has all desired replicas
+Available, and no scan Job remains once it completes.
 
 ## Capability contract
 
@@ -70,6 +86,10 @@ completed (`.status.succeeded == 1`) without leaving a running pod behind.
 - kube-hunter: a triggered (or scheduled) run produces a report of real
   discovered vulnerabilities (or an explicit "none found") with severity,
   with zero disruption to any running business workload.
+- Trivy (amended 2026-09-13): every workload container image running in the
+  five suite namespaces has a `VulnerabilityReport`; the dashboard shows the
+  same counts; a running image with a HIGH or CRITICAL vulnerability
+  produces a Slack notification naming its namespace, workload, and image.
 
 ## Provider-neutrality and cost contract
 
@@ -81,3 +101,11 @@ IRSA role ARN pending the real IAM role from `microservice-app-ops`). No
 component depends on Istio or any service-mesh resource. kube-bench and
 kube-hunter's Jobs use `ttlSecondsAfterFinished` so no cost is incurred
 between scheduled runs.
+
+Amended 2026-09-13: Trivy adds one AWS IAM role, created in
+`microservice-app-ops` next to the security secrets-reader role, with ECR
+pull permissions only and a trust policy for exactly
+`system:serviceaccount:security:trivy-operator`. It is this feature's only
+IRSA binding beyond the Slack webhook reader, and the reason is FR-017:
+nodes block pods from the node's credentials and the images are private.
+Scan Jobs run one at a time and are removed after they complete.

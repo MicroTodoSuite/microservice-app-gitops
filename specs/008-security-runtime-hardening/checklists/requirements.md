@@ -42,3 +42,9 @@
   here: no business Ingress resource exists yet anywhere in this suite (see
   Assumptions), so there is nothing to add TLS to until a future feature
   introduces one.
+- Amendment 2026-09-13: Trivy is named for the same reason: evolution plan
+  section 11 requires Trivy both in CI and continuously in the cluster. The
+  scanner scope, namespaces, notification path, severity threshold, and
+  registry identity were decided in the 2026-09-13 Clarifications session;
+  versions, settings, and manifest layout stay in `plan.md` and
+  `research.md`.
