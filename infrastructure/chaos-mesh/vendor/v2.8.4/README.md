@@ -70,7 +70,7 @@ line — all four now read `v1` — and by a second live apply that succeeded.
    explicit follow-up work if and when the experiment roots this vendors
    activate for real (spec 009 T135).
 
-The webhook's own certificate (the one this chart *does* let you delegate,
+The webhook's own certificate (the one this chart *does* allow delegating,
 unlike the two above) uses cert-manager (`webhook.certManager.enabled: true`),
 matching the ownership pattern already established by every other vendored
 component: ArgoCD owns Chaos Mesh, and its webhook cert comes from the
