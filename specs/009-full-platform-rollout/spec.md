@@ -34,7 +34,7 @@ a retirement.
 
 ### User Story 1 - Preserve the economical platform during rollout (Priority: P1)
 
-As the platform owner, I can build and validate the full profile in independent
+The platform owner can build and validate the full profile in independent
 stages without disrupting, repurposing, or destroying the economical platform
 that already serves development, staging, and production workloads.
 
@@ -62,7 +62,7 @@ economical platform before the stage remains available and unchanged.
 
 ### User Story 2 - Operate isolated full-profile AWS environments (Priority: P2)
 
-As a platform engineer, I can operate full-profile development, staging, and
+A platform engineer can operate full-profile development, staging, and
 production as three independently isolated AWS environments, each with its own
 network, cluster, state ownership, and in-cluster reconciliation boundary.
 
@@ -94,7 +94,7 @@ consume the private resources of another environment.
 
 ### User Story 3 - Run the complete secure and observable platform (Priority: P3)
 
-As an operator, I can run every full-profile service with encrypted internal and
+An operator can run every full-profile service with encrypted internal and
 external traffic, managed secrets, policy enforcement, autoscaling, runtime
 security, and correlated health, metric, trace, log, alert, and cost evidence.
 
@@ -126,7 +126,7 @@ attribution without directly mutating the managed cluster.
 
 ### User Story 4 - Promote one release progressively and reversibly (Priority: P4)
 
-As a release owner, I can build one verified artifact, promote that exact
+A release owner can build one verified artifact, promote that exact
 artifact through full development, staging, production, and disaster recovery,
 and reverse a failed release through Git history.
 
@@ -156,7 +156,7 @@ production health regression and prove automatic rollback before full exposure.
 
 ### User Story 5 - Prove active-passive disaster recovery (Priority: P5)
 
-As the system owner, I can keep an independently reconciled Azure destination
+The system owner can keep an independently reconciled Azure destination
 ready with the production release as a warm standby, fail production traffic
 over to it when AWS health checks fail, and prove that failover through an
 approved game day.
@@ -188,7 +188,7 @@ traffic, serves the promoted release, and reports all disclosed state loss.
 
 ### User Story 6 - Gate every stage with auditable evidence (Priority: P6)
 
-As a maintainer, I can review cost, security, health, rollback, and functional
+A maintainer can review cost, security, health, rollback, and functional
 evidence before approving each independently deployable stage.
 
 **Why this priority**: The full profile is intentionally expensive and complex;

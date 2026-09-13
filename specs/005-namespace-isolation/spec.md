@@ -101,7 +101,7 @@
 
 ### User Story 1 - Layer Isolation Without Disrupting Development (Priority: P1)
 
-As a platform operator, I can reconcile the three environment boundaries in a
+A platform operator can reconcile the three environment boundaries in a
 safe order while the existing development workload remains available, so that
 adopting the shared-cluster profile does not turn policy rollout into an outage.
 
@@ -131,7 +131,7 @@ observation window.
 
 ### User Story 2 - Deny Cross-Environment Traffic by Default (Priority: P1)
 
-As a service owner, I can trust that a pod in one environment cannot initiate
+A service owner can trust that a pod in one environment cannot initiate
 traffic to a pod in another environment unless a separately reviewed exception
 exists, while same-environment service communication and DNS continue to work.
 
@@ -163,7 +163,7 @@ only to the subscriber connected to that namespace's Redis instance.
 
 ### User Story 3 - Contain Resource Exhaustion (Priority: P2)
 
-As a platform operator, I can bound each environment's aggregate and per-
+A platform operator can bound each environment's aggregate and per-
 container resource use, so a mistaken development workload cannot consume the
 capacity reserved for staging or production.
 
@@ -191,7 +191,7 @@ restart counts, and health responses.
 
 ### User Story 4 - Enforce Environment-Scoped Modification Rights (Priority: P2)
 
-As a maintainer, I can change permitted workloads only in the environment I am
+A maintainer can change permitted workloads only in the environment they are
 assigned to, while isolation policy remains platform-owned, so access does not
 silently become cluster-wide or self-escalating.
 
@@ -218,7 +218,7 @@ change isolation controls, and an unbound subject is denied everywhere.
 
 ### User Story 5 - Publish One Verified Release Across All Environments (Priority: P1)
 
-As a platform operator, I can publish one verified image per service and declare
+A platform operator can publish one verified image per service and declare
 all three environments in one GitOps revision, while automated gates reconcile
 dev, staging, and prod in order, so every environment runs identical artifacts
 without exposing production to an unverified release.

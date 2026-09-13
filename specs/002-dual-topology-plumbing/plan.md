@@ -78,4 +78,4 @@ version differences to `topology/`.
 |-----------|------------|-------------------------------------|
 | `topology/` indirection layer | Single-file version switch per service (SC-002) | Putting the component in each overlay = 3 edits per switch, drift risk |
 | Externalized environment list | Retarget without touching services (FR-002) | Hardcoded destination in the template locks the repo to one topology |
-| Rollout via `workloadRef` | Reuse base pod template (FR-006) | A full Rollout copy duplicates the pod spec = the copy-paste we remove |
+| Rollout via `workloadRef` | Reuse base pod template (FR-006) | A full Rollout copy duplicates the pod spec = the copy-paste this removes |

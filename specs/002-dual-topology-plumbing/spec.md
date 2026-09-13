@@ -15,7 +15,7 @@ as clusters, Istio, Argo Rollouts canary), without forking the repo.
 
 ### User Story 1 - Retarget environments to clusters without rewriting apps (Priority: P1)
 
-As a platform engineer, I can move from "environment = namespace in one cluster"
+A platform engineer can move from "environment = namespace in one cluster"
 to "environment = its own cluster" by changing destination data only, never the
 `base/` or `overlays/` of a service.
 
@@ -37,7 +37,7 @@ to any `apps/<svc>/base` or `overlays` file.
 
 ### User Story 2 - Toggle version-specific behavior from one place per service (Priority: P2)
 
-As a platform engineer, I can switch a service between economical and full
+A platform engineer can switch a service between economical and full
 behavior (e.g. Istio sidecar injection) by editing a single file, reusing the
 same `base/`.
 
@@ -58,7 +58,7 @@ all three environment overlays render with the alternate topology.
 
 ### User Story 3 - Select deployment strategy per environment and version (Priority: P3)
 
-As a platform engineer, I can express the rollout strategy as a reusable module:
+A platform engineer can express the rollout strategy as a reusable module:
 rolling for dev/staging, canary for prod, native (replica-based) in the
 economical version and Istio-based in the full version.
 

@@ -1,6 +1,6 @@
 # Deployment Profiles: economical (adopted) and full (reversible)
 
-The plan (§17) defines two cost profiles. This repo supports **both** and lets you
+The plan (§17) defines two cost profiles. This repo supports **both** and can
 switch between them. Constitution v2.0.0 formally adopts the **economical
 profile** for managed environments: one EKS cluster, environment namespaces,
 no service mesh, native replica-based canaries, and no AKS DR target.
@@ -19,7 +19,7 @@ approved amendment in `microservice-app-docs` before GitOps activation.
 | Logs / traces | ELK / full Jaeger | Loki / embedded Jaeger |
 | Registry | ECR + ACR | ECR only |
 
-## Where you switch it (the switch points)
+## Switch points
 
 Switching is coordinated data/component changes, not a single magic toggle,
 because the profiles genuinely differ in infrastructure:

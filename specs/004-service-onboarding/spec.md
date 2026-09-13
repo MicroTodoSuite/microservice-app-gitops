@@ -12,7 +12,7 @@
 
 ### User Story 1 - Provide Redis Before Its Consumers (Priority: P1)
 
-As a platform operator, I can register a local Redis dependency through the same
+A platform operator can register a local Redis dependency through the same
 GitOps-managed platform mechanism as the existing add-ons so that Redis-dependent
 services never start against an absent dependency.
 
@@ -40,7 +40,7 @@ and receive a successful ping response through its service.
 
 ### User Story 2 - Complete Users and Authentication Integration (Priority: P1)
 
-As a local pilot user, I can log in through auth-api and receive profile-backed
+A local pilot user can log in through auth-api and receive profile-backed
 identity data from users-api, proving the first real business-service integration
 rather than isolated health endpoints.
 
@@ -69,7 +69,7 @@ users-api; an invalid credential must remain rejected.
 
 ### User Story 3 - Process Authenticated Todo Events (Priority: P2)
 
-As an authenticated pilot user, I can list and create todos while the log message
+An authenticated pilot user can list and create todos while the log message
 processor consumes the resulting event from Redis, proving both Redis consumers
 perform their intended work.
 
@@ -96,7 +96,7 @@ and an increment in its processed-message metric.
 
 ### User Story 4 - Reach the Browser Application Locally (Priority: P2)
 
-As a local pilot user, I can reach the frontend through the exposure path already
+A local pilot user can reach the frontend through the exposure path already
 allowed by the service-onboarding contract and use its same-origin backend routes.
 
 **Why this priority**: The frontend is the first user-facing workload and must
