@@ -151,6 +151,22 @@ require_resource "$TMP_DIR/prometheus.yaml" AlertmanagerConfig slack-golden-sign
 require_resource "$TMP_DIR/prometheus.yaml" ExternalSecret alertmanager-slack-webhook
 require_resource "$TMP_DIR/prometheus.yaml" SecretStore aws-secrets-manager
 
+# --- Slack routing reaches the golden-signal alerts (FR-006; spec 006 T052) ---
+# Alertmanager's default matcher strategy, OnNamespace, adds
+# namespace="observability" to every route of an AlertmanagerConfig living in
+# observability. The golden-signal alerts aggregate by workload and carry no
+# namespace label, so with that default none of them reaches Slack.
+awk '
+  /^---$/ { in_am = 0; is_main = 0; in_strategy = 0 }
+  /^kind: Alertmanager$/ { in_am = 1 }
+  in_am && /^  name: main$/ { is_main = 1 }
+  in_am && /^  alertmanagerConfigMatcherStrategy:$/ { in_strategy = 1; next }
+  in_strategy && /^    type: None$/ { found = 1 }
+  in_strategy && !/^    / { in_strategy = 0 }
+  END { exit (found ? 0 : 1) }
+' "$TMP_DIR/prometheus.yaml" \
+  || fail "Alertmanager main must set alertmanagerConfigMatcherStrategy type None, or the golden-signal alerts never match the Slack route"
+
 # --- Jaeger resources ---
 require_resource "$TMP_DIR/jaeger.yaml" Deployment jaeger
 require_resource "$TMP_DIR/jaeger.yaml" Service jaeger-collector
