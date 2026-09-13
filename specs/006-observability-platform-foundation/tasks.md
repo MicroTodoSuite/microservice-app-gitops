@@ -55,17 +55,21 @@ before any capability resource is introduced.
 Prometheus bundle passes its checksum and all five Kustomize roots render
 locally.
 
-- [ ] T004 [P] Vendor `kube-prometheus` v0.18.0 (Prometheus Operator v0.92.0,
+- [X] T004 [P] Vendor `kube-prometheus` v0.18.0 (Prometheus Operator v0.92.0,
   Prometheus v3.12.0, Alertmanager v0.33.0) with provenance and checksum under
   `infrastructure/prometheus/vendor/v0.18.0/`
-- [ ] T005 [P] Record Grafana 13.2.0 image source/digest provenance in
+  Verified 2026-09-13: `sha256sum -c SHA256SUMS` passes for all 38 entries, and each of the 38 files is byte-identical to `manifests/` in the upstream v0.18.0 tarball named in the README.
+- [X] T005 [P] Record Grafana 13.2.0 image source/digest provenance in
   `infrastructure/grafana/vendor/v13.2.0/README.md` (no bundle to checksum)
-- [ ] T006 [P] Record Loki 3.7.6 and Grafana Alloy 1.18.1 image source/digest
+  Verified 2026-09-13: `docker buildx imagetools inspect grafana/grafana:13.2.0` returns the recorded digest, which `infrastructure/grafana` deploys.
+- [X] T006 [P] Record Loki 3.7.6 and Grafana Alloy 1.18.1 image source/digest
   provenance in `infrastructure/loki/vendor/v3.7.6/README.md` (no bundle to
   checksum)
-- [ ] T007 [P] Record Jaeger 2.20.0 (all-in-one) image source/digest
+  Verified 2026-09-13: `imagetools inspect` returns the recorded Loki and Alloy digests, which `infrastructure/loki` deploys.
+- [X] T007 [P] Record Jaeger 2.20.0 (all-in-one) image source/digest
   provenance in `infrastructure/jaeger/vendor/v2.20.0/README.md` (no bundle to
   checksum)
+  Verified 2026-09-13: `imagetools inspect jaegertracing/jaeger:2.20.0` returns the recorded digest, which `infrastructure/jaeger` deploys.
 - [x] T008 Removed: no separate OpenTelemetry Collector component (Jaeger
   2.x receives OTLP natively; see research.md's amended decision and T033)
 - [X] T009 Confirm the `microtodosuite` AppProject's exact cluster-scoped
