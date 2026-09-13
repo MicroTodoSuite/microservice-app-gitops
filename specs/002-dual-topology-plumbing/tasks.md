@@ -22,7 +22,7 @@ test framework applies to declarative manifests.
 
 - [X] T003 Author SDD artifacts (spec.md, plan.md, tasks.md) in English
 
-## Phase 3: User Story 2 - Topology components (Priority: P2) 🎯
+## Phase 3: User Story 2 - Topology components (Priority: P2)
 
 **Goal**: One-file version switch per service, reusing base.
 
@@ -34,7 +34,7 @@ test framework applies to declarative manifests.
 
 **Checkpoint**: Economical and full behavior selectable from one file.
 
-## Phase 4: User Story 1 - Externalized destinations (Priority: P1) 🎯 MVP
+## Phase 4: User Story 1 - Externalized destinations (Priority: P1), MVP
 
 **Goal**: Environment→destination mapping externalized in the ApplicationSet.
 

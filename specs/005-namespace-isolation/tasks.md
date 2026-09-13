@@ -89,7 +89,7 @@ is still empty.
 
 ---
 
-## Phase 3: User Story 5 - Publish One Verified Release Across All Environments (Priority: P1) 🎯
+## Phase 3: User Story 5 - Publish One Verified Release Across All Environments (Priority: P1)
 
 **Goal**: Produce five admissible artifacts, reconcile every deployment
 prerequisite, then declare and progressively publish exactly fifteen Applications.

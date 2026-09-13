@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# AWS Load Balancer Controller, deployed by ArgoCD from the vendored,
+# pinned static release (spec 009, T083). Full-profile-only, like
+# infrastructure/istio/: no economical registration references this path.
+#
+# Not activated: the ServiceAccount has no IRSA role ARN yet — see
+# vendor/v3.5.0/README.md. Every AWS API call fails without one; that is
+# expected until a real full-profile EKS cluster exists (Phase 4).
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+resources:
+  - vendor/v3.5.0/install.yaml
+
+images:
+  - name: public.ecr.aws/eks/aws-load-balancer-controller
+    digest: sha256:298acdff5a571731276aaea3d5cc450a264e4ad710a5bddf3e518f68a3f9f6cb

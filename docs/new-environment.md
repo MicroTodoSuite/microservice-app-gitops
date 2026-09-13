@@ -68,7 +68,7 @@ secrets is never unattended.
 
 ### Self-contained demo without Terraform
 
-For a throwaway demo where you cannot run Terraform, replace the ExternalSecret
+For a throwaway demo where Terraform cannot run, replace the ExternalSecret
 with a literal Secret in `environments/<env>` (mark it demo-only). The app pods
 run regardless; only the end-to-end `/login` needs a `JWT_SECRET` matching the
 other services.

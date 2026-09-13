@@ -12,7 +12,7 @@
 
 ### User Story 1 - Reconcile a complete local platform (Priority: P1)
 
-As a platform operator, I can reconcile the four required platform add-ons from
+A platform operator can reconcile the four required platform add-ons from
 the local desired-state source and see each capability become operational,
 without applying managed resources directly to the cluster.
 
@@ -36,7 +36,7 @@ resource proves that the controller is functioning.
 
 ### User Story 2 - Preserve auth-api under admission policy (Priority: P2)
 
-As a service operator, I can continue to deploy and call auth-api after Kyverno
+A service operator can continue to deploy and call auth-api after Kyverno
 begins enforcing the local platform baseline.
 
 **Why this priority**: A healthy policy engine that prevents the existing pilot
@@ -57,7 +57,7 @@ times over at least 60 seconds.
 
 ### User Story 3 - Reuse the platform for future clusters (Priority: P3)
 
-As a platform maintainer, I can register another cluster through the existing
+A platform maintainer can register another cluster through the existing
 registration mechanism and receive the same four add-ons without redesigning
 their ownership or delivery model.
 

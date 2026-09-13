@@ -29,7 +29,7 @@
 
 ### User Story 1 - Deploy auth-api from committed desired state (Priority: P1)
 
-As a teammate with no prior project context, I can prepare the documented local environment from clean repository clones and see `auth-api` become healthy because the environment reconciles the committed desired state, without manually applying the workload to the cluster.
+A teammate with no prior project context can prepare the documented local environment from clean repository clones and see `auth-api` become healthy because the environment reconciles the committed desired state, without manually applying the workload to the cluster.
 
 **Why this priority**: The pilot has value only if it proves that a real service can travel through the same commit-and-reconcile path intended for future environments.
 
@@ -45,7 +45,7 @@ As a teammate with no prior project context, I can prepare the documented local 
 
 ### User Story 2 - Prove commit-only change and rollback (Priority: P2)
 
-As a maintainer, I can change an allowed `auth-api` deployment value and restore the prior value through repository commits, demonstrating that uncommitted edits and direct cluster application are not deployment paths.
+A maintainer can change an allowed `auth-api` deployment value and restore the prior value through repository commits, demonstrating that uncommitted edits and direct cluster application are not deployment paths.
 
 **Why this priority**: An initial deployment alone does not prove that Git remains the authoritative and reversible source for subsequent changes.
 
@@ -61,7 +61,7 @@ As a maintainer, I can change an allowed `auth-api` deployment value and restore
 
 ### User Story 3 - Reuse the deployment contract (Priority: P3)
 
-As a platform engineer, I can use the pilot's deployment contract for each remaining service and for later managed environments without redesigning the repository layout or replacing the commit-and-reconcile mechanism.
+A platform engineer can use the pilot's deployment contract for each remaining service and for later managed environments without redesigning the repository layout or replacing the commit-and-reconcile mechanism.
 
 **Why this priority**: The pilot is intended to retire architectural risk cheaply; a local-only layout that must later be rewritten would not meet that purpose.
 
@@ -77,7 +77,7 @@ As a platform engineer, I can use the pilot's deployment contract for each remai
 
 ### User Story 4 - Reproduce and diagnose the pilot (Priority: P4)
 
-As a first-time operator, I can follow a short guide with explicit prerequisites, expected checkpoints, failure guidance, and cleanup instructions, so I can distinguish a successful GitOps deployment from a merely running local process.
+A first-time operator can follow a short guide with explicit prerequisites, expected checkpoints, failure guidance, and cleanup instructions, so they can distinguish a successful GitOps deployment from a merely running local process.
 
 **Why this priority**: Reproducibility by someone other than the author is necessary evidence that the pattern is usable by the team.
 

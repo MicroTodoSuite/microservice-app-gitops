@@ -1,0 +1,21 @@
+# Disabled by construction: excluded from ../kustomization.yaml's resources
+# (see that file's comment) until a real cluster registration replaces
+# CHANGEME-full-cluster-name with an actual full-profile cluster name. The
+# karpenter.sh/discovery tag key is real, not invented — it already exists on
+# the node security group and subnets in
+# microservice-app-ops/aws/modules/environment-foundation/{eks,network}.tf.
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: full-profile-spot
+spec:
+  amiFamily: AL2023
+  amiSelectorTerms:
+    - alias: al2023@latest
+  role: CHANGEME-karpenter-node-role-name
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: CHANGEME-full-cluster-name
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: CHANGEME-full-cluster-name
