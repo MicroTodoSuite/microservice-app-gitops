@@ -80,6 +80,35 @@ require_resource() {
   ' "$render" || fail "$kind/$name is missing from $(basename "$render")"
 }
 
+# A container passes only if its own list item (not a sibling container, and not
+# initContainers) declares the probe. Rendered YAML sorts keys, so the item is
+# read as a whole rather than assuming "- name:" comes first. POSIX awk only.
+require_container_probes() {
+  local file="$1" container="$2" probe
+  for probe in livenessProbe readinessProbe startupProbe; do
+    awk -v wanted="$container" -v probe="$probe" '
+      function indent(s) { match(s, /^ */); return RLENGTH }
+      function flush() { if (item_name == wanted && item_has) found = 1; item_name = ""; item_has = 0 }
+      /^ *containers: *$/ { flush(); in_list = 1; list_indent = -1; next }
+      in_list {
+        if ($0 ~ /^ *$/) next
+        i = indent($0)
+        if (list_indent < 0) {
+          if ($0 ~ /^ *- /) list_indent = i
+          else { in_list = 0; next }
+        }
+        if (i < list_indent || (i == list_indent && $0 !~ /^ *- /)) { flush(); in_list = 0; next }
+        if (i == list_indent) { flush(); line = $0; sub(/^ *- /, "", line) }
+        else if (i == list_indent + 2) { line = $0; sub(/^ */, "", line) }
+        else next
+        if (line ~ /^name: /) { name = line; sub(/^name: */, "", name); gsub(/"/, "", name); item_name = name }
+        if (index(line, probe ":") == 1) item_has = 1
+      }
+      END { flush(); exit found ? 0 : 1 }
+    ' "$file" || fail "container $container in ${file#"$ROOT"/} is missing $probe"
+  done
+}
+
 # --- Vendor provenance: none of the three tools has a genuine upstream
 # bundle to checksum (all normally installed via Helm chart or example Job) ---
 require_file "infrastructure/falco/vendor/v0.44.1/README.md"
@@ -101,6 +130,10 @@ require_resource "$TMP_DIR/falco.yaml" Deployment falcosidekick
 require_resource "$TMP_DIR/falco.yaml" Service falcosidekick
 require_resource "$TMP_DIR/falco.yaml" ExternalSecret falcosidekick-slack-webhook
 require_resource "$TMP_DIR/falco.yaml" SecretStore aws-secrets-manager
+
+# --- Liveness, readiness, and startup probes on Falcosidekick (evolution plan
+# section 10; spec 008 T028) ---
+require_container_probes "$TMP_DIR/falco.yaml" falcosidekick
 
 # --- Falco driver: modern eBPF least-privileged, never full privileged ---
 # engine.kind lives in falco.yaml, not a --modern-bpf CLI flag: that flag is a

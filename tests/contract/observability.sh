@@ -89,6 +89,35 @@ require_resource() {
   ' "$render" || fail "$kind/$name is missing from $(basename "$render")"
 }
 
+# A container passes only if its own list item (not a sibling container, and not
+# initContainers) declares the probe. Rendered YAML sorts keys, so the item is
+# read as a whole rather than assuming "- name:" comes first. POSIX awk only.
+require_container_probes() {
+  local file="$1" container="$2" probe
+  for probe in livenessProbe readinessProbe startupProbe; do
+    awk -v wanted="$container" -v probe="$probe" '
+      function indent(s) { match(s, /^ */); return RLENGTH }
+      function flush() { if (item_name == wanted && item_has) found = 1; item_name = ""; item_has = 0 }
+      /^ *containers: *$/ { flush(); in_list = 1; list_indent = -1; next }
+      in_list {
+        if ($0 ~ /^ *$/) next
+        i = indent($0)
+        if (list_indent < 0) {
+          if ($0 ~ /^ *- /) list_indent = i
+          else { in_list = 0; next }
+        }
+        if (i < list_indent || (i == list_indent && $0 !~ /^ *- /)) { flush(); in_list = 0; next }
+        if (i == list_indent) { flush(); line = $0; sub(/^ *- /, "", line) }
+        else if (i == list_indent + 2) { line = $0; sub(/^ */, "", line) }
+        else next
+        if (line ~ /^name: /) { name = line; sub(/^name: */, "", name); gsub(/"/, "", name); item_name = name }
+        if (index(line, probe ":") == 1) item_has = 1
+      }
+      END { flush(); exit found ? 0 : 1 }
+    ' "$file" || fail "container $container in ${file#"$ROOT"/} is missing $probe"
+  done
+}
+
 # --- Vendor bundle: prometheus only (grafana/loki/jaeger have no genuine
 # upstream bundle to checksum; see their vendor/<version>/README.md) ---
 require_file "infrastructure/prometheus/vendor/v0.18.0/README.md"
@@ -138,6 +167,14 @@ reject_text infrastructure/jaeger/jaeger-allinone.yaml 'kind: Ingress' \
 require_resource "$TMP_DIR/loki.yaml" StatefulSet loki
 require_resource "$TMP_DIR/loki.yaml" Deployment alloy
 require_resource "$TMP_DIR/loki.yaml" ClusterRole microtodosuite-alloy-log-reader
+
+# --- Liveness, readiness, and startup probes on every observability container
+# (evolution plan section 10; spec 006 T050) ---
+require_container_probes "$TMP_DIR/grafana.yaml" grafana
+require_container_probes "$TMP_DIR/jaeger.yaml" jaeger
+require_container_probes "$TMP_DIR/loki.yaml" loki
+require_container_probes "$TMP_DIR/loki.yaml" alloy
+require_container_probes "$ROOT/apps/frontend/base/deployment.yaml" nginx-metrics
 require_text infrastructure/loki/config.yaml 'retention_enabled: true' \
   "Loki must have retention enabled, not unbounded storage"
 require_text infrastructure/loki/config.yaml 'retention_period: 72h' \
