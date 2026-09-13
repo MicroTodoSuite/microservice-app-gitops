@@ -80,18 +80,20 @@ the producer span.
 
 ### Contracts for User Story 1 (contract-first)
 
-- [ ] T004 [P] [US1] [in `todos-api` repo] Replace `zipkinSpan` with optional
+- [X] T004 [P] [US1] [in `todos-api` repo] Replace `zipkinSpan` with optional
   `traceparent` (W3C pattern) and `tracestate` strings in
   `TodoOperationPayload` of `contracts/asyncapi.yaml`, update the consumer
   operation's description, and pass the repository's Spectral lint
-- [ ] T005 [P] [US1] [in `log-message-processor` repo] Apply the identical
+  Delivered in MicroTodoSuite/microservice-app-todos-api#22.
+- [X] T005 [P] [US1] [in `log-message-processor` repo] Apply the identical
   change to `contracts/asyncapi.yaml` and pass its Spectral lint
+  Delivered in MicroTodoSuite/microservice-app-log-message-processor#23; the contract is byte-identical to todos-api's.
 
 ### Tests for User Story 1
 
 > Write these tests first and commit them failing before T009 to T011.
 
-- [ ] T006 [P] [US1] [in `todos-api` repo] Add failing tests in
+- [X] T006 [P] [US1] [in `todos-api` repo] Add failing tests in
   `test/tracing.test.js` with an in-memory span exporter: a `/todos` request
   produces a `SERVER` span that continues an incoming `traceparent`;
   `/health/startup`, `/health/ready`, `/health/live`, and `/metrics` produce no
@@ -103,7 +105,8 @@ the producer span.
   the runtime `COPY` in `Dockerfile` includes `tracing.js`. Update the tracer
   stubs in `test/routes.test.js`, `test/operational-contract.test.js`, and
   `test/integration/redis-publish.test.js` to the new controller signature
-- [ ] T007 [P] [US1] [in `log-message-processor` repo] Add failing tests in
+  Delivered in MicroTodoSuite/microservice-app-todos-api#22.
+- [X] T007 [P] [US1] [in `log-message-processor` repo] Add failing tests in
   `tests/test_tracing.py` with an in-memory span exporter: a message with a
   valid `traceparent` produces a `CONSUMER` span named `log_channel process`
   whose parent is that context and whose messaging attributes match
@@ -113,7 +116,8 @@ the producer span.
   `requirements.in` lists neither `py-zipkin` nor `requests`. Replace the
   Zipkin tests in `tests/test_main.py` and the `zipkin_url` arguments in
   `tests/test_operational_contract.py`
-- [ ] T008 [P] [US1] [in `frontend` repo] Add failing assertions in
+  Delivered in MicroTodoSuite/microservice-app-log-message-processor#23.
+- [X] T008 [P] [US1] [in `frontend` repo] Add failing assertions in
   `test/unit/operational-contract.test.js`: `nginx.conf.template` loads
   `modules/ngx_otel_module.so`, sets `otel_service_name frontend`, declares
   `otel_exporter` with the substituted endpoint, enables `otel_trace` with
@@ -122,10 +126,11 @@ the producer span.
   turns tracing off when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset, and runs
   `nginx -t` when invoked with `-t`; `Dockerfile` runs on
   `nginxinc/nginx-unprivileged:alpine3.23-otel@sha256:1490cbf02ddba36ae75ef947b570166c805a178898ebfbc3bb889e7580820052`
+  Delivered in MicroTodoSuite/microservice-app-frontend#27.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] [in `todos-api` repo] Add `tracing.js` (tracer provider with
+- [X] T009 [US1] [in `todos-api` repo] Add `tracing.js` (tracer provider with
   batch OTLP/gRPC export only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set, W3C
   propagator, HTTP and Express instrumentations ignoring `/health/*` and
   `/metrics`), require it first in `server.js`, replace the Zipkin tracer in
@@ -135,25 +140,29 @@ the producer span.
   remove every `zipkin` package in `package.json` and `package-lock.json`,
   correct the Zipkin description in `AGENTS.md` and `README.md`, and make T004
   and T006 pass
-- [ ] T010 [US1] [in `log-message-processor` repo] Replace `py-zipkin` and
+  Delivered in MicroTodoSuite/microservice-app-todos-api#22.
+- [X] T010 [US1] [in `log-message-processor` repo] Replace `py-zipkin` and
   `requests` with the OpenTelemetry packages from research.md R5 in
   `requirements.in`, regenerate the hashed `requirements.txt` with
   `pip-compile --generate-hashes` on Python 3.13, replace the Zipkin transport
   in `main.py` with a `CONSUMER` span that extracts the message's
   `traceparent`, remove `ZIPKIN_URL`, correct `AGENTS.md` and `README.md`, and
   make T005 and T007 pass
-- [ ] T011 [US1] [in `frontend` repo] Switch the runtime stage of `Dockerfile`
+  Delivered in MicroTodoSuite/microservice-app-log-message-processor#23.
+- [X] T011 [US1] [in `frontend` repo] Switch the runtime stage of `Dockerfile`
   to the `alpine3.23-otel` digest, add the module, exporter, service name, and
   per-location tracing to `nginx.conf.template`, remove the `/zipkin`
   location, make `entrypoint.sh` substitute `OTEL_EXPORTER_OTLP_ENDPOINT`,
   disable tracing when it is unset, and support `-t`, remove `ZIPKIN_URL` from
   `e2e/compose.yaml`, `config/index.js`, `README.md`, and `AGENTS.md`, and make
   T008 pass
-- [ ] T012 [US1] Observe a local connected trace per `quickstart.md` section 2
+  Delivered in MicroTodoSuite/microservice-app-frontend#27.
+- [X] T012 [US1] Observe a local connected trace per `quickstart.md` section 2
   (Jaeger 2.20.0, Redis, the T009 `todos-api` image, and the T010
   `log-message-processor` image on one Docker network) and record in the
   `todos-api` and `log-message-processor` pull requests that one trace lists
   both services with the consumer span parented by the producer span
+  Observed locally with the built images and recorded in MicroTodoSuite/microservice-app-log-message-processor#23 (both halves) and MicroTodoSuite/microservice-app-todos-api#22.
 
 **Checkpoint**: The todo path is traced end to end in local verification; live
 evidence waits for Phase 6.
@@ -172,7 +181,7 @@ spans from all three services; a failed sign-in marks its span as an error.
 
 > Write these tests first and commit them failing before T015 and T016.
 
-- [ ] T013 [P] [US2] [in `auth-api` repo] Add failing tests in `main_test.go`
+- [X] T013 [P] [US2] [in `auth-api` repo] Add failing tests in `main_test.go`
   with an in-memory span exporter: `/health/startup`, `/health/ready`,
   `/health/live`, and `/metrics` produce no spans; a `/login` request produces
   a `SERVER` span and a `CLIENT` span whose outgoing request to `users-api`
@@ -180,7 +189,8 @@ spans from all three services; a failed sign-in marks its span as an error.
   status 401 on its `SERVER` span and leaves the span status unset, per the
   OpenTelemetry HTTP semantic conventions; no span attribute contains the
   password or a JWT
-- [ ] T014 [P] [US2] [in `users-api` repo] Add failing tests in
+  Delivered in MicroTodoSuite/microservice-app-auth-api#26; the tests live in `tracing_test.go` beside `main_test.go`, in the same package.
+- [X] T014 [P] [US2] [in `users-api` repo] Add failing tests in
   `src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java` (and a
   focused `TracingConfigurationTests.java` beside it): no Zipkin exporter class
   is on the classpath; an OTLP span exporter is configured when
@@ -189,13 +199,15 @@ spans from all three services; a failed sign-in marks its span as an error.
   `http.server.requests` metrics remain; a request with an incoming
   `traceparent` continues that trace. Remove the
   `management.zipkin.tracing.export.enabled=false` test property
+  Delivered in MicroTodoSuite/microservice-app-users-api#27.
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] [in `auth-api` repo] Pass `otelecho.WithSkipper` for
+- [X] T015 [US2] [in `auth-api` repo] Pass `otelecho.WithSkipper` for
   `/health/*` and `/metrics` in `main.go`, correct the Zipkin description in
   `AGENTS.md` and `README.md`, and make T013 pass
-- [ ] T016 [US2] [in `users-api` repo] Replace
+  Delivered in MicroTodoSuite/microservice-app-auth-api#26; `README.md` never described tracing, so only `AGENTS.md` changed.
+- [X] T016 [US2] [in `users-api` repo] Replace
   `opentelemetry-exporter-zipkin` with `opentelemetry-exporter-otlp` in
   `pom.xml`; replace `management.zipkin.tracing.endpoint` with
   `management.otlp.tracing.transport=grpc` in
@@ -212,6 +224,7 @@ spans from all three services; a failed sign-in marks its span as an error.
   that ignore `/health/**` and `/prometheus` requests and the observations
   nested in them, so those requests keep their metrics (research R6, FR-013);
   correct `AGENTS.md` and `README.md`; and make T014 pass
+  Delivered in MicroTodoSuite/microservice-app-users-api#27, as amended in #123 (research R6).
 
 **Checkpoint**: The sign-in path is traced in each service's tests; live
 evidence waits for Phase 6.
