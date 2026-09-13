@@ -61,26 +61,30 @@ spec:
     spec:
       serviceAccountName: sonarqube
       automountServiceAccountToken: false
+      # Dedicated tooling node. T084 asks for the vm.max_map_count sysctl that
+      # SonarQube's embedded Elasticsearch needs (>=262144) to be set at the
+      # NODE level "without a privileged pod" — so the privileged init-sysctl
+      # container that used to live here is gone. On a real full-dev cluster
+      # the node comes from a Karpenter tooling NodePool whose EC2NodeClass
+      # userData runs `sysctl -w vm.max_map_count=262144` and carries the
+      # `microtodosuite.io/tooling=sonarqube:NoSchedule` taint (that NodePool
+      # + EC2NodeClass belongs in infrastructure/karpenter/node-provisioning/
+      # and is Phase-4 work — it needs the real cluster name). This toleration
+      # is the pod-side half; it is harmless where the taint does not exist
+      # (local kind), where the node's default vm.max_map_count already
+      # satisfies Elasticsearch.
+      tolerations:
+        - key: microtodosuite.io/tooling
+          operator: Equal
+          value: sonarqube
+          effect: NoSchedule
       securityContext:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-      initContainers:
-        # SonarQube's embedded Elasticsearch requires vm.max_map_count>=262144.
-        # This needs a privileged init container OR node-level sysctl. If the
-        # cluster/node already sets it (or PSA forbids privileged), drop this and
-        # configure the node instead.
-        - name: init-sysctl
-          image: busybox:1.37
-          command: ["sh", "-c", "sysctl -w vm.max_map_count=262144"]
-          securityContext:
-            privileged: true
-            runAsUser: 0
       containers:
         - name: sonarqube
-          # TODO(platform): pin by digest before activation (offline render can't
-          # resolve it). Community edition; verify the exact LTA version.
-          image: sonarqube:community
+          image: sonarqube:26.8.0.126808-community
           ports:
             - name: http
               containerPort: 9000

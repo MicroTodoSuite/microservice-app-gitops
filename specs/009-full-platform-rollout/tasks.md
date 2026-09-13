@@ -331,14 +331,11 @@ to stay empty at their bootstrap revision.
   > mirrored-ECR-digest requirement (T082 mirror does not exist yet).
 - [ ] T084 [P] [US3] Vendor checksum-pinned ECK 3.5.0 and add resource-bounded Elasticsearch, Kibana, Logstash, and Filebeat desired state under `infrastructure/{eck-operator,elasticsearch,kibana,logstash,filebeat}/` with cloud-specific encrypted retained-storage overlays (`gp3` on EKS and the Terraform-approved Azure Disk class on AKS); harden `infrastructure/sonarqube/` for its full-dev-only tooling role with SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`, mirrored manifest digests, encrypted retained gp3 PVCs, dedicated taint/toleration and GitOps-owned EC2NodeClass user data that sets `vm.max_map_count` without a privileged pod, probes, PDBs, NetworkPolicy, resource budget, backup/recovery tests, and rollback documentation.
 
-  > **Partial delivery, gitops PR (ECK stack).** Only the ECK half of T084
-  > shipped: `infrastructure/eck-operator/` (vendored, checksum-verified) plus
+  > **Partial delivery, gitops PR (ECK stack).** The ECK half of T084:
+  > `infrastructure/eck-operator/` (vendored, checksum-verified) plus
   > hand-authored `infrastructure/{elasticsearch,kibana,logstash,filebeat}/`
-  > resources. The `infrastructure/sonarqube/` hardening half of this task —
-  > SonarQube/PostgreSQL versions, dedicated taint/toleration, EC2NodeClass
-  > user data, backup/recovery tests — is **not touched at all** by this PR.
-  > No cloud-specific storage overlay (`gp3` on EKS, Azure Disk on AKS)
-  > exists yet either: PVCs use the cluster's default StorageClass, which
+  > resources. No cloud-specific storage overlay (`gp3` on EKS, Azure Disk on
+  > AKS) exists yet: PVCs use the cluster's default StorageClass, which
   > renders and ran correctly on local `kind` verification but is not the
   > "cloud-specific encrypted retained-storage overlay" this task names —
   > that overlay is a registration-level patch for whichever cluster
@@ -354,9 +351,28 @@ to stay empty at their bootstrap revision.
   > 9.4.4 rejects the obsolete `cacert` Elasticsearch-output setting in favor
   > of `ssl_certificate_authorities`; and Filebeat's Kubernetes autodiscover
   > needs an explicit `NODE_NAME` env var that nothing injects by default —
-  > none of the three would have been caught by rendering alone. T084 stays
-  > unchecked: the SonarQube half is completely undone and the storage
-  > overlay is deliberately deferred.
+  > none of the three would have been caught by rendering alone.
+  >
+  > **Partial delivery, gitops PR (SonarQube hardening).** The SonarQube half
+  > of T084: both images pinned to the exact toolchain-lock digests
+  > (SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`); the
+  > privileged `init-sysctl` container removed and replaced by a dedicated
+  > `microtodosuite.io/tooling` toleration on both pods (the node-level
+  > `vm.max_map_count` and matching taint come from a Karpenter tooling
+  > NodePool/EC2NodeClass — Phase-4, needs the real cluster name); a
+  > PodDisruptionBudget per singleton; a default-deny NetworkPolicy plus the
+  > exact DB/HTTP/DNS flows; a nightly `pg_dump` backup CronJob to a retained
+  > PVC with a documented restore procedure. Verified live on a local `kind`
+  > cluster: SonarQube reached "Web Server is operational" (Community Edition
+  > 26.8.0.126808, embedded Elasticsearch started with NO privileged pod —
+  > the kind node's default vm.max_map_count is 262144); PostgreSQL 16.15
+  > Running; ESO generated the DB password; a triggered backup Job produced a
+  > 5.4 MiB dump and the NetworkPolicy allowed the backup→DB flow.
+  >
+  > **T084 stays unchecked**: both halves are live-verified, but the
+  > cloud-specific encrypted `gp3`/Azure-Disk storage overlay, ingress/TLS
+  > exposure, and the tooling NodePool/EC2NodeClass userData remain deferred
+  > to the activating registration (Phase 4).
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
 

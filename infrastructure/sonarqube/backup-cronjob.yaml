@@ -1,0 +1,101 @@
+# Nightly logical backup of the SonarQube database (T084 "backup/recovery
+# tests"). pg_dump writes a timestamped, compressed dump to a retained PVC
+# separate from the live database volume, so a corrupted or lost data volume
+# does not take the backups with it. Recovery is a documented manual restore —
+# see README.md "Backup and recovery". Uses the same pinned PostgreSQL image
+# (pg_dump/psql ship in it) and the same ESO-generated DB password Secret.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarqube-db-backup
+  namespace: sonarqube
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sonarqube-db-backup
+  namespace: sonarqube
+automountServiceAccountToken: false
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sonarqube-db-backup
+  namespace: sonarqube
+  labels:
+    app.kubernetes.io/name: sonarqube-db-backup
+    app.kubernetes.io/part-of: microtodosuite-platform
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: sonarqube-db-backup
+            app.kubernetes.io/part-of: microtodosuite-platform
+        spec:
+          serviceAccountName: sonarqube-db-backup
+          automountServiceAccountToken: false
+          restartPolicy: OnFailure
+          tolerations:
+            - key: microtodosuite.io/tooling
+              operator: Equal
+              value: sonarqube
+              effect: NoSchedule
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            fsGroup: 999
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: pg-dump
+              image: postgres:16.15-alpine3.24
+              command:
+                - sh
+                - -c
+                - |
+                  set -euo pipefail
+                  ts="$(date -u +%Y%m%dT%H%M%SZ)"
+                  out="/backup/sonar-${ts}.sql.gz"
+                  echo "dumping to ${out}"
+                  pg_dump -h sonarqube-postgres -U sonar -d sonar \
+                    | gzip -c > "${out}"
+                  echo "pruning dumps older than 14 days"
+                  find /backup -name 'sonar-*.sql.gz' -mtime +14 -delete
+                  echo "backup complete"; ls -lh /backup
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: sonarqube-db
+                      key: password
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: sonarqube-db-backup

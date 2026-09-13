@@ -6,15 +6,26 @@ kind: Kustomization
 # no cluster deploys it until the intended tooling/management registration adds
 # an exact allowlist entry. See README.md.
 #
-# TODO(platform) before activation:
-#   1. Pin `sonarqube` and `postgres` images by digest (offline render cannot
-#      resolve them here) — mirror the digest pins in keda/kyverno kustomizations.
-#   2. Add exposure (Ingress + TLS) so cloud CI runners can reach it, or use a
-#      self-hosted runner; then set org vars SONAR_HOST_URL + secret SONAR_TOKEN.
-#   3. Confirm vm.max_map_count handling (privileged init vs node sysctl).
+# Hardened for the full-dev tooling role (spec 009, T084): digests pinned
+# below, PodDisruptionBudgets, NetworkPolicy, a dedicated-tooling toleration,
+# and a nightly pg_dump backup CronJob. Still deferred to the activating
+# registration (cloud-specific, cannot be expressed here): the gp3-encrypted
+# retained StorageClass overlay, the ingress/TLS exposure, and the Karpenter
+# tooling NodePool/EC2NodeClass whose userData sets vm.max_map_count and whose
+# taint this deployment already tolerates. Set org var SONAR_HOST_URL + secret
+# SONAR_TOKEN once exposed.
 resources:
   - namespace.yaml
   - serviceaccount.yaml
   - db-secret.yaml
   - postgres.yaml
   - sonarqube.yaml
+  - pdb.yaml
+  - network-policy.yaml
+  - backup-cronjob.yaml
+
+images:
+  - name: sonarqube
+    digest: sha256:9026624a61cd25542a402a9e7213dd7dbb39724ac9597e331e6b85362558c079
+  - name: postgres
+    digest: sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
