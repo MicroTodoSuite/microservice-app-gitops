@@ -75,8 +75,10 @@ users API under one trace identifier.
    tracing enabled, **When** a user signs in, **Then** one trace contains spans
    from all three services.
 2. **Given** a sign-in fails because the credentials are wrong, **When** the
-   trace is inspected, **Then** the failing span is marked as an error and the
-   trace still includes every service the request reached.
+   trace is inspected, **Then** the authentication API's server span records
+   HTTP status 401 and leaves its span status unset, as the OpenTelemetry HTTP
+   semantic conventions require for 4xx server responses, and the trace still
+   includes every service the request reached.
 
 ---
 

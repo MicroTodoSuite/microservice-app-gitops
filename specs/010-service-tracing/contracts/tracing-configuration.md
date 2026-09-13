@@ -25,7 +25,7 @@ How each service reads the values:
 | --- | --- | --- |
 | `auth-api` | OpenTelemetry Go SDK reads the variable | Resource attribute set in code, equal to `auth-api` |
 | `todos-api` | OpenTelemetry JS exporter reads the variable | `OTEL_SERVICE_NAME` |
-| `users-api` | `management.otlp.tracing.endpoint=${OTEL_EXPORTER_OTLP_ENDPOINT:}` with `management.otlp.tracing.transport=grpc` | `spring.application.name` (`users-api`) |
+| `users-api` | `management.otlp.tracing.endpoint`, set from the variable only when it has a value, with `management.otlp.tracing.transport=grpc` | `spring.application.name` (`users-api`) |
 | `log-message-processor` | OpenTelemetry Python exporter reads the variable | `OTEL_SERVICE_NAME` |
 | `frontend` | `entrypoint.sh` substitutes it into `otel_exporter` | `otel_service_name frontend` |
 

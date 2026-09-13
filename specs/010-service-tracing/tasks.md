@@ -176,15 +176,18 @@ spans from all three services; a failed sign-in marks its span as an error.
   with an in-memory span exporter: `/health/startup`, `/health/ready`,
   `/health/live`, and `/metrics` produce no spans; a `/login` request produces
   a `SERVER` span and a `CLIENT` span whose outgoing request to `users-api`
-  carries a `traceparent` from the same trace; a rejected sign-in sets span
-  status `ERROR`; no span attribute contains the password or a JWT
+  carries a `traceparent` from the same trace; a rejected sign-in records HTTP
+  status 401 on its `SERVER` span and leaves the span status unset, per the
+  OpenTelemetry HTTP semantic conventions; no span attribute contains the
+  password or a JWT
 - [ ] T014 [P] [US2] [in `users-api` repo] Add failing tests in
   `src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java` (and a
   focused `TracingConfigurationTests.java` beside it): no Zipkin exporter class
   is on the classpath; an OTLP span exporter is configured when
   `OTEL_EXPORTER_OTLP_ENDPOINT` is set and none when it is empty; requests to
-  `/health/**` and `/prometheus` produce no observation spans; a request with
-  an incoming `traceparent` continues that trace. Replace the
+  `/health/**` and `/prometheus` produce no spans while their
+  `http.server.requests` metrics remain; a request with an incoming
+  `traceparent` continues that trace. Remove the
   `management.zipkin.tracing.export.enabled=false` test property
 
 ### Implementation for User Story 2
@@ -195,13 +198,19 @@ spans from all three services; a failed sign-in marks its span as an error.
 - [ ] T016 [US2] [in `users-api` repo] Replace
   `opentelemetry-exporter-zipkin` with `opentelemetry-exporter-otlp` in
   `pom.xml`; replace `management.zipkin.tracing.endpoint` with
-  `management.otlp.tracing.endpoint=${OTEL_EXPORTER_OTLP_ENDPOINT:}` and
   `management.otlp.tracing.transport=grpc` in
-  `src/main/resources/application.properties`, binding
-  `management.otlp.tracing.export.enabled` to the endpoint's presence if the
-  T014 test shows an empty endpoint still creates an exporter; add
-  `src/main/java/com/elgris/usersapi/configuration/TracingConfiguration.java`
-  with an `ObservationPredicate` that skips `/health/**` and `/prometheus`;
+  `src/main/resources/application.properties`; set
+  `management.otlp.tracing.endpoint` from `OTEL_EXPORTER_OTLP_ENDPOINT` only
+  when that variable has a value, through
+  `src/main/java/com/elgris/usersapi/configuration/OtlpTracingEndpointEnvironmentPostProcessor.java`
+  registered in `src/main/resources/META-INF/spring.factories` (research R6:
+  an empty endpoint property still creates an exporter, which stops startup); add
+  `src/main/java/com/elgris/usersapi/configuration/TracingConfiguration.java`,
+  an auto-configuration registered in
+  `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
+  that replaces Spring Boot's three tracing observation handlers with ones
+  that ignore `/health/**` and `/prometheus` requests and the observations
+  nested in them, so those requests keep their metrics (research R6, FR-013);
   correct `AGENTS.md` and `README.md`; and make T014 pass
 
 **Checkpoint**: The sign-in path is traced in each service's tests; live
