@@ -64,6 +64,10 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          startupProbe:
+            httpGet: {path: /metrics, port: metrics}
+            periodSeconds: 5
+            failureThreshold: 30
           livenessProbe:
             httpGet: {path: /metrics, port: metrics}
             periodSeconds: 15
