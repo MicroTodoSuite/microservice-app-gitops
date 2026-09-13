@@ -368,6 +368,15 @@ request against exact evidence.
   `docs/observability-platform.md` documenting the five new components, the
   economical-profile Loki/Jaeger substitution, and the port-forward-only
   access model, mirroring how `003-platform-addons` documented its boundary
+- [X] T050 Add a failing assertion to `tests/contract/observability.sh` that
+  the rendered `grafana`, `jaeger`, `loki`, and `alloy` containers and the
+  `nginx-metrics` sidecar in `apps/frontend/base/deployment.yaml` each declare
+  `livenessProbe`, `readinessProbe`, and `startupProbe` (evolution plan
+  section 10 requires all three probes; these containers declare only the
+  first two)
+- [X] T051 Add a `startupProbe` to each of those five containers on the
+  endpoint its `livenessProbe` already uses, leaving the existing probes
+  unchanged, and make T050 pass
 
 ---
 
