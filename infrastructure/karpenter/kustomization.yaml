@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Karpenter, deployed by ArgoCD from a rendered, pinned Helm template
+# (spec 009, T086). Full-profile-only, like infrastructure/istio/.
+#
+# Not activated: settings.clusterName is a deliberate CHANGEME placeholder
+# (the chart requires SOME value to render at all — see
+# vendor/v1.14.1/README.md), the karpenter ServiceAccount has no IRSA role
+# ARN, and node-provisioning/ (EC2NodeClass + NodePool) is excluded here on
+# purpose — see node-provisioning/kustomization.yaml.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+resources:
+  - vendor/v1.14.1/crds.yaml
+  - vendor/v1.14.1/install.yaml

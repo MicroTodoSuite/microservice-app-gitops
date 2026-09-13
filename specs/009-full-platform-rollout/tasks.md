@@ -305,15 +305,30 @@ to stay empty at their bootstrap revision.
   > accepted by server-side dry-run with istiod Ready, and a negative control
   > (invalid `tls.mode` enum) was correctly rejected — validation offline
   > `kubeconform` cannot do, since it skips the Istio CRDs.
-  > **Still not done on T083** (stays unchecked): the AWS Load Balancer
-  > Controller IRSA ARN (Phase 4, see the LBC PR's separate note), the
-  > ingress Gateway + its trusted-certificate references and NLB wiring
-  > (AWS-blocked), and the mirrored-ECR-digest requirement (T082 mirror does
-  > not exist yet).
   >
-  > NOTE: the AWS-LBC/Karpenter PR (#117) adds its own T083 annotation
-  > around this same task line; whichever merges second needs the adjacent
-  > blockquotes reconciled by hand — trivial, flagged here.
+  > **Partial delivery, gitops PR (AWS Load Balancer Controller vendoring).**
+  > The remaining third of T083 (Istio/Kiali and the mesh traffic policy
+  > above): the controller's static release is vendored and checksum-verified
+  > under `infrastructure/aws-load-balancer-controller/`, using its own
+  > cert-manager-issued webhook certificate (this one, unlike Chaos Mesh,
+  > used `cert-manager.io/v1` correctly from the start — it is a static
+  > release, not Helm-templated against unknown cluster capabilities).
+  > **Confirmed live, on a local `kind` cluster with no AWS credentials at
+  > all: the controller cannot even start.** It CrashLoopBackOffs before
+  > reaching the missing-IRSA-ARN problem this task names, because it
+  > cannot initialize an AWS client outside EC2/EKS at all (`unable to
+  > introspect region from EC2Metadata ... connection refused`) — see
+  > `vendor/v3.5.0/README.md` for the exact log line. This addon cannot be
+  > meaningfully proven live outside a real EC2/EKS environment; the
+  > render/policy test is the extent of local verification. No IRSA role
+  > ARN was invented on the ServiceAccount — same reasoning as
+  > `infrastructure/opencost/`'s undecided `CLUSTER_ID`. Not registered in
+  > any cluster.
+  >
+  > **Still not done on T083** (stays unchecked): the AWS Load Balancer
+  > Controller IRSA ARN (Phase 4), the ingress Gateway + its
+  > trusted-certificate references and NLB wiring (AWS-blocked), and the
+  > mirrored-ECR-digest requirement (T082 mirror does not exist yet).
 - [ ] T084 [P] [US3] Vendor checksum-pinned ECK 3.5.0 and add resource-bounded Elasticsearch, Kibana, Logstash, and Filebeat desired state under `infrastructure/{eck-operator,elasticsearch,kibana,logstash,filebeat}/` with cloud-specific encrypted retained-storage overlays (`gp3` on EKS and the Terraform-approved Azure Disk class on AKS); harden `infrastructure/sonarqube/` for its full-dev-only tooling role with SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`, mirrored manifest digests, encrypted retained gp3 PVCs, dedicated taint/toleration and GitOps-owned EC2NodeClass user data that sets `vm.max_map_count` without a privileged pod, probes, PDBs, NetworkPolicy, resource budget, backup/recovery tests, and rollback documentation.
 
   > **Partial delivery, gitops PR (ECK stack).** Only the ECK half of T084
@@ -344,6 +359,30 @@ to stay empty at their bootstrap revision.
   > overlay is deliberately deferred.
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
+
+  > **Partial delivery, gitops PR (Karpenter vendoring).** The controller and
+  > its CRDs are vendored under `infrastructure/karpenter/`, checksum-
+  > verified against both OCI chart digests in the toolchain lock. Unlike
+  > every other vendored component, this chart cannot render at all without
+  > `settings.clusterName` — its own template enforces
+  > `required "Chart cannot be installed without a valid settings.clusterName!"`
+  > — so `values.yaml` sets it to the literal, unmistakable placeholder
+  > `CHANGEME-full-cluster-name`, the same marker convention already used in
+  > `infrastructure/chaos-mesh/experiments/`. The Spot-only NodePool and
+  > EC2NodeClass this task asks for exist under
+  > `infrastructure/karpenter/node-provisioning/`, using the real
+  > `karpenter.sh/discovery` tag key already established in
+  > `microservice-app-ops/aws/modules/environment-foundation/{eks,network}.tf`
+  > — but excluded from the parent Kustomization's resources, disabled by
+  > construction the same way as the Chaos Mesh experiments, because
+  > `securityGroupSelectorTerms`/`subnetSelectorTerms` need a real cluster
+  > name and `settings.interruptionQueue` needs a real Terraform-output SQS
+  > ARN, neither of which exist before Phase 4. **Confirmed live, on a local
+  > `kind` cluster with no AWS credentials at all: the controller panics
+  > immediately** (`unable to determine region from IMDS ... connection
+  > refused`) — the identical IMDS-region-discovery dependency that also
+  > stops `infrastructure/aws-load-balancer-controller/` from running
+  > outside EC2/EKS. Not registered in any cluster.
 - [ ] T087 [P] [US3] Vendor checksum-pinned Chaos Mesh 2.8.4 and OpenCost 2.5.29 under `infrastructure/chaos-mesh/` and `infrastructure/opencost/`; add disabled experiment roots and cluster/environment/service cost labels.
 
   > **Partial delivery, gitops PR (Chaos Mesh + OpenCost vendoring).** Both
