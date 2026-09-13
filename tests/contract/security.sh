@@ -31,6 +31,15 @@ require_file() {
 
 # GNU grep, not ripgrep: the validate-gitops runner image ships grep but not
 # ripgrep. -r lets the same helpers check a single file or a whole directory.
+check_checksum() {
+  local directory="$1"
+  require_file "$directory/SHA256SUMS"
+  (
+    cd "$ROOT/$directory"
+    sha256sum -c SHA256SUMS >/dev/null
+  ) || fail "checksum verification failed under $directory"
+}
+
 require_text() {
   local path="$1" pattern="$2" description="$3"
   grep -rEq -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
@@ -117,8 +126,13 @@ require_file "infrastructure/falco/vendor/v0.44.1/README.md"
 require_file "infrastructure/kube-bench/vendor/v0.16.0/README.md"
 require_file "infrastructure/kube-hunter/vendor/v0.6.8/README.md"
 
+# Trivy Operator is the exception: it ships a genuine upstream static bundle,
+# retained with its checksum (spec 008 US4, T030).
+require_file "infrastructure/trivy-operator/vendor/v0.34.0/README.md"
+check_checksum "infrastructure/trivy-operator/vendor/v0.34.0"
+
 # --- Render check ---
-for component in falco kube-bench kube-hunter; do
+for component in falco kube-bench kube-hunter trivy-operator; do
   render="$TMP_DIR/$component.yaml"
   render_kustomize "$ROOT/infrastructure/$component" >"$render" \
     || fail "Kustomize render failed for $component"
@@ -193,6 +207,56 @@ reject_text infrastructure/kube-hunter/cronjob.yaml 'kind: ClusterRole' \
   "kube-hunter needs no ClusterRole (verified against the real upstream job)"
 reject_text infrastructure/kube-hunter/cronjob.yaml '^\s*hostPID: true\s*$' \
   "kube-hunter needs no hostPID (verified against the real upstream job)"
+
+# --- Trivy Operator: continuous vulnerability scanning (FR-013 to FR-018; T030) ---
+trivy="$TMP_DIR/trivy-operator.yaml"
+require_resource "$trivy" Deployment trivy-operator
+require_resource "$trivy" ServiceAccount trivy-operator
+require_resource "$trivy" Service trivy-operator
+require_resource "$trivy" CustomResourceDefinition vulnerabilityreports.aquasecurity.github.io
+for policy in trivy-operator-default-deny trivy-operator-allow trivy-scan-jobs-default-deny trivy-scan-jobs-allow-egress; do
+  require_resource "$trivy" NetworkPolicy "$policy"
+done
+if grep -Eq '^kind: Namespace$' "$trivy"; then
+  fail "trivy-operator must not render the upstream trivy-system Namespace"
+fi
+if grep -q 'trivy-system' "$trivy"; then
+  fail "the trivy-operator render still references trivy-system"
+fi
+if grep -E '^  namespace: ' "$trivy" | grep -vq '^  namespace: security$'; then
+  fail "every namespaced trivy-operator resource must be in the security namespace"
+fi
+
+# Rendered ConfigMap data and container env, one key per line.
+require_trivy_setting() {
+  local key="$1" value="$2"
+  grep -Eq "^  ${key}: \"?${value}\"?$" "$trivy" \
+    || fail "trivy-operator must set ${key} to ${value}"
+}
+require_trivy_env() {
+  local name="$1" value="$2"
+  grep -A1 -E "^ +- name: ${name}$" "$trivy" | grep -Eq "^ +value: \"?${value}\"?$" \
+    || fail "the trivy-operator container must set ${name} to ${value}"
+}
+# Vulnerability scanning only (FR-014), one scan Job at a time on two nodes.
+require_trivy_setting OPERATOR_VULNERABILITY_SCANNER_ENABLED true
+for flag in OPERATOR_CONFIG_AUDIT_SCANNER_ENABLED OPERATOR_RBAC_ASSESSMENT_SCANNER_ENABLED \
+  OPERATOR_INFRA_ASSESSMENT_SCANNER_ENABLED OPERATOR_EXPOSED_SECRET_SCANNER_ENABLED \
+  OPERATOR_CLUSTER_COMPLIANCE_ENABLED OPERATOR_SBOM_GENERATION_ENABLED \
+  OPERATOR_METRICS_VULN_ID_ENABLED; do
+  require_trivy_setting "$flag" false
+done
+require_trivy_setting OPERATOR_CONCURRENT_SCAN_JOBS_LIMIT 1
+# Kustomize's namespace transformer does not rewrite env values.
+require_trivy_env OPERATOR_NAMESPACE security
+require_trivy_env OPERATOR_TARGET_NAMESPACES 'microtodo-dev,microtodo-staging,microtodo-prod,observability,security'
+# The Trivy scanner image is set through ConfigMap data, not a Pod spec, so the
+# images transformer cannot pin it.
+require_trivy_setting trivy.tag '[0-9.]+@sha256:[a-f0-9]{64}'
+# Private ECR access through IRSA, never static credentials (FR-017).
+grep -Eq '^    eks\.amazonaws\.com/role-arn: arn:aws:iam::[0-9]{12}:role/microtodosuite-security-trivy-ecr-reader$' "$trivy" \
+  || fail "the trivy-operator ServiceAccount must carry the Trivy ECR reader role ARN"
+require_container_probes "$trivy" trivy-operator
 
 # --- Registration contract ---
 registration="asserted"
