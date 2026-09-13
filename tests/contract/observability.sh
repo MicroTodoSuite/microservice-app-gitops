@@ -271,6 +271,36 @@ require_resource "$TMP_DIR/grafana.yaml" ConfigMap grafana-datasources
 require_resource "$TMP_DIR/grafana.yaml" ConfigMap grafana-dashboards-golden-signals
 require_resource "$TMP_DIR/grafana.yaml" NetworkPolicy grafana-default-deny
 
+# --- Business row in the golden-signals dashboard (spec 011 FR-009, FR-012; T009) ---
+# The dashboard JSON is a block scalar inside the rendered ConfigMap, so it is
+# cut out by indentation and read with Python's standard json module; neither
+# yq nor PyYAML is needed.
+awk '
+  /^  golden-signals\.json: \|$/ { in_json = 1; next }
+  in_json && /^    / { sub(/^    /, ""); print; next }
+  in_json && /^ *$/ { print ""; next }
+  in_json { in_json = 0 }
+' "$TMP_DIR/grafana.yaml" >"$TMP_DIR/golden-signals.json"
+[[ -s "$TMP_DIR/golden-signals.json" ]] \
+  || fail "the rendered Grafana root has no golden-signals.json dashboard"
+python3 - "$TMP_DIR/golden-signals.json" <<'PY' || fail "the golden-signals dashboard must show the Business row and query the business series (contracts/business-metrics.md)"
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    panels = json.load(handle).get("panels", [])
+problems = []
+if not any(p.get("type") == "row" and p.get("title") == "Business" for p in panels):
+    problems.append("no row panel titled Business")
+queries = [t.get("expr", "") for p in panels for t in p.get("targets", [])]
+for series in ("todo_api_todos_created_total", "todo_api_todos_deleted_total", "auth_api_sign_ins_total"):
+    if not any(series in query for query in queries):
+        problems.append(f"no query reads {series}")
+for problem in problems:
+    print(f"FAIL: golden-signals dashboard: {problem}", file=sys.stderr)
+sys.exit(1 if problems else 0)
+PY
+
 # --- Economical-profile substitutions: no ELK/Elasticsearch, no Ingress ---
 for component in prometheus grafana; do
   reject_text "infrastructure/$component" 'kind: Elasticsearch|kind: Logstash|kind: Kibana|kind: Filebeat' \

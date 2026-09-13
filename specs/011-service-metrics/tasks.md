@@ -110,7 +110,7 @@ dashboard contract finds the Business row and its queries.
   `auth_api_sign_ins_total{outcome="accepted"}` by one, a wrong-credentials
   login increases `outcome="rejected"` by one, a login failing with a server
   error changes neither, and the series has only the `outcome` label
-- [ ] T009 [P] [US2] Add failing assertions to
+- [X] T009 [P] [US2] Add failing assertions to
   `tests/contract/observability.sh` that the rendered Grafana root's
   golden-signals dashboard contains a row titled `Business` and queries
   `todo_api_todos_created_total`, `todo_api_todos_deleted_total`, and
@@ -123,7 +123,7 @@ dashboard contract finds the Business row and its queries.
   make T007 pass
 - [ ] T011 [US2] [in `auth-api` repo] Add the sign-in counter to `metrics.go`
   and increment it in the login handler per research R6, and make T008 pass
-- [ ] T012 [US2] Add the Business row and its two panels to
+- [X] T012 [US2] Add the Business row and its two panels to
   `infrastructure/grafana/dashboards/golden-signals.yaml` per research R7, and
   make T009 pass
 

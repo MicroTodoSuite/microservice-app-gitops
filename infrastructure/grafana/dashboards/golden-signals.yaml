@@ -81,6 +81,50 @@ data:
             "mode": "markdown",
             "content": "Saturation is a disclosed gap in this MVP: it needs a live-verified kubelet-cAdvisor or kube-state-metrics scrape target on `eks-dev`, which this environment could not verify. See `specs/006-observability-platform-foundation/tasks.md` T014a."
           }
+        },
+        {
+          "id": 5,
+          "title": "Business",
+          "type": "row",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+          "panels": []
+        },
+        {
+          "id": 6,
+          "title": "Todos created and deleted (per 5m)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 }
+          },
+          "targets": [
+            {
+              "expr": "sum(increase(todo_api_todos_created_total[5m]))",
+              "legendFormat": "created"
+            },
+            {
+              "expr": "sum(increase(todo_api_todos_deleted_total[5m]))",
+              "legendFormat": "deleted"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "Sign-ins by outcome (per 5m)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 }
+          },
+          "targets": [
+            {
+              "expr": "sum by (outcome) (increase(auth_api_sign_ins_total[5m]))",
+              "legendFormat": "{{outcome}}"
+            }
+          ]
         }
       ]
     }
