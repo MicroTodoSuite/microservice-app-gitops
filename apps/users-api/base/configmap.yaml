@@ -14,3 +14,6 @@ data:
     -XX:ReservedCodeCacheSize=48m
     -XX:MaxDirectMemorySize=32m
     -XX:+UseSerialGC
+  # Tracing destination and reported name for every environment (spec 010).
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector.observability.svc:4317"
+  OTEL_SERVICE_NAME: "users-api"

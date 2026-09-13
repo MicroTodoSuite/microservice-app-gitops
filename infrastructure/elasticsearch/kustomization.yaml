@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Elasticsearch, deployed by ArgoCD as an ECK-managed resource (spec 009,
+# T084). Requires infrastructure/eck-operator/ to be Healthy first (its CRD
+# and admission webhook). `node.store.allow_mmap: false` avoids requiring a
+# privileged host-sysctl init container (vm.max_map_count) for local
+# verification — the same class of constraint T084 names for SonarQube's
+# Postgres, solved here without any privileged pod at all.
+#
+# Ownership note: per constitution principle 11, ArgoCD owns this add-on.
+namespace: elasticsearch
+
+resources:
+  - namespace.yaml
+  - elasticsearch.yaml

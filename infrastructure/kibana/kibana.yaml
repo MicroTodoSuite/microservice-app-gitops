@@ -1,0 +1,24 @@
+# Resource-bounded (T084), ClusterIP by ECK default (no public ingress
+# configured — same posture as infrastructure/kiali/).
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: platform
+spec:
+  version: 9.4.4
+  image: docker.elastic.co/kibana/kibana@sha256:fbdf2b53fd1a9cec892c69eed735e7ee27a912dabff600308f5a576138a9806f
+  count: 1
+  elasticsearchRef:
+    name: platform
+    namespace: elasticsearch
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: 500m
+              memory: 1Gi

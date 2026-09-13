@@ -1,0 +1,25 @@
+# Business pods send their traces to Jaeger's OTLP/gRPC receiver and nowhere
+# else (spec 010). default-deny blocks all egress, so without this rule no
+# service can reach the tracing backend. The peer combines the namespace and
+# pod selectors, so it matches only Jaeger pods inside observability.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-tracing-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: business-service
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: jaeger
+      ports:
+        - protocol: TCP
+          port: 4317

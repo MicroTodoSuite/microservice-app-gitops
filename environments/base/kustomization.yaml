@@ -15,6 +15,7 @@ resources:
   - networkpolicy-allow-intra-namespace.yaml
   - networkpolicy-allow-redis.yaml
   - networkpolicy-allow-observability-scrape.yaml
+  - networkpolicy-allow-tracing-egress.yaml
   - external-secrets-serviceaccount.yaml
   - secretstore.yaml
   - external-secret.yaml

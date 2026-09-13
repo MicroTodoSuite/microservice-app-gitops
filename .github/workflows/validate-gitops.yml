@@ -132,6 +132,9 @@ jobs:
       - name: Validate the full-topology mesh policy render (spec 009 T069)
         run: tests/platform/mesh-policy.bats
 
+      - name: Validate the per-service mesh traffic policy render (spec 009 T083)
+        run: tests/platform/mesh-traffic-policy.bats
+
       - name: Validate single-owner infrastructure inventory
         run: tests/evidence/validate-ownership.bats
 
@@ -143,6 +146,15 @@ jobs:
 
       - name: Validate the one-command account change
         run: tests/contract/set-aws-account.sh
+
+      - name: Validate the observability platform static contract (spec 006)
+        run: tests/contract/observability.sh
+
+      - name: Validate the runtime security static contract (spec 008)
+        run: tests/contract/security.sh
+
+      - name: Validate the service tracing configuration (spec 010)
+        run: tests/contract/service-tracing.sh
 
       - name: Reject committed secret material
         run: |
@@ -162,6 +174,9 @@ jobs:
 
       - name: Validate the chaos-mesh and opencost render (spec 009 T087)
         run: tests/platform/chaos-mesh-opencost.bats
+
+      - name: Validate the eck stack render (spec 009 T084)
+        run: tests/platform/eck.bats
 
       - name: Validate the aws-load-balancer-controller render (spec 009 T083)
         run: tests/platform/aws-load-balancer-controller.bats
