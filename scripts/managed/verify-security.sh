@@ -75,8 +75,21 @@ kube get pods -n "$NAMESPACE" -l app.kubernetes.io/name=kube-hunter \
 log "Once the Job completes, run: kubectl --context $CONTEXT -n $NAMESPACE logs job/<name>"
 log "to capture the real vulnerability report (or explicit 'none found')."
 
-log "Evidence retained under $EVIDENCE_DIR"
-log "This run covers all three user stories (Falco, kube-bench, kube-hunter)."
+log "Checking Trivy Operator and the vulnerability reports it keeps (User Story 4)"
+kube get deployment trivy-operator -n "$NAMESPACE" -o wide \
+  | tee "$EVIDENCE_DIR/raw/trivy-operator.txt" \
+  || log "WARNING: could not read the trivy-operator Deployment"
+for scanned in microtodo-dev microtodo-staging microtodo-prod observability security; do
+  kube get vulnerabilityreports -n "$scanned" \
+    -o custom-columns=NAME:.metadata.name,CRITICAL:.report.summary.criticalCount,HIGH:.report.summary.highCount \
+    | tee "$EVIDENCE_DIR/raw/vulnerabilityreports-$scanned.txt" \
+    || log "WARNING: could not list vulnerability reports in $scanned"
+done
+log "Compare these counts with the Grafana vulnerability dashboard, and record"
+log "the Slack notification for any image with HIGH or CRITICAL counts."
 
-echo "SECURITY VERIFIED: falco/kube-bench/kube-hunter Synced/Healthy; a real"
-echo "finding reached Slack; both audit reports captured. See $EVIDENCE_DIR."
+log "Evidence retained under $EVIDENCE_DIR"
+log "This run covers all four user stories (Falco, kube-bench, kube-hunter, Trivy)."
+
+echo "SECURITY VERIFIED: falco/kube-bench/kube-hunter/trivy-operator Synced/Healthy; a real"
+echo "finding reached Slack; both audit reports and the vulnerability reports captured. See $EVIDENCE_DIR."

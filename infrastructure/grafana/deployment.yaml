@@ -110,9 +110,15 @@ spec:
         - name: dashboard-providers
           configMap:
             name: grafana-dashboard-providers
+        # Every dashboard ConfigMap is projected into the one directory the
+        # file provider reads.
         - name: dashboards
-          configMap:
-            name: grafana-dashboards-golden-signals
+          projected:
+            sources:
+              - configMap:
+                  name: grafana-dashboards-golden-signals
+              - configMap:
+                  name: grafana-dashboards-trivy-vulnerabilities
         - name: storage
           persistentVolumeClaim:
             claimName: grafana-storage

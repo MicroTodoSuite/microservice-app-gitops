@@ -1,0 +1,98 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Trivy Operator 0.34.0 from its upstream static bundle, scanning only for
+# vulnerabilities in this suite's namespaces (spec 008 User Story 4). The
+# vendored file stays unchanged; see vendor/v0.34.0/README.md.
+resources:
+  - vendor/v0.34.0/trivy-operator.yaml
+  - networkpolicy.yaml
+
+namespace: security
+
+images:
+  - name: mirror.gcr.io/aquasec/trivy-operator
+    newTag: "0.34.0"
+    digest: sha256:0e4f11e9632f34097f259f3a59d34bab4eea8cee9aef510d15cdfc7481d5e49c
+
+patches:
+  # Every security component lives in the security namespace.
+  - target:
+      kind: Namespace
+      name: trivy-system
+    patch: |-
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: trivy-system
+      $patch: delete
+  # Vulnerability scanning only (FR-014), one scan Job at a time on the
+  # two-node economical cluster.
+  - target:
+      kind: ConfigMap
+      name: trivy-operator-config
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: trivy-operator-config
+      data:
+        OPERATOR_CONFIG_AUDIT_SCANNER_ENABLED: "false"
+        OPERATOR_RBAC_ASSESSMENT_SCANNER_ENABLED: "false"
+        OPERATOR_INFRA_ASSESSMENT_SCANNER_ENABLED: "false"
+        OPERATOR_EXPOSED_SECRET_SCANNER_ENABLED: "false"
+        OPERATOR_CLUSTER_COMPLIANCE_ENABLED: "false"
+        OPERATOR_SBOM_GENERATION_ENABLED: "false"
+        OPERATOR_CONCURRENT_SCAN_JOBS_LIMIT: "1"
+  # The operator joins trivy.repository and trivy.tag as repository:tag
+  # (pkg/plugins/trivy/config.go, GetImageRef), so the digest rides on the tag.
+  - target:
+      kind: ConfigMap
+      name: trivy-operator-trivy-config
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: trivy-operator-trivy-config
+      data:
+        trivy.tag: "0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
+  # Kustomize's namespace transformer does not rewrite env values. The target
+  # list is the suite's five namespaces (FR-013). The startup probe follows the
+  # plan section 10 convention on the operator's existing /healthz/ endpoint.
+  - target:
+      kind: Deployment
+      name: trivy-operator
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: trivy-operator
+      spec:
+        template:
+          spec:
+            containers:
+              - name: trivy-operator
+                env:
+                  - name: OPERATOR_NAMESPACE
+                    value: security
+                  - name: OPERATOR_TARGET_NAMESPACES
+                    value: microtodo-dev,microtodo-staging,microtodo-prod,observability,security
+                startupProbe:
+                  httpGet:
+                    path: /healthz/
+                    port: probes
+                  periodSeconds: 5
+                  failureThreshold: 30
+  # Scan Jobs run as this ServiceAccount (pkg/plugins/trivy/image.go), so the
+  # read-only ECR role reaches them through IRSA (FR-017). The role is created
+  # by microservice-app-ops (spec 008 T035).
+  - target:
+      kind: ServiceAccount
+      name: trivy-operator
+    patch: |-
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: trivy-operator
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-security-trivy-ecr-reader

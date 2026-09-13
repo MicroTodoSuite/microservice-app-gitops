@@ -167,6 +167,19 @@ awk '
 ' "$TMP_DIR/prometheus.yaml" \
   || fail "Alertmanager main must set alertmanagerConfigMatcherStrategy type None, or the golden-signal alerts never match the Slack route"
 
+# --- Trivy vulnerability metrics, alert, and dashboard (spec 008 FR-015, FR-016; T031) ---
+require_resource "$TMP_DIR/prometheus.yaml" ServiceMonitor trivy-operator
+require_text infrastructure/prometheus/servicemonitors/trivy-operator.yaml 'matchNames: \["security"\]' \
+  "the Trivy ServiceMonitor must select the security namespace"
+require_text infrastructure/prometheus/servicemonitors/trivy-operator.yaml 'port: metrics' \
+  "the Trivy ServiceMonitor must scrape the operator's metrics port"
+require_resource "$TMP_DIR/prometheus.yaml" PrometheusRule trivy-vulnerabilities
+require_text infrastructure/prometheus/rules/trivy-vulnerabilities.yaml 'trivy_image_vulnerabilities\{severity=~"Critical\|High"\}' \
+  "the Trivy alert must fire on Critical or High vulnerabilities"
+require_resource "$TMP_DIR/grafana.yaml" ConfigMap grafana-dashboards-trivy-vulnerabilities
+require_text infrastructure/grafana/deployment.yaml 'name: grafana-dashboards-trivy-vulnerabilities' \
+  "Grafana must mount the Trivy vulnerability dashboard"
+
 # --- Jaeger resources ---
 require_resource "$TMP_DIR/jaeger.yaml" Deployment jaeger
 require_resource "$TMP_DIR/jaeger.yaml" Service jaeger-collector

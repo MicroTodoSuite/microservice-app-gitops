@@ -236,7 +236,7 @@ notification in Slack.
 
 > Write these tests first and commit them failing before T033 to T036.
 
-- [ ] T030 [P] [US4] Add failing assertions to `tests/contract/security.sh`:
+- [X] T030 [P] [US4] Add failing assertions to `tests/contract/security.sh`:
   `infrastructure/trivy-operator/vendor/v0.34.0` passes its `SHA256SUMS`;
   the rendered root has no `trivy-system` Namespace and every namespaced
   resource in `security`; the operator and Trivy images are digest-pinned;
@@ -246,7 +246,7 @@ notification in Slack.
   is `"1"`; the `trivy-operator` ServiceAccount carries the ECR reader role
   ARN; the default-deny and allow NetworkPolicies exist; and the operator
   container declares liveness, readiness, and startup probes
-- [ ] T031 [P] [US4] Add failing assertions to `tests/contract/observability.sh`:
+- [X] T031 [P] [US4] Add failing assertions to `tests/contract/observability.sh`:
   the rendered Prometheus root contains a `trivy-operator` ServiceMonitor
   selecting the operator's `metrics` port in `security`, and a
   PrometheusRule alert on `trivy_image_vulnerabilities` with severity
@@ -261,22 +261,22 @@ notification in Slack.
 
 ### Implementation for User Story 4
 
-- [ ] T033 [US4] Vendor `deploy/static/trivy-operator.yaml` from tag
+- [X] T033 [US4] Vendor `deploy/static/trivy-operator.yaml` from tag
   `v0.34.0` under `infrastructure/trivy-operator/vendor/v0.34.0/` with
   `SHA256SUMS` and a `README.md` recording the source URL, both image
   digests, and what the Kustomize root changes
-- [ ] T034 [US4] Create `infrastructure/trivy-operator/kustomization.yaml`
+- [X] T034 [US4] Create `infrastructure/trivy-operator/kustomization.yaml`
   and `networkpolicy.yaml` per research.md (namespace, digests, scanner and
   target-namespace settings, concurrency, ServiceAccount annotation, startup
   probe, NetworkPolicies) and make T030 pass
 - [ ] T035 [US4] [in `microservice-app-ops` repo] Add the Trivy ECR reader
   role and its output to `security-irsa.tf` and `outputs.tf`, and make T032
   pass
-- [ ] T036 [US4] Add `infrastructure/prometheus/servicemonitors/trivy-operator.yaml`,
+- [X] T036 [US4] Add `infrastructure/prometheus/servicemonitors/trivy-operator.yaml`,
   `infrastructure/prometheus/rules/trivy-vulnerabilities.yaml`, and
   `infrastructure/grafana/dashboards/trivy-vulnerabilities.yaml`, register
   them in their kustomizations, and make T031 pass
-- [ ] T037 [US4] Add `trivy-operator` to the registration contract's expected
+- [X] T037 [US4] Add `trivy-operator` to the registration contract's expected
   elements in `tests/contract/security.sh` and to
   `scripts/managed/verify-security.sh`'s expected inventory; the
   activation entry itself lands when `eks-dev` infrastructure is reactivated
