@@ -120,13 +120,17 @@ needs no compiler.
 
 ## R6. users-api: keep Micrometer Tracing, change only the exporter
 
-**Decision**: Replace `io.opentelemetry:opentelemetry-exporter-zipkin` with
+**Decision** (amended during implementation, see below): Replace
+`io.opentelemetry:opentelemetry-exporter-zipkin` with
 `io.opentelemetry:opentelemetry-exporter-otlp` (version managed by the Spring
 Boot 3.5.16 BOM) and replace `management.zipkin.tracing.endpoint` with
-`management.otlp.tracing.endpoint=${OTEL_EXPORTER_OTLP_ENDPOINT:}` and
-`management.otlp.tracing.transport=grpc`. An `ObservationPredicate` bean skips
-server observations for `/health/**` and `/prometheus`. The test that disables
-Zipkin export disables OTLP export instead.
+`management.otlp.tracing.transport=grpc`. An `EnvironmentPostProcessor` sets
+`management.otlp.tracing.endpoint` from `OTEL_EXPORTER_OTLP_ENDPOINT` only when
+the variable has a value. An auto-configuration replaces Spring Boot's three
+tracing observation handlers with subclasses that do not support a
+`/health/**` or `/prometheus` server request or any observation nested in one.
+The test property that disabled Zipkin export is removed: Spring Boot tests
+run with tracing off unless `@AutoConfigureObservability` turns it on.
 
 **Verified**: Spring Boot 3.5 tracing reference names
 `micrometer-tracing-bridge-otel` plus `opentelemetry-exporter-otlp` for OTLP;
@@ -137,6 +141,32 @@ the properties appendix lists `management.otlp.tracing.endpoint`,
 **To confirm during implementation**: that an empty endpoint leaves no
 exporter active; if it does not, `management.otlp.tracing.export.enabled` is
 bound to the endpoint's presence. The failing test written first decides it.
+
+**Amendment (T014/T016)**: Two parts of the original decision do not hold in
+Spring Boot 3.5.16 and Micrometer 1.15.12:
+
+- `management.otlp.tracing.endpoint=${OTEL_EXPORTER_OTLP_ENDPOINT:}` resolves
+  to an empty string when the variable is unset, and
+  `OtlpTracingConfigurations.ConnectionDetails` is
+  `@ConditionalOnProperty("management.otlp.tracing.endpoint")`, which matches
+  any value other than `false`, so the OTLP/gRPC exporter is still created
+  and rejects the empty endpoint: with tracing on, users-api fails to start
+  (`IllegalArgumentException: Invalid endpoint, must start with http:// or
+  https://`, observed with the T014 tests before the implementation).
+  `management.otlp.tracing.export.enabled` cannot be derived from the
+  variable's presence with a property placeholder, so the property is set in
+  code only when the variable has a value.
+- An `ObservationPredicate` that rejects an observation makes it a no-op for
+  every handler, including the meter handler that records
+  `http.server.requests`, so the probe and scrape series would disappear
+  (FR-013). Filtering finished spans instead leaves the Spring Security
+  observations nested in those requests as spans of their own. Spring Boot's
+  `defaultTracingObservationHandler`, `propagatingReceiverTracingObservationHandler`,
+  and `propagatingSenderTracingObservationHandler` beans are
+  `@ConditionalOnMissingBean`, so replacing only those three leaves metrics
+  untouched. Micrometer's `TracingAwareMeterObservationHandler` reads a
+  tracing context when any observation stops, so a skipped observation keeps
+  an empty one and its metrics are recorded without a span.
 
 ## R7. auth-api: only stop tracing probes and scrapes
 

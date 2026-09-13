@@ -123,7 +123,9 @@ microservice-app-log-message-processor/
 microservice-app-users-api/
 ├── pom.xml
 ├── src/main/resources/application.properties
-├── src/main/java/com/elgris/usersapi/configuration/TracingConfiguration.java   # new: ObservationPredicate
+├── src/main/java/com/elgris/usersapi/configuration/TracingConfiguration.java   # new: handlers that skip probes and scrapes
+├── src/main/java/com/elgris/usersapi/configuration/OtlpTracingEndpointEnvironmentPostProcessor.java   # new
+├── src/main/resources/META-INF/spring.factories, spring/...AutoConfiguration.imports   # new: registrations
 └── src/test/java/com/elgris/usersapi/UsersApiApplicationTests.java
 
 microservice-app-frontend/
