@@ -11,9 +11,7 @@
 # Decision 1 in microservice-app-docs/full-platform/infrastructure-execution-plan.md:
 # the full profile is pinned to the retired account 916491575487. Re-pointing
 # it amends spec 009, so it is a maintainer decision, not a sweep.
-scripts/managed/collect-foundational-evidence.sh  916491575487  # decision 1: full-profile evidence collector expects the retired account
 scripts/managed/full-profile-toolchain.lock  916491575487  # decision 1: full-profile platform mirror repository in the retired account
-specs/009-full-platform-rollout/quickstart.md  916491575487  # decision 1: full-profile operating instructions name the retired account
 tests/evidence/fixtures/checksum-mismatch.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
 tests/evidence/fixtures/failed-check.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
 tests/evidence/fixtures/missing-approval.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const

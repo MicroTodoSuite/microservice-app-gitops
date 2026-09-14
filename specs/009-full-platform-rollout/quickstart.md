@@ -40,7 +40,7 @@ aws service-quotas get-service-quota --service-code ec2 --quota-code L-34B43A08
 aws eks list-clusters --region us-east-1
 ```
 
-The account ID must be `916491575487`. Stop if it differs, if the quotas are below the accepted plan values, or if an unplanned VPC/cluster consumes a selected CIDR.
+The account ID must equal `AWS_ACCOUNT_ID` in `../microservice-app-ops/config/aws-account.env`. Stop if it differs, if the quotas are below the accepted plan values, or if an unplanned VPC/cluster consumes a selected CIDR.
 
 Before Azure work, install Azure CLI from a checksum-verified official artifact, authenticate, and capture:
 
@@ -117,7 +117,7 @@ The binary plan and full plan JSON remain external because provider values may b
 
 Repeat only with the root's exact backend/variable names. Plans must show:
 
-- account `916491575487`, region `us-east-1`, and the approved CIDR;
+- the declared account, the environment's declared region (`us-east-1`), and the approved CIDR;
 - no `0.0.0.0/0` EKS public-access CIDR;
 - zero shared ECR/OIDC/shared-role/hosted-zone creations;
 - no unexpected destroy or replacement;

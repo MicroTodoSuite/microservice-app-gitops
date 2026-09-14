@@ -4,7 +4,7 @@
 
 The following facts were verified read-only on 2026-08-24 and are inputs to the design, not implementation claims:
 
-- AWS STS resolved account `916491575487` in `us-east-1`.
+- AWS STS resolved account `916491575487` in `us-east-1`. The account has since become a parameter; see the spec's 2026-09-14 amendment.
 - EKS clusters `microtodosuite-dev` and `microtodosuite-demo-full` exist.
 - Four Elastic IP addresses are allocated against the regional default quota of five. Three NAT gateways belong to the economical VPC and one belongs to `demo-full`.
 - Four `m7i-flex.large` instances are running: two in the economical VPC and two in the `demo-full` VPC.

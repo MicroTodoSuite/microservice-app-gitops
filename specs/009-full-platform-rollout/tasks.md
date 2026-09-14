@@ -153,6 +153,31 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
 - [X] T039 [P] [US2] Add Terraform tests for one-EIP/one-NAT centralized egress, separate empty per-spoke TGW route tables, spoke-owned attachments/default/return routes, absent spoke-to-spoke routes, encrypted flow logs, and expected outputs in `../microservice-app-ops/aws/modules/centralized-egress/tests/centralized-egress.tftest.hcl`.
 - [X] T040 [P] [US2] Add full-dev root tests for account `916491575487`, `us-east-1`, `10.40.0.0/16`, one-node bootstrap, private EKS endpoint plus exactly four reviewed public `/32` CIDRs, transit egress, enabled EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites, consumer mode, and one cluster-qualified dev JWT reader/zero secrets in `../microservice-app-ops/aws/environments/full-dev/foundation/tests/foundation.tftest.hcl`.
 - [X] T041 [P] [US2] Add full-prod root tests for account `916491575487`, `us-east-1`, `10.30.0.0/16`, one-node bootstrap, private EKS endpoint plus exactly four reviewed public `/32` CIDRs, transit egress, enabled EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites, consumer mode, and one cluster-qualified prod JWT reader/zero secrets in `../microservice-app-ops/aws/environments/full-prod/foundation/tests/foundation.tftest.hcl`.
+  > **Re-delivered on the rebuilt layout, 2026-09-14** (T040 and T041;
+  > microservice-app-ai-agents specs/001 T028). The `full-dev` and `full-prod`
+  > foundation roots were replaced by `aws/environments/{fdev,fprd}/{networking,
+  > security,workload,security-irsa}` in microservice-app-ops, and the literal
+  > account, region, and CIDRs became parameters (this spec's 2026-09-14
+  > amendment; PC-IAC-024). What each requirement maps to now:
+  > - the declared account: `allowed_account_ids = [var.aws_account_id]` in
+  >   every root, and `tests/contract/aws-account-parameter.sh`
+  > - one bootstrap node and single-address `/32` public endpoint blocks:
+  >   `rejects_more_than_one_bootstrap_node` and
+  >   `rejects_a_public_endpoint_block_wider_than_one_address`
+  >   (microservice-app-ops#103)
+  > - a private endpoint unless operators are named: the workload tests
+  > - transit egress: `builds_a_three_zone_transit_spoke_without_nat`
+  > - the Karpenter prerequisites: microservice-app-ops#101
+  > - the VPC CNI network policy and the EBS CSI identity: the workload and
+  >   security tests
+  > - the cluster-qualified JWT readers:
+  >   `trusts_each_role_to_exactly_one_service_account`
+  >
+  > The VPC CIDRs and the operator addresses are values in the gitignored
+  > `.tfvars`, not literals a test can pin. **Not re-delivered:** the AWS Load
+  > Balancer Controller identity, which no rebuilt root creates yet; "consumer
+  > mode" and "zero secrets" describe the legacy shared module and have no
+  > rebuilt counterpart.
 - [X] T042 [P] [US2] Add a demo-full regression/opt-in test for `10.20.0.0/16`, current one NAT, current two-node bootstrap, default prerequisites off, explicit staging EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy prerequisites on, one cluster-qualified staging JWT reader/zero secrets, `create_shared_resources=false`, and exactly the four approved `/32` values in `../microservice-app-ops/aws/environments/demo-full/foundation/tests/full-staging-contract.tftest.hcl`.
 - [X] T043 [P] [US2] Extend shared-resource tests with full-dev/full-staging/full-prod issuers and exact ServiceAccount subjects, the full-dev-only Sonar secret reader/two-secret boundary, the isolated DR seed workflow subject/four-secret boundary, and a distinct platform-mirror role limited to its exact workflow and the one `microtodosuite/platform` repository in `../microservice-app-ops/aws/modules/environment-foundation/tests/{ecr,github_oidc,observability_security_irsa,kyverno_irsa,managed_secrets}.tftest.hcl`; confirm consumers still create zero shared roles, ECR repositories, or secret containers.
 - [X] T044 [P] [US2] Add managed-bootstrap fixture tests for wrong account, wrong cluster, unmerged revision, checksum mismatch, third mutation, and successful two-mutation transcript in `tests/bootstrap/managed-cluster-bootstrap.bats`.
@@ -182,7 +207,7 @@ started here.
 - [ ] T053 [US2] Initialize and produce a refreshed saved plan plus Infracost for `../microservice-app-ops/aws/shared/egress/`; prove one EIP/NAT, no environment route sharing, no destroy, and record the single-AZ availability trade-off/cost acceptance.
 - [ ] T054 [P] [US2] Initialize and produce a refreshed saved plan plus Infracost for `../microservice-app-ops/aws/environments/full-dev/foundation/`; prove zero singleton creation, correct state/CIDR/API access, no NAT/EIP, no destroy, and quota fit.
 - [ ] T055 [P] [US2] Initialize and produce a refreshed saved plan plus Infracost for `../microservice-app-ops/aws/environments/full-prod/foundation/`; prove zero singleton creation, correct state/CIDR/API access, no NAT/EIP, no destroy, and quota fit.
-- [ ] T056 [US2] First re-plan unchanged `../microservice-app-ops/aws/environments/demo-full/foundation/` and require exactly `0 to add, 0 to change, 0 to destroy`, account `916491575487`, and exactly the four approved `/32` CIDRs; only then enable staging's opt-in EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy and cluster-qualified JWT reader inputs and produce a second saved plan/Infracost containing only those intended prerequisite additions/updates with no replacement/destroy.
+- [ ] T056 [US2] First re-plan unchanged `../microservice-app-ops/aws/environments/demo-full/foundation/` and require exactly `0 to add, 0 to change, 0 to destroy`, the declared account, and exactly the four approved `/32` CIDRs; only then enable staging's opt-in EBS/Karpenter/AWS-load-balancer/VPC-CNI-NetworkPolicy and cluster-qualified JWT reader inputs and produce a second saved plan/Infracost containing only those intended prerequisite additions/updates with no replacement/destroy.
 - [ ] T057 [US2] After exact-plan approval, create an external timestamped state backup and apply only T053's saved egress plan; record plan SHA, backup path/checksum, approval, apply output, routes, flow logs, NAT health, and unchanged economical post-baseline in `evidence/runs/<timestamp>-aws-foundations/egress/`.
 - [ ] T058 [US2] After exact-plan approval and external state backup, apply only T054's saved full-dev plan; record state/plan checksums, outputs, cluster identity, node readiness, TGW egress, and unchanged economical post-baseline in `evidence/runs/<timestamp>-aws-foundations/full-dev/`.
 - [ ] T059 [US2] After exact-plan approval and external state backup, apply only T055's saved full-prod plan; record state/plan checksums, outputs, cluster identity, node readiness, TGW egress, and unchanged economical post-baseline in `evidence/runs/<timestamp>-aws-foundations/full-prod/`.

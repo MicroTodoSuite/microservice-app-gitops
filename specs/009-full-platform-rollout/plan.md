@@ -20,7 +20,7 @@ Every stage is fail-closed. It begins with an economical-platform baseline and e
 
 **Testing**: `terraform fmt`, `terraform validate`, `terraform test`, saved remote-state `terraform plan`, Infracost, Kustomize rendering, kubeconform `0.7.0`, policy/ownership shell checks, service-owned unit/integration/contract/E2E/performance/DAST suites, Trivy, Syft, Cosign, Kyverno admission tests, ArgoCD/live health checks, telemetry correlation, scaling tests, canary rollback, chaos experiments, and a gated DR game day
 
-**Target Platform**: AWS account `916491575487` in `us-east-1`; three dedicated full-profile EKS clusters plus the unchanged economical EKS cluster; one AKS 1.35 cluster in the approved existing Azure subscription and region discovered during implementation preflight; GitHub Actions and protected GitHub repositories
+**Target Platform**: the declared AWS account (`AWS_ACCOUNT_ID` in `microservice-app-ops/config/aws-account.env`) in each environment's declared region, `us-east-1`; three dedicated full-profile EKS clusters plus the unchanged economical EKS cluster; one AKS 1.35 cluster in the approved existing Azure subscription and region discovered during implementation preflight; GitHub Actions and protected GitHub repositories
 
 **Project Type**: Cross-repository infrastructure, GitOps, delivery-automation, and service operational-contract rollout
 

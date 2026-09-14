@@ -19,7 +19,7 @@ Each stage declares:
 
 ## Mandatory Rules
 
-1. AWS identity must be account `916491575487`; the Azure subscription must equal the authenticated approved value.
+1. AWS identity must be the account `microservice-app-ops/config/aws-account.env` declares; the Azure subscription must equal the authenticated approved value.
 2. Every Terraform plan must use the correct initialized remote backend, a saved plan file, and current refresh. A failed or inaccessible backend is `blocked`, never clean.
 3. An unexpected destroy, replacement, singleton creation, control-plane `0.0.0.0/0`, duplicate state key, quota excess, or unaccepted cost excess is `blocked`.
 4. Dev-owner compatibility work cannot proceed to any consumer environment until dev reports exactly `0 to add, 0 to change, 0 to destroy`.

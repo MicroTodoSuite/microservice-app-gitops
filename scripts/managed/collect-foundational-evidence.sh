@@ -17,6 +17,15 @@ GITOPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 WORKSPACE_ROOT="$(dirname "$GITOPS_ROOT")"
 OPS_ROOT="${OPS_ROOT:-$WORKSPACE_ROOT/microservice-app-ops}"
 
+# The AWS account every stage runs in, declared once in the ops repository
+# (MTS-IAC-103); the evidence records it rather than a literal.
+AWS_ACCOUNT_ID="$(sed -n 's/^AWS_ACCOUNT_ID=\([0-9]\{12\}\)$/\1/p' "$OPS_ROOT/config/aws-account.env" 2>/dev/null || true)"
+if [[ ! "$AWS_ACCOUNT_ID" =~ ^[0-9]{12}$ ]]; then
+  printf 'FAIL: %s declares no 12-digit AWS_ACCOUNT_ID\n' "$OPS_ROOT/config/aws-account.env" >&2
+  exit 1
+fi
+export AWS_ACCOUNT_ID
+
 EXTERNAL_DIR=""
 KUBE_CONTEXT=""
 SKIP_LIVE=0
@@ -247,6 +256,7 @@ python3 - \
   "$GITOPS_ROOT" "$RUN_REL" "$STAGE_ID" "$GIT_ACTOR" "$LIVE_REL" \
   "${GATE_FILES[@]}" <<'PY'
 import hashlib
+import os
 import json
 import pathlib
 import subprocess
@@ -308,7 +318,7 @@ evidence = {
             "full-profile-secrets",
         ],
     },
-    "identities": {"gitActor": git_actor, "awsAccountId": "916491575487"},
+    "identities": {"gitActor": git_actor, "awsAccountId": os.environ["AWS_ACCOUNT_ID"]},
     "baseline": {"result": "pass", "evidence": gate_paths},
     "artifacts": artifacts,
     "requirements": {
