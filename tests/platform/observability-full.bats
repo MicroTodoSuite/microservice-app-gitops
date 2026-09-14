@@ -224,8 +224,8 @@ for cloud in aws azure; do
     'elasticsearch:' \
     "- $ES_URL" \
     'username: jaeger' \
-    'password_file: /etc/jaeger/elasticsearch/password' \
-    'ca_file: /etc/jaeger/elasticsearch-ca/ca.crt'; do
+    'password_file: /etc/jaeger-elasticsearch/credentials/password' \
+    'ca_file: /etc/jaeger-elasticsearch/ca/ca.crt'; do
     grep -qF -- "$expected" <<<"$config" \
       || fail "$root: jaeger-config must contain '$expected'"
   done
@@ -241,14 +241,17 @@ for cloud in aws azure; do
   done
 
   deployment="$(document Deployment jaeger <<<"$out")"
-  grep -A1 'secretName: jaeger-elasticsearch-credentials' <<<"$deployment" >/dev/null \
+  grep -q 'secretName: jaeger-elasticsearch-credentials' <<<"$deployment" \
     || fail "$root: Deployment jaeger must mount Secret jaeger-elasticsearch-credentials"
   grep -q 'secretName: jaeger-elasticsearch-ca' <<<"$deployment" \
     || fail "$root: Deployment jaeger must mount Secret jaeger-elasticsearch-ca"
-  grep -q 'mountPath: /etc/jaeger/elasticsearch$' <<<"$deployment" \
-    || fail "$root: Deployment jaeger must mount the credentials at /etc/jaeger/elasticsearch"
-  grep -q 'mountPath: /etc/jaeger/elasticsearch-ca$' <<<"$deployment" \
-    || fail "$root: Deployment jaeger must mount the CA at /etc/jaeger/elasticsearch-ca"
+  # Outside /etc/jaeger: that is the read-only jaeger-config mount, and a
+  # mount point nested inside it would have to be created in a read-only
+  # directory.
+  grep -q 'mountPath: /etc/jaeger-elasticsearch/credentials$' <<<"$deployment" \
+    || fail "$root: Deployment jaeger must mount the credentials at /etc/jaeger-elasticsearch/credentials"
+  grep -q 'mountPath: /etc/jaeger-elasticsearch/ca$' <<<"$deployment" \
+    || fail "$root: Deployment jaeger must mount the CA at /etc/jaeger-elasticsearch/ca"
 
   store="$(document SecretStore elasticsearch <<<"$out")"
   grep -q 'remoteNamespace: elasticsearch' <<<"$store" \
@@ -272,7 +275,7 @@ for cloud in aws azure; do
       || fail "$root: jaeger-es-index-cleaner must target $ES_URL"
     grep -A4 'name: ES_PASSWORD' <<<"$cleaner" | grep -q 'name: jaeger-elasticsearch-credentials' \
       || fail "$root: jaeger-es-index-cleaner must read ES_PASSWORD from Secret jaeger-elasticsearch-credentials"
-    grep -A1 'name: ES_TLS_CA' <<<"$cleaner" | grep -q 'value: /etc/jaeger/elasticsearch-ca/ca.crt' \
+    grep -A1 'name: ES_TLS_CA' <<<"$cleaner" | grep -q 'value: /etc/jaeger-elasticsearch/ca/ca.crt' \
       || fail "$root: jaeger-es-index-cleaner must verify Elasticsearch with the copied CA"
   fi
 
