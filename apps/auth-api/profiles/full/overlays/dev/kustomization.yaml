@@ -8,10 +8,7 @@ namespace: microtodo-dev
 
 resources:
 - ../../topology
-
-replicas:
-- count: 1
-  name: auth-api
+- scaled-object.yaml
 
 patches:
 - patch: |-

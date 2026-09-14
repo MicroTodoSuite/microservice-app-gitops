@@ -1,0 +1,20 @@
+# Bounded request-rate scaling for users-api in full prod (spec 009 T090,
+# research.md Decision 23). KEDA owns the replica count, so the Rollout declares
+# none in Git; minReplicaCount keeps the count this overlay declared before.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: users-api
+spec:
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: users-api
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-k8s.observability.svc:9090
+        query: sum(workload:http_requests:rate5m{workload="users-api"})
+        threshold: "10"

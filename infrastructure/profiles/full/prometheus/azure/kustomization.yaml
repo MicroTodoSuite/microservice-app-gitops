@@ -17,6 +17,7 @@ resources:
 components:
   - ../components/alerts
   - ../components/notifications
+  - ../components/keda-access
 
 patches:
   - target:
