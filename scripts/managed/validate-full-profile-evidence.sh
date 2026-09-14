@@ -25,8 +25,10 @@ if [[ ! -f "$SCHEMA" ]]; then
 fi
 
 python3 - "$ROOT" "$SCHEMA" "$EVIDENCE" <<'PY'
+import datetime
 import hashlib
 import json
+import os
 import pathlib
 import sys
 
@@ -100,6 +102,46 @@ if missing_artifacts:
         "FAIL: evidence references paths absent from artifacts: " + ", ".join(missing_artifacts)
     )
 
+
+# --- freshness (T145). A generatedAt in the future is clock tampering and is
+#     always rejected; an old bundle is a replay and is rejected when a bound is
+#     configured through EVIDENCE_MAX_AGE_DAYS (CI sets it; a bare local run does
+#     not impose an arbitrary ceiling).
+generated_raw = evidence["generatedAt"]
+try:
+    generated = datetime.datetime.fromisoformat(generated_raw.replace("Z", "+00:00"))
+except ValueError:
+    raise SystemExit(f"FAIL: generatedAt is not an ISO-8601 timestamp: {generated_raw}")
+if generated.tzinfo is None:
+    generated = generated.replace(tzinfo=datetime.timezone.utc)
+now = datetime.datetime.now(datetime.timezone.utc)
+if generated > now + datetime.timedelta(minutes=5):
+    raise SystemExit(f"FAIL: generatedAt is in the future (clock tamper): {generated_raw}")
+max_age_days = os.environ.get("EVIDENCE_MAX_AGE_DAYS")
+if max_age_days:
+    try:
+        age_limit = float(max_age_days)
+    except ValueError:
+        raise SystemExit(f"FAIL: EVIDENCE_MAX_AGE_DAYS is not a number: {max_age_days}")
+    if now - generated > datetime.timedelta(days=age_limit):
+        raise SystemExit(
+            f"FAIL: evidence is stale: generated {generated_raw} is older than {age_limit} days"
+        )
+
+# --- cost and state-backup evidence for Terraform stages (T145). A stage that
+#     owns Terraform state (non-empty scope.stateKeys) applied real
+#     infrastructure, so the constitution's cost-governed design and the apply
+#     rules require it to carry an Infracost estimate and a recorded state
+#     backup. Non-Terraform stages (empty stateKeys) are unaffected.
+state_keys = evidence["scope"].get("stateKeys") or []
+if state_keys:
+    present_kinds = {artifact["kind"] for artifact in evidence["artifacts"]}
+    for required_kind in ("infracost", "state-backup"):
+        if required_kind not in present_kinds:
+            raise SystemExit(
+                f"FAIL: Terraform stage (stateKeys={state_keys}) is missing a "
+                f"required {required_kind!r} artifact"
+            )
 
 decision = evidence["decision"]
 if decision in {"approved", "accepted"}:

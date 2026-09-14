@@ -287,6 +287,23 @@ to stay empty at their bootstrap revision.
 ### Platform implementation
 
 - [ ] T082 [P] [US3] Implement and contract-test the exact-workflow OIDC platform-image mirror in `../.github/.github/workflows/mirror-platform-images.yml` and `../.github/tests/workflows/mirror-platform-images.bats`; copy every locked upstream digest to `microtodosuite/platform`, scan it, record source/mirror digests, and keyless-sign the complete graph without rebuilding or granting access to any service repository.
+
+  > **Partial delivery, .github PR #18 (platform image mirror).** The workflow
+  > (`mirror-platform-images.yml`) and its contract test
+  > (`tests/workflows/mirror-platform-images.bats`, plus a self-test workflow
+  > that runs it) are authored and green — `actionlint` + shellcheck clean, the
+  > contract test fails without the workflow and passes with it. It reads the
+  > 52 locked images from this repo's `scripts/managed/full-profile-toolchain.lock`,
+  > copies each by immutable upstream digest with `crane copy` (no rebuild),
+  > verifies the mirrored digest equals the upstream one, Trivy-scans it,
+  > records source/mirror digests, and keyless-signs it — under a dedicated
+  > OIDC mirror role (never the service publisher role), account from
+  > `vars.AWS_ACCOUNT_ID`, no static credentials, no service-repo access.
+  > **Stays unchecked**: it cannot run until Terraform (spec 009 Phase 4 T061)
+  > creates the `microtodosuite/platform` ECR repository and the mirror IAM
+  > role whose trust policy names this workflow's OIDC subject. Once it has run,
+  > T083/T086 repoint the eleven components' image digests from upstream to the
+  > mirror.
 - [ ] T083 [US3] Vendor checksum-pinned AWS Load Balancer Controller 3.5.0, Istio 1.30.3, and Kiali 2.31.0 under `infrastructure/aws-load-balancer-controller/`, `infrastructure/istio/`, and `infrastructure/kiali/` using only locked mirrored ECR digests, a GitOps-owned EKS ServiceAccount annotated with the exact Terraform-output IRSA role ARN, cert-manager-managed webhook certificates, resource budgets, network policy, Prometheus integration, and no public Kiali ingress; add full-profile namespace labels, PeerAuthentication, AuthorizationPolicy, DestinationRule, VirtualService, ingress Gateway, trusted-certificate references, and default-deny plus exact required-flow NetworkPolicies under `environments/full/` and each service's `components/topology-full/`, and make T069 pass.
 
   > **Partial delivery, gitops PR (per-service mesh traffic policy).** The
@@ -374,6 +391,19 @@ to stay empty at their bootstrap revision.
   > exposure, and the tooling NodePool/EC2NodeClass userData remain deferred
   > to the activating registration (Phase 4).
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
+  T085 is delivered in four slices (`research.md` Decision 21), each with its own
+  failing test first:
+  - [X] Per-cloud full-profile roots with encrypted persistence for Prometheus,
+    Alertmanager, and Grafana, tested by `tests/platform/observability-full.bats`.
+    Delivered in `infrastructure/profiles/full/{prometheus,grafana}/{aws,azure}/`
+    (commits `baf0783` failing, `07cd194` implementing). No cluster activates
+    the roots yet; their live evidence belongs to T094.
+  - [ ] Error-rate, p99, scaling, platform, and security rules with the
+    ServiceMonitors that scrape their sources.
+  - [ ] Jaeger on the ECK Elasticsearch backend through a dedicated
+    least-privilege user, and trace-to-log correlation in Grafana.
+  - [ ] Notifications that carry the cluster and environment through the
+    External Secret-backed Alertmanager route.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
 
   > **Partial delivery, gitops PR (Karpenter vendoring).** The controller and
@@ -452,21 +482,21 @@ to stay empty at their bootstrap revision.
 
 ### Tests first
 
-- [ ] T099 [P] [US4] Add reusable-workflow contract tests and a five-service quality-gate matrix for required unit/integration/contract/E2E/performance/DAST coverage, Sonar fail-closed behavior, digest-only output, OIDC, short-lived GitHub App tokens supplied through the exact `RELEASE_APP_ID`/`RELEASE_APP_KEY` and `GITOPS_PROMOTE_APP_ID`/`GITOPS_PROMOTE_APP_KEY` caller secrets, exact destination tuples, and no cluster mutation in `../.github/tests/workflows/`.
-- [ ] T100 [P] [US4] Add canary render tests for a full-only strategy at 10/25/50/100 traffic weights, five-minute error-rate and p99 analyses, missing-metric failure, automatic abort, stable rollback, and byte-identical economical native-canary golden output in `tests/promotion/full-production-canary.bats`.
+- [X] T099 [P] [US4] Add reusable-workflow contract tests and a five-service quality-gate matrix for required unit/integration/contract/E2E/performance/DAST coverage, Sonar fail-closed behavior, digest-only output, OIDC, short-lived GitHub App tokens supplied through the exact `RELEASE_APP_ID`/`RELEASE_APP_KEY` and `GITOPS_PROMOTE_APP_ID`/`GITOPS_PROMOTE_APP_KEY` caller secrets, exact destination tuples, and no cluster mutation in `../.github/tests/workflows/`.
+- [X] T100 [P] [US4] Add canary render tests for a full-only strategy at 10/25/50/100 traffic weights, five-minute error-rate and p99 analyses, missing-metric failure, automatic abort, stable rollback, and byte-identical economical native-canary golden output in `tests/promotion/full-production-canary.bats`.
 - [X] T101 [P] [US4] Add per-service workflow tests asserting every available unit/integration/contract/E2E/performance/DAST harness is blocking and each reusable workflow is pinned by full SHA in `tests/promotion/service-workflows.bats`.
 
 ### Implementation
 
-- [ ] T102 [US4] Make `../.github/.github/workflows/ci.yml` fail closed for required Sonar/test inputs, retain build-once/Trivy/Syft/Cosign behavior, pin every Action by full SHA, and make the CI portion of T099 pass.
+- [X] T102 [US4] Make `../.github/.github/workflows/ci.yml` fail closed for required Sonar/test inputs, retain build-once/Trivy/Syft/Cosign behavior, pin every Action by full SHA, and make the CI portion of T099 pass.
 - [ ] T103 [P] [US4] Pin and validate the GitHub App installation-token paths in `../.github/.github/workflows/{release,promote}.yml`; add reviewed manifests for separate release and GitOps-promotion Apps, exact repository installations/permissions, selected-repository organization secret names, mode-`0600` private-key upload/cleanup, rotation, and fail-closed authority checks to `../microservice-app-docs/full-platform/github-app-authentication.md`; add a value-blind one-time Sonar administrator-rotation/forced-auth/five-project/analysis-only-token helper in `scripts/managed/bootstrap-sonarqube.sh` and its tests in `tests/promotion/bootstrap-sonarqube.bats`, without adding a PAT, leaving anonymous project access, or exposing either credential.
-- [ ] T104 [US4] Extend `../.github/.github/workflows/promote.yml` with validated `profile`, `destination`, and strategy inputs, pinned Kustomize/checksum installation, exact-digest Cosign verification, and one-overlay PR behavior; make T099 pass.
+- [X] T104 [US4] Extend `../.github/.github/workflows/promote.yml` with validated `profile`, `destination`, and strategy inputs, pinned Kustomize/checksum installation, exact-digest Cosign verification, and one-overlay PR behavior; make T099 pass.
 - [ ] T105 [P] [US4] Wire auth-api's complete required gates and updated shared workflow SHAs in `../microservice-app-auth-api/.github/workflows/ci.yml`.
 - [ ] T106 [P] [US4] Wire frontend's unit, conformance, Pact, full five-service stack E2E, performance, DAST, Sonar, and updated shared workflow SHAs in `../microservice-app-frontend/.github/workflows/{ci,conformance,pact,e2e,perf,dast}.yml`, extending `../microservice-app-frontend/e2e/` so the matrix covers every service interaction required for release.
 - [ ] T107 [P] [US4] Wire log-message-processor's unit/integration/AsyncAPI/Sonar and updated shared workflow SHAs in `../microservice-app-log-message-processor/.github/workflows/ci.yml`.
 - [ ] T108 [P] [US4] Wire todos-api's unit/integration/OpenAPI/AsyncAPI/Pact/Sonar and updated shared workflow SHAs in `../microservice-app-todos-api/.github/workflows/ci.yml`.
 - [ ] T109 [P] [US4] Wire users-api's unit/integration/OpenAPI/Sonar and updated shared workflow SHAs in `../microservice-app-users-api/.github/workflows/ci.yml`.
-- [ ] T110 [US4] Add p99 and error-rate fail-closed AnalysisTemplates in `infrastructure/argo-rollouts/cluster-analysis-template.yaml` and create full-only Istio traffic routing in `apps/*/components/strategy-canary-full/rollout.yaml`; reference it only from full AWS production, leave `components/strategy-canary/` economical output unchanged, and make T100 pass.
+- [X] T110 [US4] Add p99 and error-rate fail-closed AnalysisTemplates in `infrastructure/argo-rollouts/cluster-analysis-template.yaml` and create full-only Istio traffic routing in `apps/*/components/strategy-canary-full/rollout.yaml`; reference it only from full AWS production, leave `components/strategy-canary/` economical output unchanged, and make T100 pass.
 - [ ] T111 [US4] Run and review the five-service quality matrix plus all service/shared workflow tests; verify or create/install the two reviewed organization-owned GitHub Apps and upload the four exact selected-repository organization Actions secrets, run the value-blind Sonar bootstrap against `https://sonar-full-dev.microtodosuite.online`, immediately rotate default admin, force authentication, create the five fixed project keys and one analysis-only identity, set selected-repository `SONAR_HOST_URL`/`SONAR_TOKEN`, delete every local private-key/token file after metadata verification, and prove anonymous project access is denied plus a real fail-closed quality gate and short-lived installation-token/OIDC audit evidence; stop on insufficient authority and never substitute a PAT, then make T099/T101 pass before enabling promotion.
 - [ ] T112 [US4] Build one reviewed service revision once; retain unit/integration/contract/E2E/performance/DAST, Sonar, Trivy, SBOM, signature, source SHA, ECR digest, and Kyverno admission evidence in `evidence/runs/<timestamp>-release/`.
 - [ ] T113 [US4] Promote T112's exact digest through full dev and full staging rolling updates via reviewed GitOps PRs, proving no rebuild and exact live digest at both destinations in `evidence/runs/<timestamp>-release/dev-staging-promotion/`.
@@ -528,15 +558,38 @@ to stay empty at their bootstrap revision.
 ### Tests first
 
 - [ ] T142 [P] [US6] Add tamper, stale-timestamp, failed-requirement, missing-Infracost, missing-state-backup, missing-human-approval, and economical-regression fixtures to `tests/evidence/validate-evidence.bats`; confirm they fail before T145.
+
+  > **Partial delivery, gitops PR (evidence integrity).** Added and wired the
+  > `missing-infracost`, `missing-state-backup`, and `stale-timestamp` fixtures
+  > (plus a `terraform-stage-valid` positive control), each confirmed accepted
+  > by the pre-extension validator and rejected after T145's extension.
+  > `missing-human-approval` is already covered by the existing
+  > `missing-approval.json` fixture the suite tests. **Still to add** (stays
+  > unchecked): the `tamper`, `failed-requirement`, and `economical-regression`
+  > fixtures, which pair with the economical pre/post parity check left open in
+  > T145.
 - [ ] T143 [P] [US6] Add CI tests for recurring source/image/cluster vulnerability findings and actionable ownership in `../.github/tests/workflows/continuous-security.bats`.
 - [ ] T144 [P] [US6] Add OpenCost allocation/label/query tests for cluster, environment, profile, namespace, and service in `tests/platform/opencost-allocation.bats`.
 
 ### Implementation
 
 - [ ] T145 [US6] Extend `scripts/managed/validate-full-profile-evidence.sh` and `.github/workflows/validate-gitops.yml` to verify artifact hashes, freshness, requirement coverage, stage dependencies, cost/backup/approval fields, and economical pre/post parity; make T142 pass.
+
+  > **Partial delivery, gitops PR (evidence integrity).** Extended the validator
+  > with **freshness** (future timestamps always rejected; stale ones rejected
+  > when `EVIDENCE_MAX_AGE_DAYS` is set — CI sets 30) and **cost/backup fields**
+  > (a Terraform stage, i.e. non-empty `scope.stateKeys`, must carry an
+  > `infracost` and a `state-backup` artifact), and wired
+  > `tests/evidence/validate-evidence.bats` into `validate-gitops.yml`. Artifact
+  > hashes and approval fields were already verified by the pre-existing
+  > validator. **Still open** (stays unchecked): **economical pre/post parity**
+  > (baseline vs postBaseline comparison) and its `economical-regression`
+  > fixture, plus explicit requirement-coverage/stage-dependency assertions
+  > beyond what the referenced-path and `stage-dependencies.bats` checks already
+  > provide.
 - [ ] T146 [US6] Add scheduled reusable source/image/cluster vulnerability assessment and issue-routing behavior in `../.github/.github/workflows/continuous-security.yml`, then wire the five service repositories and ops/GitOps callers; make T143 pass.
 - [ ] T147 [US6] Complete OpenCost labels, Prometheus queries, Grafana dashboard, and evidence collector in `infrastructure/opencost/`, `infrastructure/grafana/dashboards/full-profile-cost.yaml`, and `scripts/managed/verify-full-profile-cost.sh`; make T144 pass.
-- [ ] T148 [P] [US6] Implement read-only multi-cluster desired/live/failure/rollback evidence collection in `scripts/managed/verify-full-platform.sh`, replacing warning-as-success behavior in `scripts/managed/verify-observability.sh` and `verify-security.sh` with explicit pass/fail/blocked output.
+- [X] T148 [P] [US6] Implement read-only multi-cluster desired/live/failure/rollback evidence collection in `scripts/managed/verify-full-platform.sh`, replacing warning-as-success behavior in `scripts/managed/verify-observability.sh` and `verify-security.sh` with explicit pass/fail/blocked output.
 - [ ] T149 [P] [US6] Add stage cost ceilings, actual spend review, availability trade-offs, ownership, and rollback decisions to `../microservice-app-docs/full-platform/stage-register.md` and live operational procedures to `../microservice-app-docs/full-platform/operations.md`.
 - [ ] T150 [US6] Validate every completed stage bundle, recompute all hashes, and generate FR-001..FR-050 and SC-001..SC-014 coverage in `evidence/runs/<timestamp>-final/requirements-matrix.json`; no requirement may be inferred from configuration alone.
 - [ ] T151 [US6] Deliberately corrupt a copy of one accepted bundle, prove CI/evaluator changes it to `blocked`, restore the original immutable artifact, and retain both results in `evidence/runs/<timestamp>-evidence-tamper-test/`.

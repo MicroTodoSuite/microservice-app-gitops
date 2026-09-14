@@ -11,7 +11,7 @@ resources:
   - ../../topology
 
 components:
-  - ../../../../components/strategy-canary
+  - ../../../../components/strategy-canary-full
 
 patches:
   - target:

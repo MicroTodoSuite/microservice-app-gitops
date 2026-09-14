@@ -138,6 +138,11 @@ jobs:
       - name: Validate single-owner infrastructure inventory
         run: tests/evidence/validate-ownership.bats
 
+      - name: Validate full-profile evidence integrity (spec 009 T142/T145)
+        env:
+          EVIDENCE_MAX_AGE_DAYS: "30"
+        run: tests/evidence/validate-evidence.bats
+
       - name: Validate the active economical AWS account
         run: tests/contract/economical-account-recovery.sh
 
@@ -186,6 +191,9 @@ jobs:
 
       - name: Validate the sonarqube hardening render (spec 009 T084)
         run: tests/platform/sonarqube.bats
+
+      - name: Validate the full-profile observability roots (spec 009 T085)
+        run: tests/platform/observability-full.bats
 
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats

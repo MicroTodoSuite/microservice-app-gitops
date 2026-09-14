@@ -37,3 +37,7 @@ tests/evidence/fixtures/valid.json  916491575487  # decision 1: must match the e
 #
 # Not account configuration.
 infrastructure/prometheus/vendor/v0.18.0/setup/0alertmanagerConfigCustomResourceDefinition.yaml  698519295917  # vendored upstream: an example SNS topic ARN in the CRD's field documentation
+tests/evidence/fixtures/terraform-stage-valid.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+tests/evidence/fixtures/missing-infracost.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+tests/evidence/fixtures/missing-state-backup.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
+tests/evidence/fixtures/stale-timestamp.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const

@@ -3,7 +3,7 @@ kind: Kustomization
 
 namespace: microtodo-prod
 resources: [../../topology]
-components: [../../../../components/strategy-canary]
+components: [../../../../components/strategy-canary-full]
 patches:
   - target: {kind: Deployment, name: users-api}
     patch: |-
