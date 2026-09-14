@@ -1,0 +1,40 @@
+# Expected admission result for each fixture Pod in resources.yaml.
+# tests/platform/security-hardening.bats writes the rendered ClusterPolicy
+# require-immutable-images of infrastructure/profiles/full/kyverno/aws to
+# require-immutable-images.yaml beside a copy of these files, then runs
+# `kyverno test` offline. fail means admission denies the Pod; skip means the
+# rule does not match its namespace.
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: full-profile-immutable-digests
+policies:
+  - require-immutable-images.yaml
+resources:
+  - resources.yaml
+results:
+  - policy: require-immutable-images
+    rule: require-sha256-digest
+    kind: Pod
+    resources:
+      - microtodo-prod/pinned-service-with-native-sidecar
+      - security/tag-and-digest
+    result: pass
+  - policy: require-immutable-images
+    rule: require-sha256-digest
+    kind: Pod
+    resources:
+      - microtodo-dev/mutable-service
+      - microtodo-staging/tagged-istio-native-sidecar
+      - observability/mutable-init-container
+      - security/mutable-ephemeral-container
+      - elasticsearch/mutable-second-container
+    result: fail
+  - policy: require-immutable-images
+    rule: require-sha256-digest
+    kind: Pod
+    resources:
+      - kube-system/terraform-managed-add-on
+      - kyverno/admission-controller
+      - argocd/bootstrap-argocd
+    result: skip
