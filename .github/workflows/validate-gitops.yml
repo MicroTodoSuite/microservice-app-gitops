@@ -198,6 +198,9 @@ jobs:
       - name: Validate the admission and runtime security hardening (spec 009 T088)
         run: tests/platform/security-hardening.bats
 
+      - name: Validate the full-profile service runtime (spec 009 T090)
+        run: tests/platform/service-runtime-full.bats
+
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
 
