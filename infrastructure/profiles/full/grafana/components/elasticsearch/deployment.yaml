@@ -1,0 +1,26 @@
+# Mounts the Elasticsearch password and CA that datasources.yaml reads through
+# $__file{...}. volumeMounts merge on mountPath and volumes on name.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: observability
+spec:
+  template:
+    spec:
+      containers:
+        - name: grafana
+          volumeMounts:
+            - name: elasticsearch-credentials
+              mountPath: /etc/grafana-elasticsearch/credentials
+              readOnly: true
+            - name: elasticsearch-ca
+              mountPath: /etc/grafana-elasticsearch/ca
+              readOnly: true
+      volumes:
+        - name: elasticsearch-credentials
+          secret:
+            secretName: grafana-elasticsearch-credentials
+        - name: elasticsearch-ca
+          secret:
+            secretName: grafana-elasticsearch-ca

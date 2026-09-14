@@ -411,8 +411,13 @@ to stay empty at their bootstrap revision.
     (commits `b6f7800` failing, `2222583` implementing, with test corrections
     `cfbbf36` and `1d5ae46`). Nothing connects to Elasticsearch yet; live evidence
     belongs to T094.
-  - [ ] Trace-to-log correlation in Grafana through an Elasticsearch datasource
-    with its own read-only user.
+  - [X] Trace-to-log correlation in Grafana through an Elasticsearch datasource
+    with its own read-only user. Delivered in
+    `infrastructure/profiles/full/grafana/components/elasticsearch/`, included by
+    both full Grafana roots, and `infrastructure/elasticsearch/grafana-user.yaml`
+    (commits `fd9fee9` failing, `30e631f` implementing). Only services that log
+    their trace ID (auth-api and users-api today) have matching logs; live
+    evidence belongs to T094.
   - [ ] Notifications that carry the cluster and environment through the
     External Secret-backed Alertmanager route.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.

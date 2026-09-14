@@ -4,7 +4,11 @@ kind: Kustomization
 # Full-profile Grafana on EKS (spec 009 T085, research.md Decision 21). The
 # economical root is the base and stays unchanged. Grafana already keeps its
 # data on the gp3 class, which infrastructure/ebs-csi-driver declares with
-# encrypted: "true", so nothing is patched yet; the Elasticsearch datasource
-# and trace-to-log correlation land here in a later T085 slice.
+# encrypted: "true", so no volume is patched.
 resources:
   - ../../../../grafana
+
+# The Elasticsearch datasource and trace-to-log correlation, shared with the
+# azure root.
+components:
+  - ../components/elasticsearch

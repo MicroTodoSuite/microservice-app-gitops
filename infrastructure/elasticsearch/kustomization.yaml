@@ -15,3 +15,4 @@ resources:
   - namespace.yaml
   - elasticsearch.yaml
   - jaeger-user.yaml
+  - grafana-user.yaml

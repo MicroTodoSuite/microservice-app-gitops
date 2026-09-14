@@ -1,0 +1,60 @@
+# Full-profile datasources: Prometheus as in the economical profile, Jaeger
+# linked to its logs, and Elasticsearch in place of Loki, because the full
+# profile sends logs to Elasticsearch through Filebeat.
+#
+# - Elasticsearch: Filebeat 9.4.4 writes to its default filebeat-<version>
+#   index (libbeat output-elasticsearch.reference.yml.tmpl), so the datasource
+#   reads filebeat-*. Grafana 13.2.0 expands $__file{...} in provisioning values,
+#   secureJsonData included (pkg/services/provisioning/values/values.go,
+#   pkg/setting/expanders.go), so the password and CA are read from files
+#   mounted from Secrets and never appear here.
+# - Jaeger: tracesToLogsV2 with filterByTraceID makes Grafana query
+#   Elasticsearch for the phrase "${__span.traceId}"
+#   (public/app/features/explore/TraceView/createSpanLink.tsx), which matches the
+#   trace ID inside each log line's message field. The time shifts widen the
+#   search to five minutes around the span.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: observability
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-k8s.observability.svc:9090
+        isDefault: true
+        editable: false
+      - name: Jaeger
+        type: jaeger
+        uid: jaeger
+        access: proxy
+        url: http://jaeger-query.observability.svc:16686
+        editable: false
+        jsonData:
+          tracesToLogsV2:
+            datasourceUid: elasticsearch-logs
+            filterByTraceID: true
+            filterBySpanID: false
+            customQuery: false
+            spanStartTimeShift: '-5m'
+            spanEndTimeShift: '5m'
+      - name: Elasticsearch
+        type: elasticsearch
+        uid: elasticsearch-logs
+        access: proxy
+        url: https://platform-es-http.elasticsearch.svc:9200
+        basicAuth: true
+        basicAuthUser: grafana
+        editable: false
+        jsonData:
+          index: 'filebeat-*'
+          timeField: '@timestamp'
+          logMessageField: message
+          tlsAuthWithCACert: true
+        secureJsonData:
+          basicAuthPassword: $__file{/etc/grafana-elasticsearch/credentials/password}
+          tlsCACert: $__file{/etc/grafana-elasticsearch/ca/ca.crt}
