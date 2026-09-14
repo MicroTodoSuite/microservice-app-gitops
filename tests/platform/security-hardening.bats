@@ -51,10 +51,12 @@ if [[ -z "$signatures" ]]; then
   fail "ClusterPolicy verify-approved-release-signatures is missing"
 fi
 
-# One tab-separated row per keyless attestor:
+# One row per keyless attestor, fields separated by the unit separator (\037):
 # repository, workflow ref, trigger, issuer, exact subject, subject regexp.
+# Not a tab: read treats tabs as whitespace and collapses empty fields.
+US=$'\037'
 attestors="$(awk '
-  function row() { return repo "\t" ref "\t" trigger "\t" issuer "\t" subject "\t" subject_re }
+  function row() { return repo "\037" ref "\037" trigger "\037" issuer "\037" subject "\037" subject_re }
   function value(line, key) {
     sub("^[[:space:]]*" key ":[[:space:]]*", "", line)
     if (line ~ /^'\''.*'\''$/) { line = substr(line, 2, length(line) - 2); gsub(/'\'''\''/, "'\''", line) }
@@ -75,12 +77,12 @@ attestors="$(awk '
 [[ "$(grep -c . <<<"$attestors" || true)" == "${#SERVICES[@]}" ]] \
   || fail "verify-approved-release-signatures must have exactly one keyless attestor per service (${#SERVICES[@]})"
 for service in "${SERVICES[@]}"; do
-  matches="$(awk -F '\t' -v repo="MicroTodoSuite/microservice-app-$service" '$1 == repo' <<<"$attestors")"
+  matches="$(awk -F "$US" -v repo="MicroTodoSuite/microservice-app-$service" '$1 == repo' <<<"$attestors")"
   if [[ "$(grep -c . <<<"$matches" || true)" != 1 ]]; then
     fail "exactly one attestor must name githubWorkflowRepository MicroTodoSuite/microservice-app-$service"
     continue
   fi
-  IFS=$'\t' read -r _ ref trigger issuer subject subject_re <<<"$matches"
+  IFS="$US" read -r _ ref trigger issuer subject subject_re <<<"$matches"
   [[ "$ref" == refs/heads/main ]] || fail "$service attestor must require githubWorkflowRef refs/heads/main"
   [[ "$trigger" == push ]] || fail "$service attestor must require githubWorkflowTrigger push"
   [[ "$issuer" == "$ISSUER" ]] || fail "$service attestor must require issuer $ISSUER"
@@ -91,7 +93,7 @@ done
 
 # The expression, as rendered, admits the shared CI at any full commit SHA and
 # nothing else. Go's RE2 and POSIX ERE agree on this expression's syntax.
-policy_re="$(awk -F '\t' 'NR == 1 { print $6 }' <<<"$attestors")"
+policy_re="$(awk -F "$US" 'NR == 1 { print $6 }' <<<"$attestors")"
 if [[ -z "$policy_re" ]]; then
   fail "no subjectRegExp to evaluate"
 else
