@@ -504,6 +504,15 @@ to stay empty at their bootstrap revision.
     unsigned, unmirrored, mutable, and wrong-identity fixtures. Done after the
     fourth slice and partially: the mirror repository and identity wait for the
     full-profile account amendment and T082 (Decision 22).
+    Partially delivered: the immutable-digest rule over `microtodo-*` and every
+    GitOps-installed platform namespace, for containers, init containers, and
+    ephemeral containers, with `kube-system`, `kyverno`, and `argocd` outside
+    it, in `infrastructure/profiles/full/kyverno/aws`, and the mutable-image
+    fixtures in `tests/platform/fixtures/full-profile-admission/` run through the
+    pinned Kyverno CLI, tested by `tests/platform/security-hardening.bats`
+    (commits `abefa96` failing, `2e6c173` implementing). Still open: the
+    platform-mirror identity and the unsigned, wrong-identity, and unmirrored
+    fixtures. Nothing was admitted or denied in a cluster; that belongs to T094.
   - [X] Exact RBAC and resource bounds for Falco, kube-bench, and kube-hunter,
     with audit Jobs kept for 7 days. Delivered in
     `infrastructure/{kube-bench,kube-hunter}/cronjob.yaml`, their triggers, and
