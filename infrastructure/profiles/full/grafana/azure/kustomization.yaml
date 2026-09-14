@@ -12,6 +12,11 @@ kind: Kustomization
 resources:
   - ../../../../grafana
 
+# The Elasticsearch datasource and trace-to-log correlation, shared with the
+# aws root.
+components:
+  - ../components/elasticsearch
+
 patches:
   - target:
       version: v1

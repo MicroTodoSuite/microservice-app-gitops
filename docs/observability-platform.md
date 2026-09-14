@@ -152,8 +152,26 @@ keeps no volume and both clouds render the same:
 - NetworkPolicies allow Jaeger and the cleaner to reach port 9200 in the
   `elasticsearch` namespace.
 
-The rest of T085 lands in the same roots: trace-to-log correlation in Grafana,
-and notifications that name the cluster and environment.
+Both full Grafana roots include the Component
+`infrastructure/profiles/full/grafana/components/elasticsearch`, which replaces
+the Loki datasource with Elasticsearch and links traces to logs:
+
+- The datasource `elasticsearch-logs` reads `filebeat-*`, the indices Filebeat
+  writes, as the file-realm user `grafana` with the role `grafana_logs_reader`
+  (cluster `monitor`; `read` and `view_index_metadata` on `filebeat-*`), defined
+  in `infrastructure/elasticsearch/grafana-user.yaml` like Jaeger's user.
+  Grafana reads the password and the CA through `$__file{...}` from Secrets that
+  `SecretStore/elasticsearch-grafana` copies; the store has its own name because
+  the Jaeger Application owns `SecretStore/elasticsearch`.
+- The Jaeger datasource's `tracesToLogsV2` targets `elasticsearch-logs` with
+  `filterByTraceID`, so a span links to the log lines containing its trace ID,
+  five minutes either side. Only services that print the trace ID in their log
+  lines have matching logs; auth-api and users-api do today.
+- `NetworkPolicy/grafana-allow-elasticsearch` lets Grafana reach port 9200 in
+  the `elasticsearch` namespace.
+
+The rest of T085 lands in the same roots: notifications that name the cluster
+and environment.
 
 ## Access model
 

@@ -1,0 +1,87 @@
+# Grafana's read-only Elasticsearch identity for the full profile (spec 009
+# T085, research.md Decision 21), built like Jaeger's in jaeger-user.yaml.
+#
+# - grafana-elasticsearch-roles defines grafana_logs_reader with the privileges
+#   Grafana's Elasticsearch data source documentation lists: cluster monitor
+#   (version information), and read plus view_index_metadata (search and
+#   mappings) on filebeat-*, the indices Filebeat writes. It holds no
+#   credential.
+# - grafana-elasticsearch-user is generated in the cluster by a Password
+#   generator into a kubernetes.io/basic-auth Secret that ECK hashes into its
+#   file realm. No password is committed.
+# - grafana-elasticsearch-secret-reader lets observability's
+#   grafana-elasticsearch-reader get exactly that user Secret and ECK's public
+#   HTTP CA, which infrastructure/profiles/full/grafana copies into
+#   observability.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-elasticsearch-roles
+  labels:
+    app.kubernetes.io/part-of: microtodosuite-platform
+type: Opaque
+stringData:
+  roles.yml: |-
+    grafana_logs_reader:
+      cluster: ["monitor"]
+      indices:
+        - names: ["filebeat-*"]
+          privileges: ["read", "view_index_metadata"]
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: grafana-elasticsearch
+spec:
+  length: 32
+  digits: 6
+  symbols: 0
+  noUpper: false
+  allowRepeat: true
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: grafana-elasticsearch-user
+spec:
+  # Generated once; a new password is a deliberate rotation, not a refresh.
+  refreshInterval: "0"
+  target:
+    name: grafana-elasticsearch-user
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/basic-auth
+      engineVersion: v2
+      data:
+        username: grafana
+        password: "{{ .password }}"
+        roles: grafana_logs_reader
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: grafana-elasticsearch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-elasticsearch-secret-reader
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["grafana-elasticsearch-user", "platform-es-http-certs-public"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-elasticsearch-secret-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: grafana-elasticsearch-secret-reader
+subjects:
+  - kind: ServiceAccount
+    name: grafana-elasticsearch-reader
+    namespace: observability
