@@ -1,18 +1,30 @@
 # Adapted from kube-hunter 0.6.8's own official job.yaml
 # (https://raw.githubusercontent.com/aquasecurity/kube-hunter/v0.6.8/
 # job.yaml): the same `--pod` internal-mode invocation, wrapped in a
-# CronJob for the recurring schedule FR-006 requires, with
-# ttlSecondsAfterFinished so no completed Job lingers (FR-007).
+# CronJob for the recurring schedule FR-006 requires. A finished Job, and so
+# its report in the pod log, is kept for 7 days, until the next weekly run
+# (spec 009 T088, research.md Decision 22). A finished Job runs no container,
+# so no standing workload remains (FR-007).
 #
 # `--pod` (no `--active`) is passive/non-destructive by kube-hunter's own
 # design: it reports potential vulnerabilities without exploiting them,
 # matching this feature's explicit "does not disrupt a running business
 # workload" requirement. Unlike Falco and kube-bench in this same feature,
 # kube-hunter needs no host access at all: no hostPID, no hostPath mounts,
-# no elevated Linux capabilities, and no ServiceAccount/ClusterRole -
-# confirmed directly against the real upstream job, which has none of these
-# either. It only needs outbound network reach to the cluster's own Service
+# no elevated Linux capabilities, and no ClusterRole - confirmed directly
+# against the real upstream job, which has none of these either. Its dedicated
+# ServiceAccount has no token and no Role or binding, so it holds no API
+# permission (spec 008 FR-007, spec 009 T088). It only needs outbound network reach to the cluster's own Service
 # network, which every pod already has by default.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-hunter
+  labels:
+    app.kubernetes.io/name: kube-hunter
+    app.kubernetes.io/part-of: microtodosuite
+automountServiceAccountToken: false
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -27,7 +39,7 @@ spec:
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 3600
+      ttlSecondsAfterFinished: 604800
       activeDeadlineSeconds: 900
       backoffLimit: 0
       template:
@@ -36,6 +48,7 @@ spec:
             app.kubernetes.io/name: kube-hunter
         spec:
           restartPolicy: Never
+          serviceAccountName: kube-hunter
           automountServiceAccountToken: false
           securityContext:
             runAsNonRoot: true

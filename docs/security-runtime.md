@@ -39,8 +39,14 @@ beside it are repository-owned.
   `microtodo-prod`, `observability`, and `security`. A workload outside those
   namespaces, such as `kube-system`, is not scanned; that is the decided
   boundary, not a way to hide a finding.
-- Completed kube-bench and kube-hunter Jobs are removed after one hour
-  (`ttlSecondsAfterFinished: 3600`), so no privileged workload stays behind.
+- Completed kube-bench and kube-hunter Jobs, and so their reports, are kept
+  for 7 days (`ttlSecondsAfterFinished: 604800`); kube-bench, which runs daily,
+  keeps its 7 most recent successful Jobs. A completed Job runs no container,
+  so no privileged workload stays behind (spec 009 T088).
+- Every pod of Falco, Falcosidekick, kube-bench, kube-hunter, and the evidence
+  triggers uses a dedicated ServiceAccount with no token and no Role or binding,
+  so none of them can call the Kubernetes API, and every container sets CPU and
+  memory requests and limits.
 - Falcosidekick, kube-hunter, and Trivy Operator and its scan Jobs each carry a
   default-deny NetworkPolicy plus the specific allowances they need.
 - No component adds a service mesh or an mTLS dependency (spec 008 FR-009).
@@ -94,7 +100,7 @@ It renders the four roots and checks the vendored checksum and digest-pinned
 images; Falco's modern eBPF driver without `privileged`, `hostPID`, or a
 ClusterRole; Falcosidekick's Slack webhook from the ExternalSecret; kube-bench's
 `eks-1.5.0` profile and kube-hunter's passive `--pod` mode, both without a
-ClusterRole or a Job left behind; Trivy Operator's `security`-only render,
+ClusterRole or a running Job left behind; Trivy Operator's `security`-only render,
 scanner and namespace settings, and ECR reader role; liveness, readiness, and
 startup probes on Falcosidekick and Trivy Operator; and the registration
 contract.
