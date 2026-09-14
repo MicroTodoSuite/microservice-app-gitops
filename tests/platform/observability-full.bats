@@ -185,7 +185,7 @@ for cloud in aws azure; do
     grep -qE "^[[:space:]]+port: $port$" <<<"$monitor" \
       || fail "$root: $kind $name must scrape port $port"
     if [[ "$honor" == yes ]]; then
-      grep -qE '^[[:space:]]+honorLabels: true$' <<<"$monitor" \
+      grep -qE '^[[:space:]]+(- )?honorLabels: true$' <<<"$monitor" \
         || fail "$root: $kind $name must set honorLabels: true so namespace names the object, not the controller"
     fi
   done
