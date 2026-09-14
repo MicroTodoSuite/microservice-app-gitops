@@ -64,14 +64,45 @@ records image provenance and the manifests beside it are repository-owned.
 | Full profile (spec 009) | Economical profile |
 | --- | --- |
 | Logs to Elasticsearch, Logstash, and Kibana, collected by Filebeat | Logs to Loki, collected by Grafana Alloy |
-| Jaeger with its full storage backend | Jaeger all-in-one with embedded Badger storage and 72-hour retention |
-| Highly available Prometheus and Grafana | One Prometheus and one Alertmanager replica |
+| Jaeger with an Elasticsearch backend | Jaeger all-in-one with embedded Badger storage and 72-hour retention |
+| Prometheus, Alertmanager, and Grafana on encrypted volumes of the destination cloud | Prometheus and Grafana on `gp3` volumes; Alertmanager keeps silences in memory |
 | mTLS through Istio | No service mesh |
+
+Both profiles run one replica of each component: spec 009 `research.md`
+Decision 10 trades high availability for the account's quota.
 
 The full-profile roots (`infrastructure/elasticsearch`, `logstash`, `kibana`,
 `filebeat`, `istio`) stay inert in the economical profile.
 `tests/contract/observability.sh` rejects Elasticsearch, Logstash, Kibana, and
 Filebeat resources in the Prometheus and Grafana roots.
+
+## Full-profile roots
+
+Spec 009 T085 completes this stack for the full profile
+(`specs/009-full-platform-rollout/research.md` Decision 21). Each full-profile
+root takes the economical `infrastructure/<component>/` root as its base and
+changes only what the full profile needs, so the economical render does not change. No cluster activates
+them yet; each full cluster's activation list (spec 009 T091) names the root for
+its cloud.
+
+| Root | Cloud | What it changes |
+| --- | --- | --- |
+| `infrastructure/profiles/full/prometheus/aws` | EKS | adds a 1Gi `gp3` volume to Alertmanager `main`; Prometheus keeps its 10Gi `gp3` volume |
+| `infrastructure/profiles/full/prometheus/azure` | AKS | moves the Prometheus volume to `managed-csi` and adds a 1Gi `managed-csi` volume to Alertmanager `main` |
+| `infrastructure/profiles/full/grafana/aws` | EKS | nothing yet; Grafana keeps its 2Gi `gp3` volume |
+| `infrastructure/profiles/full/grafana/azure` | AKS | moves `grafana-storage` to `managed-csi` |
+
+On EKS, `infrastructure/ebs-csi-driver` declares `gp3` with `encrypted: "true"`.
+On AKS, `managed-csi` is the built-in Standard SSD Azure Disk class, and Azure
+encrypts managed disks at rest with platform-managed keys. With a volume,
+Alertmanager keeps its silences and notification log across restarts.
+`tests/platform/observability-full.bats` checks both clouds and that the
+economical roots stay as they are.
+
+The rest of T085 lands in the same roots: alerting rules for p99 latency,
+scaling, platform, and security; Jaeger on the Elasticsearch backend with
+trace-to-log correlation in Grafana; and notifications that name the cluster and
+environment.
 
 ## Access model
 
