@@ -128,3 +128,5 @@ diverge. The pilot proves integration, not durable storage or disaster recovery.
 ```
 
 Cleanup targets only pilot-owned local resources.
+
+<!-- test/slack-approval-gateway-e2e: harmless connectivity check for the new Slack approval gateway; this PR will be closed without merging once the Slack message is confirmed. -->
