@@ -78,11 +78,11 @@ expected=(
 for entry in "${expected[@]}"; do
   name="${entry% *}"
   namespace="${entry#* }"
-  awk -v name="$name" -v namespace="$namespace" '
+  awk -v name="$name" -v ns="$namespace" '
     $0 == "    - name: " name {
       getline path_line
       getline namespace_line
-      if (path_line == "      path: infrastructure/" name && namespace_line == "      namespace: " namespace) found = 1
+      if (path_line == "      path: infrastructure/" name && namespace_line == "      namespace: " ns) found = 1
     }
     END { exit(found ? 0 : 1) }
   ' "$ROOT/$infrastructure" \
