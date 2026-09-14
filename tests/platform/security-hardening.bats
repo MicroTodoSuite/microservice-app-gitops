@@ -183,7 +183,9 @@ if [[ -f infrastructure/falco/triggers/kustomization.yaml ]]; then
   else
     grep -qF "image: $KUBE_BENCH_IMAGE" <<<"$falco_job" \
       || fail "falco-evidence-trigger must run the pinned kube-bench image, which ships a real find binary"
-    command_block="$(awk '/^ +command:$/ { c = 1; next } c && /^ +- / { sub(/^ +- /, ""); printf "%s ", $0; next } c { exit }' <<<"$falco_job")"
+    # Kustomize sorts keys, so command, the first key of the container, opens
+    # its list item line ("- command:").
+    command_block="$(awk '/^ +(- )?command:$/ { c = 1; next } c && /^ +- / { sub(/^ +- /, ""); printf "%s ", $0; next } c { exit }' <<<"$falco_job")"
     [[ "$command_block" == "find /tmp -name id_rsa " ]] \
       || fail "falco-evidence-trigger must run exactly find /tmp -name id_rsa, found: ${command_block:-none}"
     grep -qE '^ +runAsNonRoot: true$' <<<"$falco_job" || fail "falco-evidence-trigger must run as non-root"
