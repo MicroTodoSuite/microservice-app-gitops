@@ -9,6 +9,7 @@ namespace: microtodo-prod
 
 resources:
   - ../../topology
+  - scaled-object.yaml
 
 components:
   - ../../../../components/strategy-canary-full

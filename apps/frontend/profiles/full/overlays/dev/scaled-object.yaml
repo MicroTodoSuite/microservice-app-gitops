@@ -1,0 +1,20 @@
+# Bounded request-rate scaling for frontend in full dev (spec 009 T090,
+# research.md Decision 23). KEDA owns the replica count, so the Deployment declares
+# none in Git; minReplicaCount keeps the count this overlay declared before.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: frontend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-k8s.observability.svc:9090
+        query: sum(workload:http_requests:rate5m{workload="frontend"})
+        threshold: "10"

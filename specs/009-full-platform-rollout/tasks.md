@@ -564,8 +564,14 @@ to stay empty at their bootstrap revision.
     `tests/platform/service-runtime-full.bats` (commits `75248d6` failing,
     `d461eed` implementing). Nothing was drained or scheduled in a cluster; that
     evidence belongs to T094.
-  - [ ] Bounded KEDA ScaledObjects on request rate for the four HTTP services,
-    with log-message-processor fixed at one replica.
+  - [X] Bounded KEDA ScaledObjects on request rate for the four HTTP services,
+    with log-message-processor fixed at one replica. Delivered in
+    `apps/{auth-api,todos-api,users-api,frontend}/profiles/full/overlays/*/scaled-object.yaml`,
+    their full canary Rollouts, and
+    `infrastructure/profiles/full/prometheus/components/keda-access/`, tested by
+    `tests/platform/service-runtime-full.bats` (commits `7e24d80` failing,
+    `88fadfb` implementing). Nothing was scaled in a cluster; that evidence
+    belongs to T094.
   - [ ] Documented default-off `<service>-feature-toggles` ConfigMaps.
 - [ ] T091 [US3] Define explicit dependency-wave capability activation in `clusters/eks-full-{dev,staging,prod}/activation-infrastructure.yaml`, activate SonarQube/PostgreSQL only in full-dev after ingress/storage/secrets, and keep business activation separate; make T068 pass.
 - [ ] T092 [US3] Run every service test/contract suite, all Kustomize/kubeconform/policy tests, image/secret scans, and resource-budget calculations; merge T082's reviewed organization-workflow PR through protected `main`, execute that exact revision for every locked third-party image before any EKS capability activation, and prove upstream-to-ECR digest mapping, complete OCI graph, scan pass, approved keyless signature identity, and absence of mutable/unmirrored references; retain redacted output in `evidence/runs/<timestamp>-full-platform-static/` and stop on any skip/failure.

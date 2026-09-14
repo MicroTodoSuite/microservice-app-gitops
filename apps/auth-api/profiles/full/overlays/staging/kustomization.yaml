@@ -7,10 +7,7 @@ namespace: microtodo-staging
 
 resources:
   - ../../topology
-
-replicas:
-  - name: auth-api
-    count: 2
+  - scaled-object.yaml
 
 patches:
   - target:

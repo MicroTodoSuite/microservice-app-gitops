@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Lets the KEDA operator read the request-rate series the full services scale
+# on (spec 009 T090, research.md Decision 23). One ingress peer selects the keda
+# namespace and the operator's pods together, so no other pod gains access, and
+# only Prometheus's web port opens.
+patches:
+  - target:
+      group: networking.k8s.io
+      version: v1
+      kind: NetworkPolicy
+      name: prometheus-k8s
+    patch: |-
+      - op: add
+        path: /spec/ingress/-
+        value:
+          from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: keda
+              podSelector:
+                matchLabels:
+                  app: keda-operator
+          ports:
+            - port: 9090
+              protocol: TCP

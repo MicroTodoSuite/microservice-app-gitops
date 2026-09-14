@@ -9,7 +9,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata: {name: users-api}
 spec:
-  replicas: 1
+  # replicas: owned by the ScaledObject in profiles/full/overlays/prod (T090).
   progressDeadlineSeconds: 300
   revisionHistoryLimit: 3
   workloadRef: {apiVersion: apps/v1, kind: Deployment, name: users-api, scaleDown: onsuccess}
