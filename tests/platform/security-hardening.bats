@@ -362,6 +362,13 @@ else
      "$(without_document ClusterPolicy require-immutable-images <<<"$kyverno_out")" ]] \
     || fail "$FULL_KYVERNO must render exactly infrastructure/kyverno apart from ClusterPolicy require-immutable-images"
   full_policy="$(document ClusterPolicy require-immutable-images <<<"$full_kyverno_out")"
+  # Only the rules differ: admission, background, and the failure action stay
+  # exactly as in the shared policy.
+  without_rules() {
+    awk '/^  rules:$/ { skip = 1; next } skip && /^(  - |   )/ { next } { skip = 0; print }'
+  }
+  [[ -n "$full_policy" && "$(without_rules <<<"$full_policy")" == "$(without_rules <<<"$shared_policy")" ]] \
+    || fail "full-profile require-immutable-images must match the shared policy everywhere but its rules"
 
   # Business namespaces plus every namespace any GitOps infrastructure root renders.
   platform=""
