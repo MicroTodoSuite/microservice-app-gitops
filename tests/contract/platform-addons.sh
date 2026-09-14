@@ -212,8 +212,8 @@ require_text infrastructure/kyverno/policies.yaml \
   'https://token\.actions\.githubusercontent\.com' \
   "signature verification lacks the approved GitHub OIDC issuer"
 require_text infrastructure/kyverno/policies.yaml \
-  'https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@5c4e133fc528ef6ff596d146150321ca94760721' \
-  "signature verification lacks the pinned reusable workflow identity"
+  'subjectRegExp: .\^https://github\\\.com/MicroTodoSuite/\\\.github/\\\.github/workflows/ci\\\.yml@\[0-9a-f\]\{40\}\$.' \
+  "signature verification lacks the anchored reusable workflow identity (spec 009 T088)"
 for service in auth-api todos-api users-api frontend log-message-processor; do
   require_text infrastructure/kyverno/policies.yaml \
     "githubWorkflowRepository: MicroTodoSuite/microservice-app-$service" \

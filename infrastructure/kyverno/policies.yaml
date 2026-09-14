@@ -110,11 +110,19 @@ spec:
           imageRegistryCredentials:
             providers:
               - amazon
+          # Fulcio puts a GitHub job's job_workflow_ref in the certificate SAN, so
+          # the shared CI signs as .github's ci.yml at the ref each service's
+          # reviewed main pins. The expression accepts that workflow at any full
+          # commit SHA, so a new .github release does not break admission, while
+          # each entry still requires one service's repository, refs/heads/main,
+          # and a push trigger. Kyverno evaluates subjectRegExp with Go's
+          # unanchored MatchString, so the anchors are required (spec 009 T088,
+          # research.md Decision 22).
           attestors:
             - count: 1
               entries:
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
+                    subjectRegExp: '^https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@[0-9a-f]{40}$'
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -124,7 +132,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
+                    subjectRegExp: '^https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@[0-9a-f]{40}$'
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -134,7 +142,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
+                    subjectRegExp: '^https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@[0-9a-f]{40}$'
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -144,7 +152,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
+                    subjectRegExp: '^https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@[0-9a-f]{40}$'
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
@@ -154,7 +162,7 @@ spec:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
                 - keyless:
-                    subject: https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@5c4e133fc528ef6ff596d146150321ca94760721
+                    subjectRegExp: '^https://github\.com/MicroTodoSuite/\.github/\.github/workflows/ci\.yml@[0-9a-f]{40}$'
                     issuer: https://token.actions.githubusercontent.com
                     additionalExtensions:
                       githubWorkflowTrigger: push
