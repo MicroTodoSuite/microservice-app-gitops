@@ -287,6 +287,23 @@ to stay empty at their bootstrap revision.
 ### Platform implementation
 
 - [ ] T082 [P] [US3] Implement and contract-test the exact-workflow OIDC platform-image mirror in `../.github/.github/workflows/mirror-platform-images.yml` and `../.github/tests/workflows/mirror-platform-images.bats`; copy every locked upstream digest to `microtodosuite/platform`, scan it, record source/mirror digests, and keyless-sign the complete graph without rebuilding or granting access to any service repository.
+
+  > **Partial delivery, .github PR #18 (platform image mirror).** The workflow
+  > (`mirror-platform-images.yml`) and its contract test
+  > (`tests/workflows/mirror-platform-images.bats`, plus a self-test workflow
+  > that runs it) are authored and green — `actionlint` + shellcheck clean, the
+  > contract test fails without the workflow and passes with it. It reads the
+  > 52 locked images from this repo's `scripts/managed/full-profile-toolchain.lock`,
+  > copies each by immutable upstream digest with `crane copy` (no rebuild),
+  > verifies the mirrored digest equals the upstream one, Trivy-scans it,
+  > records source/mirror digests, and keyless-signs it — under a dedicated
+  > OIDC mirror role (never the service publisher role), account from
+  > `vars.AWS_ACCOUNT_ID`, no static credentials, no service-repo access.
+  > **Stays unchecked**: it cannot run until Terraform (spec 009 Phase 4 T061)
+  > creates the `microtodosuite/platform` ECR repository and the mirror IAM
+  > role whose trust policy names this workflow's OIDC subject. Once it has run,
+  > T083/T086 repoint the eleven components' image digests from upstream to the
+  > mirror.
 - [ ] T083 [US3] Vendor checksum-pinned AWS Load Balancer Controller 3.5.0, Istio 1.30.3, and Kiali 2.31.0 under `infrastructure/aws-load-balancer-controller/`, `infrastructure/istio/`, and `infrastructure/kiali/` using only locked mirrored ECR digests, a GitOps-owned EKS ServiceAccount annotated with the exact Terraform-output IRSA role ARN, cert-manager-managed webhook certificates, resource budgets, network policy, Prometheus integration, and no public Kiali ingress; add full-profile namespace labels, PeerAuthentication, AuthorizationPolicy, DestinationRule, VirtualService, ingress Gateway, trusted-certificate references, and default-deny plus exact required-flow NetworkPolicies under `environments/full/` and each service's `components/topology-full/`, and make T069 pass.
 
   > **Partial delivery, gitops PR (per-service mesh traffic policy).** The
