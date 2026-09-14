@@ -43,7 +43,32 @@ patches:
             labelSelector:
               matchLabels:
                 app.kubernetes.io/name: log-message-processor
+  # The service container reads its feature toggles beside its controlled
+  # settings (spec 009 T090, research.md Decision 23).
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: log-message-processor
+    patch: |-
+      - op: test
+        path: /spec/template/spec/containers/0/name
+        value: log-message-processor
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          configMapRef:
+            name: log-message-processor-feature-toggles
 
 # Full-profile disruption budget (spec 009 T090, research.md Decision 23).
 resources:
   - pod-disruption-budget.yaml
+
+# Default-off feature toggles (spec 009 T090, research.md Decision 23). The
+# generated name carries a content hash, so a reviewed change rolls the pods.
+# Every key follows docs/feature-toggles.md.
+configMapGenerator:
+  - name: log-message-processor-feature-toggles
+    options:
+      annotations:
+        microtodosuite.io/feature-toggle-contract: docs/feature-toggles.md
