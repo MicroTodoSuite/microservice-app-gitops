@@ -195,6 +195,9 @@ jobs:
       - name: Validate the full-profile observability roots (spec 009 T085)
         run: tests/platform/observability-full.bats
 
+      - name: Validate the admission and runtime security hardening (spec 009 T088)
+        run: tests/platform/security-hardening.bats
+
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
 
