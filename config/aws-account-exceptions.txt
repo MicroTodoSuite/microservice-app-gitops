@@ -26,9 +26,7 @@ apps/todos-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  
 apps/users-api/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
 apps/users-api/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
 apps/users-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-scripts/managed/collect-foundational-evidence.sh  916491575487  # decision 1: full-profile evidence collector expects the retired account
 scripts/managed/full-profile-toolchain.lock  916491575487  # decision 1: full-profile platform mirror repository in the retired account
-specs/009-full-platform-rollout/quickstart.md  916491575487  # decision 1: full-profile operating instructions name the retired account
 tests/evidence/fixtures/checksum-mismatch.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
 tests/evidence/fixtures/failed-check.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
 tests/evidence/fixtures/missing-approval.json  916491575487  # decision 1: must match the evidence schema, which pins the retired account as a const
