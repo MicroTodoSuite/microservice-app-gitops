@@ -279,9 +279,20 @@ for cloud in aws azure; do
       || fail "$root: jaeger-es-index-cleaner must verify Elasticsearch with the copied CA"
   fi
 
-  # Egress from Jaeger and the cleaner to Elasticsearch's HTTP port.
-  awk '/^kind: NetworkPolicy$/{p=1} p' <<<"$out" | grep -B8 -A8 'kubernetes.io/metadata.name: elasticsearch' | grep -q 'port: 9200' \
-    || fail "$root: a NetworkPolicy must allow egress to the elasticsearch namespace on port 9200"
+  # Egress to Elasticsearch's HTTP port, checked per policy: Jaeger and the
+  # cleaner each need their own, so one policy cannot satisfy both.
+  for entry in 'jaeger-allow-elasticsearch|jaeger' 'jaeger-es-index-cleaner-egress|jaeger-es-index-cleaner'; do
+    policy_name="${entry%%|*}" pod="${entry#*|}"
+    policy="$(document NetworkPolicy "$policy_name" <<<"$out")"
+    if [[ -z "$policy" ]]; then
+      fail "$root: NetworkPolicy $policy_name is missing"
+      continue
+    fi
+    grep -A2 'podSelector:' <<<"$policy" | grep -qE "app.kubernetes.io/name: $pod$" \
+      || fail "$root: NetworkPolicy $policy_name must select the $pod pods"
+    grep -B8 'kubernetes.io/metadata.name: elasticsearch' <<<"$policy" | grep -qE '^[[:space:]]+- port: 9200$' \
+      || fail "$root: NetworkPolicy $policy_name must allow egress to the elasticsearch namespace on port 9200"
+  done
 done
 
 grep -A3 '"id": "jaeger-es-index-cleaner"' scripts/managed/full-profile-toolchain.lock \
