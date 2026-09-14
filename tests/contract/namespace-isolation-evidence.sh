@@ -8,7 +8,8 @@ SCHEMA="$ROOT/specs/005-namespace-isolation/contracts/namespace-isolation-eviden
 VALID_FIXTURE="$ROOT/tests/fixtures/namespace-isolation/evidence/valid-v2.0.0-baseline.json"
 INVALID_FIXTURE="$ROOT/tests/fixtures/namespace-isolation/evidence/invalid-v2.0.0-secret-output.json"
 KUBE_CONTEXT=test-context
-EXPECTED_CLUSTER_ID=arn:aws:eks:us-east-1:575172595729:cluster/microtodosuite-dev
+EXPECTED_CLUSTER="$(jq -r '.cluster.name' "$VALID_FIXTURE")"
+EXPECTED_CLUSTER_ID="arn:aws:eks:us-east-1:575172595729:cluster/$EXPECTED_CLUSTER"
 EXPECTED_REVISION=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 CLEANUP_REVISION=
 PREVIOUS_EVIDENCE=
@@ -39,10 +40,10 @@ if validate_fixture "$INVALID_FIXTURE" >/dev/null 2>&1; then
   printf 'FAIL: secret-output fixture unexpectedly satisfied schema v2.0.0\n' >&2
   exit 1
 fi
-previous_phase_is_acceptable "$VALID_FIXTURE" baseline microtodosuite-dev
+previous_phase_is_acceptable "$VALID_FIXTURE" baseline "$EXPECTED_CLUSTER"
 jq '.blockedReasons = ["different blocker"]' "$VALID_FIXTURE" \
   >"$TMP_DIR/invalid-baseline-predecessor.json"
-if previous_phase_is_acceptable "$TMP_DIR/invalid-baseline-predecessor.json" baseline microtodosuite-dev; then
+if previous_phase_is_acceptable "$TMP_DIR/invalid-baseline-predecessor.json" baseline "$EXPECTED_CLUSTER"; then
   printf 'FAIL: an unrelated blocked baseline was accepted as a prerequisite predecessor\n' >&2
   exit 1
 fi

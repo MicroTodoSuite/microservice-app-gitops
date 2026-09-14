@@ -81,7 +81,7 @@ spec:
       - envFrom:
         - configMapRef:
             name: log-message-processor-config
-        image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor@sha256:17c5848722fe9bc5a7daf618418008e39ea8077a75dca0ed1c7e5a755bcdfc51
+        image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-logmsgproc@sha256:17c5848722fe9bc5a7daf618418008e39ea8077a75dca0ed1c7e5a755bcdfc51
         livenessProbe:
           httpGet:
             path: /metrics

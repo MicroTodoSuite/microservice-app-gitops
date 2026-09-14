@@ -8,7 +8,7 @@ EKS OIDC provider used by in-cluster IRSA workloads.
 
 - AWS account: `575172595729`
 - Region: `us-east-1`
-- Role: `arn:aws:iam::575172595729:role/microtodosuite-github-ecr-publisher`
+- Role: `arn:aws:iam::575172595729:role/lex-mts-shd-role-ecrpublish`
 - Provider: `https://token.actions.githubusercontent.com`
 - Terraform owner:
   `microservice-app-ops/aws/modules/environment-foundation/github-oidc.tf`
@@ -33,7 +33,7 @@ and never create AWS resources.
 ```bash
 aws iam get-role \
   --profile microtodosuite-terraform \
-  --role-name microtodosuite-github-ecr-publisher \
+  --role-name lex-mts-shd-role-ecrpublish \
   --query 'Role.[Arn,AssumeRolePolicyDocument]'
 
 aws ecr describe-repositories \
