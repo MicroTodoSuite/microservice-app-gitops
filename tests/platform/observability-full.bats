@@ -166,8 +166,12 @@ for cloud in aws azure; do
       fi
       grep -qF -- "$selector" <<<"$rule" \
         || fail "$root: alert $alert must read $selector"
-      grep -q 'workload' <<<"$rule" \
-        || fail "$root: alert $alert must carry a workload label for the Slack route"
+      # The expression itself must produce workload: either label_replace
+      # sets it, or it reads a workload:* recording rule. Annotations that
+      # merely print $labels.workload do not count.
+      expr="$(awk '/^[[:space:]]+expr:/ { f = 1 } f && /^[[:space:]]+(for|labels|annotations):/ { exit } f' <<<"$rule")"
+      grep -qE '"workload", "|workload:' <<<"$expr" \
+        || fail "$root: alert $alert must set a workload label in its expression for the Slack route"
     done
   fi
 
