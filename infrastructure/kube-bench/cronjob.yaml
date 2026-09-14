@@ -1,15 +1,28 @@
 # Adapted from kube-bench v0.16.0's own official job-eks.yaml
 # (https://raw.githubusercontent.com/aquasecurity/kube-bench/v0.16.0/
 # job-eks.yaml): same targets/benchmark/hostPath mounts, wrapped in a
-# CronJob for the recurring schedule FR-005 requires, with
-# ttlSecondsAfterFinished so no completed Job lingers (FR-007).
+# CronJob for the recurring schedule FR-005 requires. A finished Job, and so
+# its report in the pod log, is kept for 7 days and the 7 most recent
+# successful Jobs are retained, so a daily report stays readable until the next
+# weekly kube-hunter run (spec 009 T088, research.md Decision 22). A finished
+# Job runs no container, so no standing workload remains (FR-007).
 #
 # hostPID: true is genuinely required here (unlike Falco in this same
 # feature): kube-bench inspects the kubelet process's running command-line
 # flags to check several CIS controls, which needs host process visibility.
-# No ServiceAccount/ClusterRole is added because the real upstream job needs
-# none - kube-bench reads host files directly via the mounted hostPaths
-# below, it makes no Kubernetes API calls for this benchmark.
+# kube-bench reads host files directly via the mounted hostPaths below and
+# makes no Kubernetes API calls for this benchmark, so its dedicated
+# ServiceAccount has no token and no Role or binding: no API permission at all
+# (spec 008 FR-007, spec 009 T088).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-bench
+  labels:
+    app.kubernetes.io/name: kube-bench
+    app.kubernetes.io/part-of: microtodosuite
+automountServiceAccountToken: false
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -20,11 +33,11 @@ metadata:
 spec:
   schedule: "0 3 * * *"
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 7
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 3600
+      ttlSecondsAfterFinished: 604800
       activeDeadlineSeconds: 600
       backoffLimit: 0
       template:
@@ -34,6 +47,7 @@ spec:
         spec:
           hostPID: true
           restartPolicy: Never
+          serviceAccountName: kube-bench
           automountServiceAccountToken: false
           containers:
             - name: kube-bench

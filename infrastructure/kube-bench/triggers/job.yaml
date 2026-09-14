@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/part-of: microtodosuite
     microtodosuite.io/trigger: evidence
 spec:
-  ttlSecondsAfterFinished: 3600
+  ttlSecondsAfterFinished: 604800
   activeDeadlineSeconds: 600
   backoffLimit: 0
   template:
@@ -19,6 +19,7 @@ spec:
     spec:
       hostPID: true
       restartPolicy: Never
+      serviceAccountName: kube-bench
       automountServiceAccountToken: false
       containers:
         - name: kube-bench

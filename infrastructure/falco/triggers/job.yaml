@@ -25,6 +25,7 @@ spec:
         app.kubernetes.io/name: falco-evidence-trigger
     spec:
       restartPolicy: Never
+      serviceAccountName: falco-evidence-trigger
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true

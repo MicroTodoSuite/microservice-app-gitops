@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Admission and runtime security hardening render test (spec 009, T088,
-# research.md Decision 22): the service CI signing identity (slice 1) and
-# read-only evidence with GitOps-owned triggers (slice 2). Offline by design:
+# research.md Decision 22): the service CI signing identity (slice 1),
+# read-only evidence with GitOps-owned triggers (slice 2), and exact RBAC,
+# resource bounds, and audit retention (slice 4). Offline by design:
 # no live cluster is touched, and no image signature is verified here; that
 # needs the registry and Rekor.
 set -euo pipefail
@@ -211,8 +212,85 @@ for doc in docs/security-runtime.md specs/008-security-runtime-hardening/quickst
   fi
 done
 
+# --- slice 4: exact RBAC, resource bounds, and audit retention --------------
+# Exact RBAC is none: no audit pod may call the Kubernetes API (spec 008 FR-007).
+for component in falco kube-bench kube-hunter; do
+  parent_out="$(render "infrastructure/$component")"
+  combined="$parent_out"
+  if [[ -f "infrastructure/$component/triggers/kustomization.yaml" ]]; then
+    combined="$parent_out"$'\n---\n'"$(render "infrastructure/$component/triggers")"
+  fi
+  if grep -qE '^kind: (Role|ClusterRole|RoleBinding|ClusterRoleBinding)$' <<<"$combined"; then
+    fail "infrastructure/$component and its triggers must grant no Kubernetes API permission"
+  fi
+
+  # One line per pod template: "<kind>/<name> <serviceAccountName or none> <automount>".
+  pods="$(awk '
+    function flush() {
+      if (kind ~ /^(DaemonSet|Deployment|CronJob|Job)$/) print kind "/" name, (sa == "" ? "none" : sa), (automount == "" ? "unset" : automount)
+      kind = name = sa = automount = ""
+    }
+    /^---$/ { flush(); next }
+    /^kind: / { kind = $2 }
+    /^  name: / && name == "" { name = $2 }
+    /^ +serviceAccountName: / { sa = $2 }
+    /^ +automountServiceAccountToken: / && $0 !~ /^automount/ { automount = $2 }
+    END { flush() }
+  ' <<<"$combined")"
+  while read -r workload sa automount; do
+    [[ -n "$workload" ]] || continue
+    if [[ "$sa" == none || "$sa" == default ]]; then
+      fail "$workload in infrastructure/$component must name its own ServiceAccount, not ${sa/none/the default one}"
+      continue
+    fi
+    [[ "$automount" == false ]] || fail "$workload in infrastructure/$component must set automountServiceAccountToken: false"
+    account="$(document ServiceAccount "$sa" <<<"$parent_out")"
+    if [[ -z "$account" ]]; then
+      fail "ServiceAccount $sa used by $workload must be defined in infrastructure/$component"
+    elif ! grep -qE '^automountServiceAccountToken: false$' <<<"$account"; then
+      fail "ServiceAccount $sa must set automountServiceAccountToken: false"
+    fi
+  done <<<"$pods"
+
+  # Every container bounds CPU and memory in both requests and limits.
+  # Kustomize renders limits before requests at the same indentation, so an
+  # open block is closed before the next line can open another one.
+  bounds="$(awk '
+    function close_block() { if (open && cpu && memory) complete[block]++; open = 0 }
+    /^---$/ { close_block(); next }
+    {
+      if (open) {
+        match($0, /^ */)
+        if (RLENGTH > indent) {
+          if ($1 == "cpu:") cpu = 1
+          if ($1 == "memory:") memory = 1
+          next
+        }
+        close_block()
+      }
+      if (match($0, /^ +(requests|limits):$/)) {
+        block = $1; indent = RLENGTH - length(block); cpu = memory = 0; open = 1; next
+      }
+      if ($0 ~ /^ +(- )?image: /) containers++
+    }
+    END { close_block(); print containers + 0, complete["requests:"] + 0, complete["limits:"] + 0 }
+  ' <<<"$combined")"
+  read -r containers requests limits <<<"$bounds"
+  [[ "$requests" == "$containers" && "$limits" == "$containers" ]] \
+    || fail "every container in infrastructure/$component and its triggers must set CPU and memory requests and limits ($containers containers, $requests complete requests, $limits complete limits)"
+done
+
+# Audit reports stay readable for 7 days.
+for component in kube-bench kube-hunter; do
+  cron="$(render "infrastructure/$component" | document CronJob "$component")"
+  grep -qE '^      ttlSecondsAfterFinished: 604800$' <<<"$cron" \
+    || fail "CronJob $component must keep finished Jobs for 7 days (ttlSecondsAfterFinished: 604800)"
+done
+grep -qE '^  successfulJobsHistoryLimit: 7$' <<<"$(render infrastructure/kube-bench | document CronJob kube-bench)" \
+  || fail "CronJob kube-bench runs daily and must keep 7 successful Jobs, or its history limit deletes reports before the TTL"
+
 if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: Kyverno admits images signed by the shared CI at any full commit SHA from the five services'"'"' reviewed main, and nothing else; evidence triggers are disabled-by-default GitOps Jobs and the collectors only read\n'
+printf 'PASS: Kyverno admits images signed by the shared CI at any full commit SHA from the five services'"'"' reviewed main, and nothing else; evidence triggers are disabled-by-default GitOps Jobs and the collectors only read; audit pods hold no API permission, bound their resources, and keep reports for 7 days\n'

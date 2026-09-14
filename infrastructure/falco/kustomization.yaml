@@ -6,5 +6,6 @@ resources:
   - falco-config.yaml
   - falcosidekick.yaml
   - falcosidekick-slack-secret.yaml
+  - evidence-trigger-serviceaccount.yaml
 
 namespace: security

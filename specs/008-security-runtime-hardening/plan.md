@@ -55,6 +55,13 @@ Amended 2026-09-13: vulnerability reports are `VulnerabilityReport` custom
 resources in etcd, replaced when they expire (24 hours by default); no
 persistent volume is added.
 
+Amended 2026-09-14 (spec 009 T088, research.md Decision 22): completed
+kube-bench and kube-hunter Jobs, and so their logs, are kept for 7 days
+(`ttlSecondsAfterFinished: 604800`) instead of one hour, and kube-bench keeps 7
+successful Jobs, so a report can be read until the next weekly run. A completed
+Job runs no container, so FR-007's "no standing privileged workload" still
+holds.
+
 **Testing**: Kustomize render + `kubeconform`, SHA-256/provenance
 verification for hand-authored components, a Bash contract script (mirroring
 `tests/contract/observability.sh`) checking pinned versions, RBAC read-only
