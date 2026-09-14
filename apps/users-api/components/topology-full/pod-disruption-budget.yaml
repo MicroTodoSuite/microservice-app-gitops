@@ -1,0 +1,15 @@
+# Full-profile disruption budget for users-api (spec 009 T090, research.md Decision 23).
+# maxUnavailable 1 lets a voluntary eviction, such as a Karpenter drain or
+# consolidation, take one pod at a time, and never blocks the drain of a single
+# replica. Its selector is the service's own pod labels from apps/users-api/base.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: users-api
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: users-api
+      app.kubernetes.io/part-of: microtodosuite
+      app.kubernetes.io/component: business-service
