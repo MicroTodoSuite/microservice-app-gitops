@@ -99,8 +99,9 @@ digest pod-template evidence revision supplies the required successful canary
 observation.
 
 Kyverno requires every business Pod to use an immutable digest, define
-liveness/readiness probes, and carry a valid keyless signature from the pinned
-organization workflow invoked by the exact service repository on `main`.
+liveness/readiness probes, and carry a valid keyless signature from the
+organization's shared CI workflow, at the full commit SHA the service pins,
+invoked by the exact service repository on `main` (spec 009 T088).
 
 ## Mandatory GitOps sequence
 
