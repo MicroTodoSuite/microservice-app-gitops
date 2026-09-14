@@ -1,0 +1,126 @@
+# Scrape sources of the full-profile alerts in rules.yaml. Every Service, port,
+# and label below was read from the rendered platform roots in this repository.
+#
+# honorLabels: KEDA, Argo CD, External Secrets, and cert-manager each report a
+# namespace label naming the object a series describes (a ScaledObject, an
+# Application, an ExternalSecret, a Certificate). Without honorLabels,
+# Prometheus renames that label to exported_namespace and sets namespace to the
+# controller's own namespace, so an alert would name the wrong namespace.
+# Kyverno (resource_namespace disabled in its kyverno-metrics ConfigMap) and
+# falcosidekick report no namespace label and keep the default.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: keda-operator
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["keda"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keda-operator
+  endpoints:
+    - port: metrics
+      interval: 60s
+      honorLabels: true
+---
+# argocd-metrics selects the application controller, which exports
+# argocd_app_info. Argo CD's own NetworkPolicy admits port 8082 from any
+# namespace.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-metrics
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["argocd"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-metrics
+  endpoints:
+    - port: metrics
+      interval: 60s
+      honorLabels: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cert-manager
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["cert-manager"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cert-manager
+      app.kubernetes.io/component: controller
+  endpoints:
+    - port: http-metrics
+      interval: 60s
+      honorLabels: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kyverno-admission-controller
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["kyverno"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kyverno-admission-controller
+      app.kubernetes.io/component: admission-controller
+  endpoints:
+    - port: metrics-port
+      interval: 60s
+---
+# falcosidekick serves /metrics on its HTTP port (2801); its NetworkPolicy
+# admits that port from any source.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: falcosidekick
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["security"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: falcosidekick
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 60s
+---
+# The External Secrets bundle ships no metrics Service; the controller
+# container listens on --metrics-addr=:8080 through its named port metrics.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: external-secrets
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames: ["external-secrets"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: external-secrets
+      app.kubernetes.io/instance: external-secrets
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 60s
+      honorLabels: true

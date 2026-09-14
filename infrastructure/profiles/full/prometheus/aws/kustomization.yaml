@@ -10,6 +10,10 @@ kind: Kustomization
 resources:
   - ../../../../prometheus
 
+# The full-profile alerts and their monitors, shared with the azure root.
+components:
+  - ../components/alerts
+
 patches:
   # Alertmanager keeps silences and its notification log in memory in the
   # economical profile, so a restart forgets both. One replica, as in the

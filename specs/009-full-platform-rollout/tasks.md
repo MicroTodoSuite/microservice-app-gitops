@@ -398,8 +398,12 @@ to stay empty at their bootstrap revision.
     Delivered in `infrastructure/profiles/full/{prometheus,grafana}/{aws,azure}/`
     (commits `baf0783` failing, `07cd194` implementing). No cluster activates
     the roots yet; their live evidence belongs to T094.
-  - [ ] Error-rate, p99, scaling, platform, and security rules with the
-    ServiceMonitors that scrape their sources.
+  - [X] Error-rate, p99, scaling, platform, and security rules with the
+    ServiceMonitors that scrape their sources. Delivered in
+    `infrastructure/profiles/full/prometheus/components/alerts/`, included by both
+    full Prometheus roots (commits `b3a5265` failing, `02009ef` implementing, with
+    test corrections `2c66a99` and `63aea91`). The error-rate alert is the
+    existing economical one; live firing evidence belongs to T094.
   - [ ] Jaeger on the ECK Elasticsearch backend through a dedicated
     least-privilege user, and trace-to-log correlation in Grafana.
   - [ ] Notifications that carry the cluster and environment through the

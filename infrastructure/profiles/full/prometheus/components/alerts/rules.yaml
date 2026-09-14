@@ -1,0 +1,148 @@
+# Full-profile alerts (spec 009 T085, research.md Decision 21), one per signal
+# source. The existing Slack route (infrastructure/prometheus/
+# alertmanager-config.yaml) groups and titles alerts by workload, so every
+# alert sets workload to the object it is about. Falco events already reach
+# Slack through falcosidekick (spec 008) and are not alerted on twice.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: full-profile-alerts
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+    app.kubernetes.io/component: observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  groups:
+    - name: microtodosuite.full-profile.latency
+      rules:
+        # The recording rule lives in infrastructure/prometheus/rules/
+        # golden-signals.yaml; 2 seconds is the threshold the production
+        # canary gate (microtodosuite-canary-latency) also enforces.
+        - alert: WorkloadHighP99Latency
+          expr: workload:http_request_duration_seconds:p99_5m{revision="stable"} > 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.workload }} p99 latency above 2s"
+            description: "{{ $labels.workload }} has a p99 request duration of {{ $value | humanizeDuration }} over the last 5 minutes."
+    - name: microtodosuite.full-profile.scaling
+      rules:
+        # keda_scaled_object_errors_total{namespace, scaledObject}
+        # (KEDA 2.20.1 pkg/metricscollector/prommetrics.go).
+        - alert: KedaScaledObjectErrors
+          expr: |
+            label_replace(
+              sum by (namespace, scaledObject) (increase(keda_scaled_object_errors_total[10m])),
+              "workload", "$1", "scaledObject", "(.*)"
+            ) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.workload }} cannot scale"
+            description: "KEDA reported {{ $value }} errors for ScaledObject {{ $labels.namespace }}/{{ $labels.scaledObject }} in the last 10 minutes, so its workload no longer scales on its trigger."
+    - name: microtodosuite.full-profile.platform
+      rules:
+        # argocd_app_info{namespace, name, project, sync_status,
+        # health_status, ...} (Argo CD 3.5.0 controller/metrics/metrics.go).
+        - alert: ArgoCdApplicationUnhealthy
+          expr: |
+            label_replace(
+              max by (namespace, name, project, health_status) (argocd_app_info{health_status=~"Degraded|Missing"}),
+              "workload", "$1", "name", "(.*)"
+            ) > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Argo CD Application {{ $labels.workload }} is {{ $labels.health_status }}"
+            description: "Application {{ $labels.namespace }}/{{ $labels.name }} in project {{ $labels.project }} has been {{ $labels.health_status }} for 15 minutes."
+        - alert: ArgoCdApplicationOutOfSync
+          expr: |
+            label_replace(
+              max by (namespace, name, project) (argocd_app_info{sync_status="OutOfSync"}),
+              "workload", "$1", "name", "(.*)"
+            ) > 0
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Argo CD Application {{ $labels.workload }} is out of sync"
+            description: "Application {{ $labels.namespace }}/{{ $labels.name }} in project {{ $labels.project }} has differed from Git for 30 minutes."
+        # externalsecret_status_condition{name, namespace, condition, status}
+        # (External Secrets 2.9.0 pkg/controllers/externalsecret/esmetrics/
+        # esmetrics.go and pkg/controllers/metrics/labels.go).
+        - alert: ExternalSecretNotReady
+          expr: |
+            label_replace(
+              max by (namespace, name) (externalsecret_status_condition{condition="Ready",status="False"}),
+              "workload", "$1", "name", "(.*)"
+            ) == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "ExternalSecret {{ $labels.workload }} is not ready"
+            description: "ExternalSecret {{ $labels.namespace }}/{{ $labels.name }} has not synced from its store for 15 minutes; the Secret it owns keeps its last value."
+        # certmanager_certificate_ready_status{name, namespace, condition, ...}
+        # and certmanager_certificate_expiration_timestamp_seconds{name,
+        # namespace, ...} (cert-manager 1.21.0 internal/collectors/
+        # certificate_collector.go).
+        - alert: CertificateNotReady
+          expr: |
+            label_replace(
+              max by (namespace, name) (certmanager_certificate_ready_status{condition="False"}),
+              "workload", "$1", "name", "(.*)"
+            ) == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.workload }} is not ready"
+            description: "Certificate {{ $labels.namespace }}/{{ $labels.name }} has not been ready for 15 minutes."
+        - alert: CertificateExpiresSoon
+          expr: |
+            label_replace(
+              min by (namespace, name) (certmanager_certificate_expiration_timestamp_seconds) - time(),
+              "workload", "$1", "name", "(.*)"
+            ) < 14 * 24 * 3600
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "Certificate {{ $labels.workload }} expires in less than 14 days"
+            description: "Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in {{ $value | humanizeDuration }} and has not been renewed."
+    - name: microtodosuite.full-profile.security
+      rules:
+        # kyverno_admission_requests_total{request_allowed, resource_kind,
+        # resource_request_operation, ...} (Kyverno 1.18.2
+        # pkg/metrics/admission.go; resource_namespace is disabled by the
+        # kyverno-metrics ConfigMap).
+        - alert: KyvernoAdmissionDenied
+          expr: |
+            label_replace(
+              sum by (resource_kind, resource_request_operation) (increase(kyverno_admission_requests_total{request_allowed="false"}[10m])),
+              "workload", "$1", "resource_kind", "(.*)"
+            ) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kyverno denied {{ $labels.workload }} admission requests"
+            description: "Kyverno denied {{ $value }} {{ $labels.resource_request_operation }} requests for {{ $labels.resource_kind }} in the last 10 minutes, for example an unsigned or mutable image."
+        # falcosecurity_falcosidekick_outputs_total{destination, status}, with
+        # status "ok" or "error" (falcosidekick 2.34.1 stats_prometheus.go and
+        # outputs/constants.go).
+        - alert: FalcosidekickSlackDeliveryFailing
+          expr: |
+            label_replace(
+              sum by (destination) (increase(falcosecurity_falcosidekick_outputs_total{destination="slack",status="error"}[10m])),
+              "workload", "falcosidekick", "", ""
+            ) > 0
+          labels:
+            severity: critical
+          annotations:
+            summary: "falcosidekick cannot deliver Falco events to Slack"
+            description: "falcosidekick failed {{ $value }} Slack deliveries in the last 10 minutes, so runtime security events may not reach the team channel."

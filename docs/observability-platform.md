@@ -99,10 +99,36 @@ Alertmanager keeps its silences and notification log across restarts.
 `tests/platform/observability-full.bats` checks both clouds and that the
 economical roots stay as they are.
 
-The rest of T085 lands in the same roots: alerting rules for p99 latency,
-scaling, platform, and security; Jaeger on the Elasticsearch backend with
-trace-to-log correlation in Grafana; and notifications that name the cluster and
-environment.
+Both full Prometheus roots also include the Component
+`infrastructure/profiles/full/prometheus/components/alerts`, which adds
+`PrometheusRule/full-profile-alerts` and the monitors that scrape its sources.
+Every alert sets `workload` to the object it is about, so the existing Slack
+route groups and titles it.
+
+| Alert | Source and condition | Severity |
+| --- | --- | --- |
+| `WorkloadHighP99Latency` | `workload:http_request_duration_seconds:p99_5m{revision="stable"}` above 2 seconds for 5 minutes, the production canary threshold | warning |
+| `KedaScaledObjectErrors` | `keda_scaled_object_errors_total` increasing for 10 minutes | warning |
+| `ArgoCdApplicationUnhealthy` | `argocd_app_info` health `Degraded` or `Missing` for 15 minutes | critical |
+| `ArgoCdApplicationOutOfSync` | `argocd_app_info` `OutOfSync` for 30 minutes | warning |
+| `ExternalSecretNotReady` | `externalsecret_status_condition{condition="Ready",status="False"}` for 15 minutes | warning |
+| `CertificateNotReady` | `certmanager_certificate_ready_status{condition="False"}` for 15 minutes | warning |
+| `CertificateExpiresSoon` | `certmanager_certificate_expiration_timestamp_seconds` less than 14 days away for 1 hour | critical |
+| `KyvernoAdmissionDenied` | `kyverno_admission_requests_total{request_allowed="false"}` increasing | warning |
+| `FalcosidekickSlackDeliveryFailing` | `falcosecurity_falcosidekick_outputs_total{destination="slack",status="error"}` increasing | critical |
+
+Prometheus scrapes those sources through ServiceMonitors for `keda/keda-operator`,
+`argocd/argocd-metrics`, `cert-manager/cert-manager`,
+`kyverno/kyverno-svc-metrics`, and `security/falcosidekick`, and a PodMonitor for
+the External Secrets controller, whose bundle ships no metrics Service. The KEDA,
+Argo CD, cert-manager, and External Secrets monitors set `honorLabels: true`:
+those exporters report the namespace of the object a series describes, which
+Prometheus would otherwise rename to `exported_namespace`. Falco events are not
+alerted on again; falcosidekick already sends them to Slack.
+
+The rest of T085 lands in the same roots: Jaeger on the Elasticsearch backend
+with trace-to-log correlation in Grafana, and notifications that name the cluster
+and environment.
 
 ## Access model
 
