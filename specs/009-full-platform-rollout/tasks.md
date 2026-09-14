@@ -491,9 +491,9 @@ to stay empty at their bootstrap revision.
     `tests/platform/security-hardening.bats` (commits `e89288e` failing,
     `5b85afe` fixing, with test correction `c573448`). No signature was verified
     live; that belongs to T094.
-  - [ ] `scripts/managed/verify-security.sh` is read-only, triggers are
-    disabled-by-default GitOps manifests, and the imperative-mutation test
-    catches shell wrappers.
+  - [ ] `scripts/managed/verify-security.sh` and `verify-observability.sh` are
+    read-only, triggers are disabled-by-default GitOps manifests, and the
+    imperative-mutation test catches `exec` and shell wrappers.
   - [ ] Full-profile digest and signature policies over business and platform
     namespaces with the platform-mirror identity, EKS add-on exclusion, and
     unsigned, unmirrored, mutable, and wrong-identity fixtures.
