@@ -146,6 +146,9 @@ jobs:
       - name: Validate the active economical AWS account
         run: tests/contract/economical-account-recovery.sh
 
+      - name: Validate rebuilt resource names (ops spec 004 T016)
+        run: tests/contract/rebuilt-resource-names.sh
+
       - name: Validate the single declared AWS account
         run: tests/contract/aws-account-parameter.sh
 
