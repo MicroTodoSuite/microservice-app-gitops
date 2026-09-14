@@ -12,6 +12,10 @@ kind: Kustomization
 resources:
   - ../../../../prometheus
 
+# The full-profile alerts and their monitors, shared with the aws root.
+components:
+  - ../components/alerts
+
 patches:
   - target:
       group: monitoring.coreos.com
