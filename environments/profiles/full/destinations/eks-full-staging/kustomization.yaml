@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Full-staging environment policy. Full staging is the rebuilt fstg cluster;
+# no demo-full resource or identity is inherited.
+resources:
+  - ../../../../staging
+
+patches:
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: external-secrets-jwt
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/eks.amazonaws.com~1role-arn
+        value: arn:aws:iam::575172595729:role/lex-mts-fstg-role-jwtstg
+  - target:
+      group: external-secrets.io
+      version: v1
+      kind: ExternalSecret
+      name: auth-api-secrets
+    patch: |-
+      - op: replace
+        path: /spec/data/0/remoteRef/key
+        value: lex-mts-fstg-sm-jwtstg

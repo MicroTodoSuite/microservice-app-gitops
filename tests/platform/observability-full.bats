@@ -464,10 +464,14 @@ for cloud in aws azure; do
   done
 done
 
-# Each AWS destination sets its own values, and its cluster label is the
-# physical cluster its registration declares.
-for entry in 'eks-full-dev|dev' 'eks-full-staging|staging' 'eks-full-prod|prod'; do
-  destination="${entry%%|*}" environment="${entry#*|}"
+# Each AWS destination sets its own values using the physical name exported by
+# the rebuilt workload root. Registration alignment has its own cluster-root
+# contract, so this add-on contract does not depend on that separate PR.
+for entry in \
+  'eks-full-dev|dev|lex-mts-fdev-eks-main' \
+  'eks-full-staging|staging|lex-mts-fstg-eks-main' \
+  'eks-full-prod|prod|lex-mts-fprd-eks-main'; do
+  IFS='|' read -r destination environment physical <<<"$entry"
   root="infrastructure/profiles/full/prometheus/destinations/$destination"
   if [[ ! -f "$root/kustomization.yaml" ]]; then
     fail "$root is missing"
@@ -476,8 +480,6 @@ for entry in 'eks-full-dev|dev' 'eks-full-staging|staging' 'eks-full-prod|prod';
   grep -qE '^[[:space:]]*-[[:space:]]*\.\./\.\./aws[[:space:]]*$' "$root/kustomization.yaml" \
     || fail "$root must take infrastructure/profiles/full/prometheus/aws as its base"
   validate "$root" "$root"
-  physical="$(awk '$1 == "physicalCluster:" { print $2 }' "clusters/$destination/registration.yaml")"
-  [[ -n "$physical" ]] || fail "clusters/$destination/registration.yaml must declare physicalCluster"
   out="$(render "$root")"
   prometheus="$(document Prometheus k8s <<<"$out")"
   labels="$(awk '/^  externalLabels:$/{f=1; next} f && /^    /{print; next} f{exit}' <<<"$prometheus")"

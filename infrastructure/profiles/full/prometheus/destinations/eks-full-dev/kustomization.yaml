@@ -20,7 +20,7 @@ patches:
       - op: add
         path: /spec/externalLabels
         value:
-          cluster: microtodosuite-full-dev
+          cluster: lex-mts-fdev-eks-main
           environment: dev
   # The five business ServiceMonitors inherit microtodo-dev from the economical
   # root; this cluster holds only microtodo-dev (research.md Decision 23). The
@@ -35,3 +35,20 @@ patches:
         path: /spec/namespaceSelector/matchNames
         value:
           - microtodo-dev
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: observability-external-secrets-jwt
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/eks.amazonaws.com~1role-arn
+        value: arn:aws:iam::575172595729:role/lex-mts-fdev-role-obssecret
+  - target:
+      group: external-secrets.io
+      version: v1
+      kind: ExternalSecret
+      name: alertmanager-slack-webhook
+    patch: |-
+      - op: replace
+        path: /spec/data/0/remoteRef/key
+        value: lex-mts-fdev-sm-slackobs

@@ -149,6 +149,9 @@ jobs:
       - name: Validate rebuilt resource names (ops spec 004 T016)
         run: tests/contract/rebuilt-resource-names.sh
 
+      - name: Validate full-cluster identities and settings (spec 009 T083/T086)
+        run: tests/platform/full-cluster-identities.bats
+
       - name: Validate the single declared AWS account
         run: tests/contract/aws-account-parameter.sh
 
