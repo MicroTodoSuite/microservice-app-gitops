@@ -1,0 +1,32 @@
+# Drops the Badger volume and mounts the Elasticsearch password and CA.
+# Both Secrets are mounted outside /etc/jaeger, which is the read-only
+# jaeger-config mount; a mount point nested inside it would have to be created
+# in a read-only directory. volumeMounts merge on mountPath and volumes on name.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: observability
+spec:
+  template:
+    spec:
+      containers:
+        - name: jaeger
+          volumeMounts:
+            - mountPath: /badger/data
+              $patch: delete
+            - name: elasticsearch-credentials
+              mountPath: /etc/jaeger-elasticsearch/credentials
+              readOnly: true
+            - name: elasticsearch-ca
+              mountPath: /etc/jaeger-elasticsearch/ca
+              readOnly: true
+      volumes:
+        - name: storage
+          $patch: delete
+        - name: elasticsearch-credentials
+          secret:
+            secretName: jaeger-elasticsearch-credentials
+        - name: elasticsearch-ca
+          secret:
+            secretName: jaeger-elasticsearch-ca

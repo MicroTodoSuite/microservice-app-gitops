@@ -14,6 +14,13 @@ metadata:
   name: platform
 spec:
   version: 9.4.4
+  # Jaeger's file-realm user and role for the full profile (spec 009 T085);
+  # both Secrets are defined in jaeger-user.yaml.
+  auth:
+    roles:
+      - secretName: jaeger-elasticsearch-roles
+    fileRealm:
+      - secretName: jaeger-elasticsearch-user
   image: docker.elastic.co/elasticsearch/elasticsearch@sha256:a3545404e436e348721786bed638042a81f2181ebe2e2636501bb43940677747
   nodeSets:
     - name: default

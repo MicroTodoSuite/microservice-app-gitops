@@ -501,6 +501,12 @@
       "mirrorTag": "jaeger-2.20.0"
     },
     {
+      "id": "jaeger-es-index-cleaner",
+      "upstreamRef": "docker.io/jaegertracing/jaeger-es-index-cleaner:2.20.0",
+      "upstreamDigest": "sha256:387d6532670c097999e6851ac7e22980804d5a4742b7f7ea03013d3397606add",
+      "mirrorTag": "jaeger-es-index-cleaner-2.20.0"
+    },
+    {
       "id": "loki",
       "upstreamRef": "docker.io/grafana/loki:3.7.6",
       "upstreamDigest": "sha256:efd47c67f9bac88ca29bcf8cb997d9ab29d1848bd0aff579282295542a745952",

@@ -1,0 +1,80 @@
+# Deletes Jaeger's daily indices older than 3 days, the economical profile's
+# retention (research.md Decision 21); Jaeger 2.20.0 does not expire indices
+# by itself.
+#
+# jaeger-es-index-cleaner takes NUM_OF_DAYS and the Elasticsearch URL as
+# arguments (cmd/es-index-cleaner/main.go at v2.20.0). Its flags are read
+# through viper with AutomaticEnv and "." replaced by "_" (internal/config/
+# config.go), so es.username, es.password, es.tls.enabled, and es.tls.ca come
+# from ES_USERNAME, ES_PASSWORD, ES_TLS_ENABLED, and ES_TLS_CA, and the password
+# never appears in the arguments. The image is pinned by the digest of its
+# 2.20.0 OCI index and listed in scripts/managed/full-profile-toolchain.lock.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jaeger-es-index-cleaner
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: jaeger-es-index-cleaner
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  schedule: "15 0 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: jaeger-es-index-cleaner
+            app.kubernetes.io/part-of: microtodosuite
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: es-index-cleaner
+              image: jaegertracing/jaeger-es-index-cleaner@sha256:387d6532670c097999e6851ac7e22980804d5a4742b7f7ea03013d3397606add
+              args:
+                - "3"
+                - https://platform-es-http.elasticsearch.svc:9200
+              env:
+                - name: ES_USERNAME
+                  value: jaeger
+                - name: ES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: jaeger-elasticsearch-credentials
+                      key: password
+                - name: ES_TLS_ENABLED
+                  value: "true"
+                - name: ES_TLS_CA
+                  value: /etc/jaeger-elasticsearch/ca/ca.crt
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: elasticsearch-ca
+                  mountPath: /etc/jaeger-elasticsearch/ca
+                  readOnly: true
+          volumes:
+            - name: elasticsearch-ca
+              secret:
+                secretName: jaeger-elasticsearch-ca

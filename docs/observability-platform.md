@@ -126,9 +126,34 @@ those exporters report the namespace of the object a series describes, which
 Prometheus would otherwise rename to `exported_namespace`. Falco events are not
 alerted on again; falcosidekick already sends them to Slack.
 
-The rest of T085 lands in the same roots: Jaeger on the Elasticsearch backend
-with trace-to-log correlation in Grafana, and notifications that name the cluster
-and environment.
+`infrastructure/profiles/full/jaeger/{aws,azure}` run Jaeger on the ECK-managed
+Elasticsearch `platform` (`https://platform-es-http.elasticsearch.svc:9200`)
+instead of Badger, through the Component
+`infrastructure/profiles/full/jaeger/components/elasticsearch`, so the full Jaeger
+keeps no volume and both clouds render the same:
+
+- Jaeger authenticates as the file-realm user `jaeger` with the role
+  `jaeger_writer` (cluster `monitor` and `manage_index_templates`; `create_index`,
+  `write`, `read`, `view_index_metadata`, and `delete_index` on the
+  `jaeger-span-*`, `jaeger-service-*`, `jaeger-dependencies-*`, and
+  `jaeger-sampling-*` indices). `infrastructure/elasticsearch/jaeger-user.yaml`
+  defines the role, generates the password with an External Secrets Password
+  generator into a `kubernetes.io/basic-auth` Secret that ECK hashes, and grants
+  `observability/jaeger-elasticsearch-reader` `get` on that Secret and on ECK's
+  `platform-es-http-certs-public`.
+- `SecretStore/elasticsearch`, on the External Secrets Kubernetes provider, copies
+  the password into `jaeger-elasticsearch-credentials` and the CA into
+  `jaeger-elasticsearch-ca`, mounted under `/etc/jaeger-elasticsearch/`.
+- Every Jaeger index has one shard and no replica, because Elasticsearch runs one
+  node, and rotates daily.
+- `CronJob/jaeger-es-index-cleaner` (jaeger-es-index-cleaner 2.20.0, pinned by
+  digest) runs daily at 00:15 and deletes Jaeger indices older than 3 days, the
+  economical retention.
+- NetworkPolicies allow Jaeger and the cleaner to reach port 9200 in the
+  `elasticsearch` namespace.
+
+The rest of T085 lands in the same roots: trace-to-log correlation in Grafana,
+and notifications that name the cluster and environment.
 
 ## Access model
 

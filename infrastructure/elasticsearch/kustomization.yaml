@@ -14,3 +14,4 @@ namespace: elasticsearch
 resources:
   - namespace.yaml
   - elasticsearch.yaml
+  - jaeger-user.yaml

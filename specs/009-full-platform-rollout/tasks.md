@@ -391,7 +391,7 @@ to stay empty at their bootstrap revision.
   > exposure, and the tooling NodePool/EC2NodeClass userData remain deferred
   > to the activating registration (Phase 4).
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
-  T085 is delivered in four slices (`research.md` Decision 21), each with its own
+  T085 is delivered in five slices (`research.md` Decision 21), each with its own
   failing test first:
   - [X] Per-cloud full-profile roots with encrypted persistence for Prometheus,
     Alertmanager, and Grafana, tested by `tests/platform/observability-full.bats`.
@@ -404,8 +404,15 @@ to stay empty at their bootstrap revision.
     full Prometheus roots (commits `b3a5265` failing, `02009ef` implementing, with
     test corrections `2c66a99` and `63aea91`). The error-rate alert is the
     existing economical one; live firing evidence belongs to T094.
-  - [ ] Jaeger on the ECK Elasticsearch backend through a dedicated
-    least-privilege user, and trace-to-log correlation in Grafana.
+  - [X] Jaeger on the ECK Elasticsearch backend through a dedicated
+    least-privilege user, with 3-day index retention. Delivered in
+    `infrastructure/profiles/full/jaeger/` (both clouds, through
+    `components/elasticsearch/`) and `infrastructure/elasticsearch/jaeger-user.yaml`
+    (commits `b6f7800` failing, `2222583` implementing, with test corrections
+    `cfbbf36` and `1d5ae46`). Nothing connects to Elasticsearch yet; live evidence
+    belongs to T094.
+  - [ ] Trace-to-log correlation in Grafana through an Elasticsearch datasource
+    with its own read-only user.
   - [ ] Notifications that carry the cluster and environment through the
     External Secret-backed Alertmanager route.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
