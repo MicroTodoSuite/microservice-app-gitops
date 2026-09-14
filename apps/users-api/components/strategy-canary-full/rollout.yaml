@@ -1,0 +1,52 @@
+# Full-only Istio-routed canary (spec 009, T110): traffic shifts by
+# VirtualService/DestinationRule weight (trafficRouting.istio), gated by the
+# same error-rate template the economical canary uses plus a p99 latency
+# template where the metric exists (see
+# infrastructure/argo-rollouts/cluster-analysis-template.yaml). No
+# canaryService/stableService is needed — Istio routing replaces the
+# separate-Service mechanism ../strategy-canary uses.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata: {name: users-api}
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 300
+  revisionHistoryLimit: 3
+  workloadRef: {apiVersion: apps/v1, kind: Deployment, name: users-api, scaleDown: onsuccess}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: users-api
+      app.kubernetes.io/part-of: microtodosuite
+      app.kubernetes.io/component: business-service
+  strategy:
+    canary:
+      trafficRouting:
+        istio:
+          virtualService: {name: users-api, routes: [primary]}
+          destinationRule: {name: users-api, canarySubsetName: canary, stableSubsetName: stable}
+      steps:
+        - setWeight: 10
+        - pause: {duration: 2m}
+        - analysis:
+            templates:
+              - {templateName: microtodosuite-canary-health, clusterScope: true}
+              - {templateName: microtodosuite-canary-latency, clusterScope: true}
+            args:
+              - {name: workload, value: "users-api"}
+        - setWeight: 25
+        - pause: {duration: 2m}
+        - analysis:
+            templates:
+              - {templateName: microtodosuite-canary-health, clusterScope: true}
+              - {templateName: microtodosuite-canary-latency, clusterScope: true}
+            args:
+              - {name: workload, value: "users-api"}
+        - setWeight: 50
+        - pause: {duration: 2m}
+        - analysis:
+            templates:
+              - {templateName: microtodosuite-canary-health, clusterScope: true}
+              - {templateName: microtodosuite-canary-latency, clusterScope: true}
+            args:
+              - {name: workload, value: "users-api"}
+        - setWeight: 100

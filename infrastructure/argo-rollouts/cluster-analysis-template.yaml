@@ -28,3 +28,40 @@ spec:
             workload:http_errors:ratio5m{workload="{{ args.workload }}", revision="canary"}
       successCondition: result[0] <= 0.05
       failureCondition: result[0] > 0.05
+---
+# Full-only latency gate (spec 009, T110): the p99 half of "five-minute
+# error-rate and p99 analyses". Sourced from the
+# workload:http_request_duration_seconds:p99_5m recording rule in
+# infrastructure/prometheus/rules/golden-signals.yaml, which is itself only
+# derivable for workloads that expose a real latency Histogram. Today that is
+# users-api (percentiles-histogram enabled) and log-message-processor
+# (native Histogram); auth-api and todos-api resolve once
+# specs/006-observability-platform-foundation T016/T017 land; frontend has no
+# duration metric family at all until T018 adds one (nginx counts requests,
+# not their duration) — until then this correctly returns no data for those
+# workloads rather than a fabricated value, and failureLimit: 0 makes a
+# missing measurement fail the gate rather than pass it silently.
+# Threshold is a starting default (this environment has no live full-profile
+# traffic to derive one from), like the avg5m alert threshold; tune once real
+# eks-full-prod traffic exists.
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterAnalysisTemplate
+metadata:
+  name: microtodosuite-canary-latency
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  args:
+    - name: workload
+  metrics:
+    - name: canary-p99-latency
+      failureLimit: 0
+      interval: 30s
+      count: 3
+      provider:
+        prometheus:
+          address: http://prometheus-k8s.observability.svc:9090
+          query: |
+            workload:http_request_duration_seconds:p99_5m{workload="{{ args.workload }}", revision="canary"}
+      successCondition: result[0] <= 2
+      failureCondition: result[0] > 2
