@@ -404,8 +404,13 @@ to stay empty at their bootstrap revision.
     full Prometheus roots (commits `b3a5265` failing, `02009ef` implementing, with
     test corrections `2c66a99` and `63aea91`). The error-rate alert is the
     existing economical one; live firing evidence belongs to T094.
-  - [ ] Jaeger on the ECK Elasticsearch backend through a dedicated
-    least-privilege user, with 3-day index retention.
+  - [X] Jaeger on the ECK Elasticsearch backend through a dedicated
+    least-privilege user, with 3-day index retention. Delivered in
+    `infrastructure/profiles/full/jaeger/` (both clouds, through
+    `components/elasticsearch/`) and `infrastructure/elasticsearch/jaeger-user.yaml`
+    (commits `b6f7800` failing, `2222583` implementing, with test corrections
+    `cfbbf36` and `1d5ae46`). Nothing connects to Elasticsearch yet; live evidence
+    belongs to T094.
   - [ ] Trace-to-log correlation in Grafana through an Elasticsearch datasource
     with its own read-only user.
   - [ ] Notifications that carry the cluster and environment through the
