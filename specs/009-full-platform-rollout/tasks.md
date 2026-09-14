@@ -454,7 +454,7 @@ to stay empty at their bootstrap revision.
 
 - [ ] T099 [P] [US4] Add reusable-workflow contract tests and a five-service quality-gate matrix for required unit/integration/contract/E2E/performance/DAST coverage, Sonar fail-closed behavior, digest-only output, OIDC, short-lived GitHub App tokens supplied through the exact `RELEASE_APP_ID`/`RELEASE_APP_KEY` and `GITOPS_PROMOTE_APP_ID`/`GITOPS_PROMOTE_APP_KEY` caller secrets, exact destination tuples, and no cluster mutation in `../.github/tests/workflows/`.
 - [ ] T100 [P] [US4] Add canary render tests for a full-only strategy at 10/25/50/100 traffic weights, five-minute error-rate and p99 analyses, missing-metric failure, automatic abort, stable rollback, and byte-identical economical native-canary golden output in `tests/promotion/full-production-canary.bats`.
-- [ ] T101 [P] [US4] Add per-service workflow tests asserting every available unit/integration/contract/E2E/performance/DAST harness is blocking and each reusable workflow is pinned by full SHA in `tests/promotion/service-workflows.bats`.
+- [X] T101 [P] [US4] Add per-service workflow tests asserting every available unit/integration/contract/E2E/performance/DAST harness is blocking and each reusable workflow is pinned by full SHA in `tests/promotion/service-workflows.bats`.
 
 ### Implementation
 
