@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Prometheus for the eks-full-staging destination (spec 009 T085, research.md
+# Decision 21). The aws root is the base; this root only names the cluster and
+# the environment its alerts come from. clusters/eks-full-staging's activation
+# names this path, and cluster matches the physicalCluster its registration
+# declares: full staging runs on the existing demo-full cluster.
+resources:
+  - ../../aws
+
+patches:
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: Prometheus
+      name: k8s
+    patch: |-
+      - op: add
+        path: /spec/externalLabels
+        value:
+          cluster: microtodosuite-demo-full
+          environment: staging

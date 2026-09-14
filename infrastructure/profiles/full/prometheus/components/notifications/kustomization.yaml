@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Full-profile Slack notifications name the environment and the cluster they
+# come from (spec 009 T085, research.md Decision 21; FR-022, FR-030). Both full
+# Prometheus roots include this Component.
+#
+# The labels come from Prometheus external labels, which each destination root
+# under ../../destinations/ sets; Prometheus adds external labels to every
+# alert it sends to Alertmanager, so Alertmanager sees them in CommonLabels.
+# The route, the External Secret-backed webhook, grouping, and the text keep
+# the economical AlertmanagerConfig's values.
+patches:
+  - target:
+      group: monitoring.coreos.com
+      version: v1alpha1
+      kind: AlertmanagerConfig
+      name: slack-golden-signals
+    patch: |-
+      - op: replace
+        path: /spec/receivers/0/slackConfigs/0/title
+        value: '[{{ .CommonLabels.environment }} {{ .CommonLabels.cluster }}] {{ .CommonLabels.alertname }}: {{ .CommonLabels.workload }}'

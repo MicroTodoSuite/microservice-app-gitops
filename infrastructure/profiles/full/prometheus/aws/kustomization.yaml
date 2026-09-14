@@ -10,9 +10,11 @@ kind: Kustomization
 resources:
   - ../../../../prometheus
 
-# The full-profile alerts and their monitors, shared with the azure root.
+# The full-profile alerts and their monitors, and the Slack title that names
+# the environment and cluster, shared with the azure root.
 components:
   - ../components/alerts
+  - ../components/notifications
 
 patches:
   # Alertmanager keeps silences and its notification log in memory in the

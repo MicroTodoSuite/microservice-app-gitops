@@ -170,8 +170,22 @@ the Loki datasource with Elasticsearch and links traces to logs:
 - `NetworkPolicy/grafana-allow-elasticsearch` lets Grafana reach port 9200 in
   the `elasticsearch` namespace.
 
-The rest of T085 lands in the same roots: notifications that name the cluster
-and environment.
+Slack notifications from the full profile name their environment and cluster.
+The Component `infrastructure/profiles/full/prometheus/components/notifications`,
+in both cloud roots, prefixes the title of `AlertmanagerConfig/slack-golden-signals`
+with `[<environment> <cluster>]`, and one root per destination sets the Prometheus
+external labels those values come from; Prometheus adds external labels to every
+alert it sends to Alertmanager. A full cluster's activation names its destination
+root, not the cloud root:
+
+| Destination root | `cluster` | `environment` |
+| --- | --- | --- |
+| `infrastructure/profiles/full/prometheus/destinations/eks-full-dev` | `microtodosuite-full-dev` | `dev` |
+| `infrastructure/profiles/full/prometheus/destinations/eks-full-staging` | `microtodosuite-demo-full` | `staging` |
+| `infrastructure/profiles/full/prometheus/destinations/eks-full-prod` | `microtodosuite-full-prod` | `prod` |
+
+`cluster` is the `physicalCluster` of `clusters/<destination>/registration.yaml`.
+The AKS destination root follows once `clusters/aks-dr/` exists (spec 009 T129).
 
 ## Access model
 
