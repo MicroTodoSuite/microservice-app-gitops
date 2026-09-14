@@ -558,8 +558,12 @@ to stay empty at their bootstrap revision.
     tested by `tests/platform/service-runtime-full.bats` (commits `42c0480`
     failing, `5d547b1` implementing). Nothing was scraped in a cluster; that
     evidence belongs to T094.
-  - [ ] PodDisruptionBudgets with `maxUnavailable: 1` and soft hostname and zone
-    topology spread for the five services.
+  - [X] PodDisruptionBudgets with `maxUnavailable: 1` and soft hostname and zone
+    topology spread for the five services. Delivered in
+    `apps/*/components/topology-full/`, tested by
+    `tests/platform/service-runtime-full.bats` (commits `75248d6` failing,
+    `d461eed` implementing). Nothing was drained or scheduled in a cluster; that
+    evidence belongs to T094.
   - [ ] Bounded KEDA ScaledObjects on request rate for the four HTTP services,
     with log-message-processor fixed at one replica.
   - [ ] Documented default-off `<service>-feature-toggles` ConfigMaps.
