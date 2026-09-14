@@ -2,7 +2,8 @@
 # Full-profile service runtime render test (spec 009, T090, research.md
 # Decision 23): the probes and resource bounds the full overlays already render,
 # business ServiceMonitors that scrape each full destination's own namespace
-# (slice 1), and disruption budgets with soft topology spread (slice 2).
+# (slice 1), disruption budgets with soft topology spread (slice 2), and
+# bounded KEDA scaling with only the KEDA operator reaching Prometheus (slice 3).
 # Offline by design: no live cluster is touched.
 set -euo pipefail
 
@@ -172,8 +173,113 @@ for service in "${SERVICES[@]}"; do
   fi
 done
 
+# --- slice 3: bounded KEDA scaling on request rate ---------------------------
+# The four HTTP services scale on their recorded request rate; replicas leave
+# Git so Argo CD's self-heal does not undo KEDA (Decision 23).
+HTTP_SERVICES=(auth-api todos-api users-api frontend)
+declare -A MIN_REPLICAS=(
+  [auth-api:dev]=1 [auth-api:staging]=2 [auth-api:prod]=3
+  [todos-api:dev]=1 [todos-api:staging]=1 [todos-api:prod]=1
+  [users-api:dev]=1 [users-api:staging]=1 [users-api:prod]=1
+  [frontend:dev]=1 [frontend:staging]=2 [frontend:prod]=2
+)
+PROMETHEUS_ADDRESS='http://prometheus-k8s.observability.svc:9090'
+
+# Print the value of a "key: value" line, without surrounding quotes.
+scalar() {
+  awk -v key="$1" '
+    $0 ~ ("^ *(- )?" key ": ") {
+      value = $0; sub("^ *(- )?" key ": ", "", value)
+      if (value ~ /^".*"$/ || value ~ /^'\''.*'\''$/) value = substr(value, 2, length(value) - 2)
+      print value; exit
+    }
+  '
+}
+
+for service in "${HTTP_SERVICES[@]}"; do
+  for environment in "${ENVIRONMENTS[@]}"; do
+    overlay="apps/$service/profiles/full/overlays/$environment"
+    out="$(render "$overlay" 2>/dev/null)" || continue
+    scaled="$(document ScaledObject "$service" <<<"$out")"
+    if [[ -z "$scaled" ]]; then
+      fail "$overlay must render ScaledObject $service"
+      continue
+    fi
+    if [[ "$environment" == prod ]]; then
+      target_kind=Rollout target_api=argoproj.io/v1alpha1
+    else
+      target_kind=Deployment target_api=apps/v1
+    fi
+    reference="$(awk '/^  scaleTargetRef:$/ { f = 1; next } f && /^    / { print; next } { f = 0 }' <<<"$scaled")"
+    [[ "$(scalar kind <<<"$reference")" == "$target_kind" && "$(scalar name <<<"$reference")" == "$service" \
+       && "$(scalar apiVersion <<<"$reference")" == "$target_api" ]] \
+      || fail "$overlay: ScaledObject $service must target $target_api $target_kind $service"
+    expected_min="${MIN_REPLICAS[$service:$environment]}"
+    grep -qE "^  minReplicaCount: $expected_min$" <<<"$scaled" \
+      || fail "$overlay: ScaledObject $service must set minReplicaCount: $expected_min"
+    grep -qE '^  maxReplicaCount: 5$' <<<"$scaled" \
+      || fail "$overlay: ScaledObject $service must set maxReplicaCount: 5"
+    [[ "$(grep -cE '^  - ' <<<"$(awk '/^  triggers:$/ { f = 1; next } f && /^  [ -]/ { print; next } f { exit }' <<<"$scaled")" || true)" == 1 ]] \
+      || fail "$overlay: ScaledObject $service must have exactly one trigger"
+    [[ "$(scalar type <<<"$scaled")" == prometheus ]] \
+      || fail "$overlay: ScaledObject $service must use the prometheus trigger"
+    [[ "$(scalar serverAddress <<<"$scaled")" == "$PROMETHEUS_ADDRESS" ]] \
+      || fail "$overlay: ScaledObject $service must query $PROMETHEUS_ADDRESS"
+    [[ "$(scalar query <<<"$scaled")" == "sum(workload:http_requests:rate5m{workload=\"$service\"})" ]] \
+      || fail "$overlay: ScaledObject $service must query sum(workload:http_requests:rate5m{workload=\"$service\"}), found: $(scalar query <<<"$scaled")"
+    [[ "$(scalar threshold <<<"$scaled")" == 10 ]] \
+      || fail "$overlay: ScaledObject $service must scale at 10 requests per second per replica"
+    # KEDA owns the count, so the target must not declare replicas in Git.
+    if grep -qE '^  replicas:' <<<"$(document "$target_kind" "$service" <<<"$out")"; then
+      fail "$overlay: $target_kind $service must not declare replicas, or Argo CD self-heal undoes KEDA"
+    fi
+  done
+done
+
+for environment in "${ENVIRONMENTS[@]}"; do
+  if grep -qE '^kind: ScaledObject$' <<<"$(render "apps/log-message-processor/profiles/full/overlays/$environment")"; then
+    fail "apps/log-message-processor/profiles/full/overlays/$environment must not scale: each Redis pub/sub subscriber processes every message"
+  fi
+done
+for service in "${SERVICES[@]}"; do
+  if grep -qE '^kind: ScaledObject$' <<<"$(render "apps/$service/profiles/economical/overlays/dev")"; then
+    fail "apps/$service/profiles/economical/overlays/dev must not render a ScaledObject"
+  fi
+done
+
+# Only the KEDA operator may reach Prometheus, and only on 9090: one ingress
+# peer that selects its namespace and its pods together.
+KEDA_PEER=$'    - namespaceSelector:\n        matchLabels:\n          kubernetes.io/metadata.name: keda\n      podSelector:\n        matchLabels:\n          app: keda-operator\n'
+keda_rules() {
+  awk '
+    /^  ingress:$/ { f = 1; next }
+    f && /^  - / { if (rule != "") print rule "\034"; rule = $0 "\n"; next }
+    f && /^   / { rule = rule $0 "\n"; next }
+    f { f = 0 }
+    END { if (rule != "") print rule "\034" }
+  ' | awk 'BEGIN { RS = "\034\n" } /kubernetes.io\/metadata.name: keda\n/ { printf "%s\034", $0 }'
+}
+for cloud in aws azure; do
+  root="infrastructure/profiles/full/prometheus/$cloud"
+  policy="$(document NetworkPolicy prometheus-k8s <<<"$(render "$root")")"
+  rules="$(keda_rules <<<"$policy")"
+  count="$(tr -cd '\034' <<<"$rules" | wc -c)"
+  if [[ "$count" != 1 ]]; then
+    fail "$root: NetworkPolicy prometheus-k8s must have exactly one ingress rule for the keda namespace, found $count"
+  else
+    rule="${rules%$'\034'}"
+    [[ "$rule" == *"$KEDA_PEER"* ]] \
+      || fail "$root: the keda ingress rule must select namespace keda and pods app: keda-operator in one peer"
+    grep -qE '^    - port: 9090$' <<<"$rule" && [[ "$(grep -cE '^    - port: ' <<<"$rule")" == 1 ]] \
+      || fail "$root: the keda ingress rule must open only port 9090"
+  fi
+done
+if grep -q 'kubernetes.io/metadata.name: keda' <<<"$(document NetworkPolicy prometheus-k8s <<<"$(render infrastructure/prometheus)")"; then
+  fail "economical infrastructure/prometheus must not admit keda"
+fi
+
 if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: the five services render probes and bounded resources in every full overlay, each full destination scrapes its own business namespace, and every full service has a one-pod disruption budget and a soft hostname and zone spread\n'
+printf 'PASS: the five services render probes and bounded resources in every full overlay, each full destination scrapes its own business namespace, every full service has a one-pod disruption budget and a soft hostname and zone spread, and the four HTTP services scale between their replicas and 5 on request rate with only KEDA reaching Prometheus\n'
