@@ -12,9 +12,11 @@ kind: Kustomization
 resources:
   - ../../../../prometheus
 
-# The full-profile alerts and their monitors, shared with the aws root.
+# The full-profile alerts and their monitors, and the Slack title that names
+# the environment and cluster, shared with the aws root.
 components:
   - ../components/alerts
+  - ../components/notifications
 
 patches:
   - target:

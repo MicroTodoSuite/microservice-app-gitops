@@ -3,9 +3,10 @@
 # Decision 21): per-cloud Prometheus, Alertmanager, and Grafana roots with
 # encrypted persistence (first slice), the full-profile alerts with the
 # monitors that scrape their sources (second slice), and Jaeger on the ECK
-# Elasticsearch backend with 3-day retention (third slice), and Grafana's
-# Elasticsearch datasource with trace-to-log correlation. Offline by design:
-# no live cluster is touched.
+# Elasticsearch backend with 3-day retention (third slice), Grafana's
+# Elasticsearch datasource with trace-to-log correlation, and notifications
+# that name their cluster and environment (last slice). Offline by design: no
+# live cluster is touched.
 set -euo pipefail
 
 command -v kubeconform >/dev/null || { printf 'FAIL: kubeconform is required\n' >&2; exit 1; }
@@ -393,7 +394,7 @@ for cloud in aws azure; do
     || fail "$root: SecretStore elasticsearch-grafana must read the elasticsearch namespace through the Kubernetes provider"
   grep -A1 'serviceAccount:' <<<"$store" | grep -q 'name: grafana-elasticsearch-reader' \
     || fail "$root: SecretStore elasticsearch-grafana must authenticate as ServiceAccount grafana-elasticsearch-reader"
-  if document SecretStore elasticsearch <<<"$out" | grep -q .; then
+  if [[ -n "$(document SecretStore elasticsearch <<<"$out")" ]]; then
     fail "$root: Grafana must not define SecretStore elasticsearch, which Jaeger's Application owns"
   fi
   credentials="$(document ExternalSecret grafana-elasticsearch-credentials <<<"$out")"
@@ -445,6 +446,53 @@ grep -A2 'kind: ServiceAccount' <<<"$grafana_binding" | grep -q 'name: grafana-e
   && grep -A2 'kind: ServiceAccount' <<<"$grafana_binding" | grep -q 'namespace: observability' \
   || fail "RoleBinding grafana-elasticsearch-secret-reader must bind observability/grafana-elasticsearch-reader"
 
+# --- notifications name their cluster and environment -----------------------
+# The Slack title of every full Prometheus root reads the labels.
+for cloud in aws azure; do
+  root="infrastructure/profiles/full/prometheus/$cloud"
+  [[ -f "$root/kustomization.yaml" ]] || continue
+  route="$(document AlertmanagerConfig slack-golden-signals <<<"$(render "$root")")"
+  # Kustomize folds a long title onto continuation lines; read all of them.
+  title="$(awk '
+    /^[[:space:]]+title:/ { f = 1; indent = match($0, /[^ ]/); print; next }
+    f && match($0, /[^ ]/) > indent && $0 !~ /^[[:space:]]*[A-Za-z_]+:/ { print; next }
+    { f = 0 }
+  ' <<<"$route")"
+  for label in environment cluster alertname workload; do
+    grep -qF ".CommonLabels.$label" <<<"$title" \
+      || fail "$root: the Slack title must show .CommonLabels.$label"
+  done
+done
+
+# Each AWS destination sets its own values, and its cluster label is the
+# physical cluster its registration declares.
+for entry in 'eks-full-dev|dev' 'eks-full-staging|staging' 'eks-full-prod|prod'; do
+  destination="${entry%%|*}" environment="${entry#*|}"
+  root="infrastructure/profiles/full/prometheus/destinations/$destination"
+  if [[ ! -f "$root/kustomization.yaml" ]]; then
+    fail "$root is missing"
+    continue
+  fi
+  grep -qE '^[[:space:]]*-[[:space:]]*\.\./\.\./aws[[:space:]]*$' "$root/kustomization.yaml" \
+    || fail "$root must take infrastructure/profiles/full/prometheus/aws as its base"
+  validate "$root" "$root"
+  physical="$(awk '$1 == "physicalCluster:" { print $2 }' "clusters/$destination/registration.yaml")"
+  [[ -n "$physical" ]] || fail "clusters/$destination/registration.yaml must declare physicalCluster"
+  out="$(render "$root")"
+  prometheus="$(document Prometheus k8s <<<"$out")"
+  labels="$(awk '/^  externalLabels:$/{f=1; next} f && /^    /{print; next} f{exit}' <<<"$prometheus")"
+  grep -qE "^    cluster: $physical$" <<<"$labels" \
+    || fail "$root: Prometheus k8s must set external label cluster: $physical"
+  grep -qE "^    environment: $environment$" <<<"$labels" \
+    || fail "$root: Prometheus k8s must set external label environment: $environment"
+  [[ "$(grep -c . <<<"$labels")" == 2 ]] \
+    || fail "$root: Prometheus k8s must set exactly the cluster and environment external labels"
+  [[ "$(storage_classes <<<"$out")" == gp3 ]] \
+    || fail "$root must keep the aws root's gp3 volumes"
+  [[ -n "$(document PrometheusRule full-profile-alerts <<<"$out")" ]] \
+    || fail "$root must keep the full-profile alerts"
+done
+
 # --- the economical roots stay as they are (FR-002) --------------------------
 for component in prometheus grafana; do
   classes="$(render "infrastructure/$component" | storage_classes)"
@@ -455,7 +503,13 @@ for component in prometheus grafana; do
   fi
 done
 economical_prometheus="$(render infrastructure/prometheus)"
-if document Alertmanager main <<<"$economical_prometheus" | grep -q 'volumeClaimTemplate:'; then
+# The vendored kube-prometheus CR declares an empty externalLabels map.
+grep -qE '^  externalLabels: \{\}$' <<<"$(document Prometheus k8s <<<"$economical_prometheus")" \
+  || fail "economical Prometheus k8s must keep the vendored empty externalLabels"
+if grep -qE '\.CommonLabels\.(cluster|environment)' <<<"$(document AlertmanagerConfig slack-golden-signals <<<"$economical_prometheus")"; then
+  fail "economical Slack title must stay as it is"
+fi
+if grep -q 'volumeClaimTemplate:' <<<"$(document Alertmanager main <<<"$economical_prometheus")"; then
   fail "economical Alertmanager main must stay without a volume; the full-profile roots add it"
 fi
 for entry in "${ALERTS[@]}"; do
@@ -464,7 +518,7 @@ for entry in "${ALERTS[@]}"; do
     fail "economical infrastructure/prometheus must not carry the full-profile alert $alert"
   fi
 done
-if render infrastructure/grafana | grep -q 'type: elasticsearch'; then
+if grep -q 'type: elasticsearch' <<<"$(render infrastructure/grafana)"; then
   fail "economical infrastructure/grafana must not define an Elasticsearch datasource"
 fi
 economical_jaeger="$(render infrastructure/jaeger)"
@@ -478,4 +532,4 @@ if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: full-profile observability roots (prometheus, grafana) keep encrypted volumes on gp3 (aws) and managed-csi (azure) carry the full-profile alerts with their monitors, store Jaeger spans in Elasticsearch for 3 days, and link Grafana traces to Elasticsearch logs\n'
+printf 'PASS: full-profile observability roots (prometheus, grafana) keep encrypted volumes on gp3 (aws) and managed-csi (azure) carry the full-profile alerts with their monitors, store Jaeger spans in Elasticsearch for 3 days, link Grafana traces to Elasticsearch logs, and name the cluster and environment of every alert\n'
