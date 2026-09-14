@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Jaeger on the ECK-managed Elasticsearch `platform` (spec 009 T085,
+# research.md Decision 21), shared by both full Jaeger roots.
+#
+# The Jaeger user, its role, and the Role that lets this namespace read the
+# user's password and ECK's public HTTP CA live in infrastructure/elasticsearch/
+# (jaeger-user.yaml), because ECK reads file-realm and role Secrets only from
+# the Elasticsearch resource's namespace.
+resources:
+  - elasticsearch-secrets.yaml
+  - index-cleaner.yaml
+  - networkpolicy.yaml
+
+patches:
+  - path: config.yaml
+  - path: deployment.yaml
+  # Spans live in Elasticsearch; the economical Badger volume is not needed.
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: jaeger-storage
+        namespace: observability

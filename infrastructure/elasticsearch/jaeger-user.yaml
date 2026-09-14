@@ -1,0 +1,90 @@
+# Jaeger's Elasticsearch identity for the full profile (spec 009 T085,
+# research.md Decision 21). ECK reads file-realm and role Secrets only from the
+# Elasticsearch resource's namespace, so they live here; Elasticsearch
+# `platform` references both in spec.auth.
+#
+# - jaeger-elasticsearch-roles holds the role definition only, never a
+#   credential. ECK loads it from the roles.yml key
+#   (pkg/apis/elasticsearch/v1/elasticsearch_types.go, RoleSource, ECK 3.5.0).
+# - jaeger-elasticsearch-user is generated in the cluster: an External Secrets
+#   Password generator creates the password once, and the ExternalSecret
+#   renders a kubernetes.io/basic-auth Secret with username, password, and
+#   roles, which ECK hashes into its file realm
+#   (pkg/controller/elasticsearch/user/user_provided.go,
+#   realmFromBasicAuthSecret). No password is committed.
+# - jaeger-elasticsearch-secret-reader lets observability's
+#   jaeger-elasticsearch-reader get exactly that user Secret and ECK's public
+#   HTTP CA, which infrastructure/profiles/full/jaeger copies into
+#   observability.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jaeger-elasticsearch-roles
+  labels:
+    app.kubernetes.io/part-of: microtodosuite-platform
+type: Opaque
+stringData:
+  roles.yml: |-
+    jaeger_writer:
+      cluster: ["monitor", "manage_index_templates"]
+      indices:
+        - names: ["jaeger-span-*", "jaeger-service-*", "jaeger-dependencies-*", "jaeger-sampling-*"]
+          privileges: ["create_index", "write", "read", "view_index_metadata", "delete_index"]
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: jaeger-elasticsearch
+spec:
+  length: 32
+  digits: 6
+  symbols: 0
+  noUpper: false
+  allowRepeat: true
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: jaeger-elasticsearch-user
+spec:
+  # Generated once; a new password is a deliberate rotation, not a refresh.
+  refreshInterval: "0"
+  target:
+    name: jaeger-elasticsearch-user
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/basic-auth
+      engineVersion: v2
+      data:
+        username: jaeger
+        password: "{{ .password }}"
+        roles: jaeger_writer
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: jaeger-elasticsearch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jaeger-elasticsearch-secret-reader
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["jaeger-elasticsearch-user", "platform-es-http-certs-public"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jaeger-elasticsearch-secret-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jaeger-elasticsearch-secret-reader
+subjects:
+  - kind: ServiceAccount
+    name: jaeger-elasticsearch-reader
+    namespace: observability

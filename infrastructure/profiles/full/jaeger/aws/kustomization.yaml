@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Full-profile Jaeger on EKS (spec 009 T085, research.md Decision 21). The
+# economical root is the base and stays unchanged. Spans move to the ECK
+# Elasticsearch, so Jaeger keeps no volume and nothing in this root differs
+# from the azure one; both exist so a cluster registration names one Jaeger
+# root per cloud, as it does for Prometheus and Grafana.
+resources:
+  - ../../../../jaeger
+
+components:
+  - ../components/elasticsearch
