@@ -485,8 +485,12 @@ to stay empty at their bootstrap revision.
 - [ ] T088 [P] [US3] Harden `infrastructure/{kyverno,falco,kube-bench,kube-hunter}/` with immutable-digest and signature policies covering all business plus GitOps-installed platform namespaces, accepting only the approved service-CI or platform-mirror workflow identities while explicitly excluding Terraform-managed EKS system add-ons from namespaced admission scope; add unsigned/unmirrored/mutable/wrong-identity failure fixtures, resource bounds, exact RBAC, scheduled audit retention, and GitOps-owned trigger Jobs, remove imperative creation from `scripts/managed/verify-security.sh`, and make T071 pass.
   T088 is delivered in four slices (`research.md` Decision 22), each with its own
   failing test first in `tests/platform/security-hardening.bats`:
-  - [ ] The signature policy accepts the service CI identity through an anchored
+  - [X] The signature policy accepts the service CI identity through an anchored
     workflow-path regular expression instead of one pinned `.github` SHA.
+    Delivered in `infrastructure/kyverno/policies.yaml` and tested by
+    `tests/platform/security-hardening.bats` (commits `e89288e` failing,
+    `5b85afe` fixing, with test correction `c573448`). No signature was verified
+    live; that belongs to T094.
   - [ ] `scripts/managed/verify-security.sh` is read-only, triggers are
     disabled-by-default GitOps manifests, and the imperative-mutation test
     catches shell wrappers.
