@@ -3,7 +3,8 @@
 # Decision 21): per-cloud Prometheus, Alertmanager, and Grafana roots with
 # encrypted persistence (first slice), the full-profile alerts with the
 # monitors that scrape their sources (second slice), and Jaeger on the ECK
-# Elasticsearch backend with 3-day retention (third slice). Offline by design:
+# Elasticsearch backend with 3-day retention (third slice), and Grafana's
+# Elasticsearch datasource with trace-to-log correlation. Offline by design:
 # no live cluster is touched.
 set -euo pipefail
 
@@ -339,6 +340,111 @@ grep -A2 'kind: ServiceAccount' <<<"$binding" | grep -q 'name: jaeger-elasticsea
   && grep -A2 'kind: ServiceAccount' <<<"$binding" | grep -q 'namespace: observability' \
   || fail "RoleBinding jaeger-elasticsearch-secret-reader must bind observability/jaeger-elasticsearch-reader"
 
+# --- Grafana: Elasticsearch datasource and trace-to-log correlation ----------
+for cloud in aws azure; do
+  root="infrastructure/profiles/full/grafana/$cloud"
+  [[ -f "$root/kustomization.yaml" ]] || continue
+  out="$(render "$root")"
+
+  datasources="$(document ConfigMap grafana-datasources <<<"$out")"
+  es_ds="$(awk '/- name: Elasticsearch$/{f=1} f&&/- name: /&&!/- name: Elasticsearch$/{f=0} f' <<<"$datasources")"
+  if [[ -z "$es_ds" ]]; then
+    fail "$root: grafana-datasources must define the Elasticsearch datasource"
+  else
+    for expected in \
+      'type: elasticsearch' \
+      'uid: elasticsearch-logs' \
+      "url: $ES_URL" \
+      'basicAuth: true' \
+      'basicAuthUser: grafana' \
+      "index: 'filebeat-*'" \
+      "timeField: '@timestamp'" \
+      'logMessageField: message' \
+      'tlsAuthWithCACert: true' \
+      'basicAuthPassword: $__file{/etc/grafana-elasticsearch/credentials/password}' \
+      'tlsCACert: $__file{/etc/grafana-elasticsearch/ca/ca.crt}'; do
+      grep -qF -- "$expected" <<<"$es_ds" \
+        || fail "$root: the Elasticsearch datasource must contain '$expected'"
+    done
+  fi
+  jaeger_ds="$(awk '/- name: Jaeger$/{f=1} f&&/- name: /&&!/- name: Jaeger$/{f=0} f' <<<"$datasources")"
+  grep -A6 'tracesToLogsV2:' <<<"$jaeger_ds" | grep -q 'datasourceUid: elasticsearch-logs' \
+    || fail "$root: the Jaeger datasource must link traces to logs in elasticsearch-logs"
+  grep -A6 'tracesToLogsV2:' <<<"$jaeger_ds" | grep -q 'filterByTraceID: true' \
+    || fail "$root: the Jaeger datasource must filter logs by trace ID"
+  if grep -q 'type: loki' <<<"$datasources"; then
+    fail "$root: the full profile sends logs to Elasticsearch and must not define a Loki datasource"
+  fi
+
+  deployment="$(document Deployment grafana <<<"$out")"
+  grep -q 'secretName: grafana-elasticsearch-credentials' <<<"$deployment" \
+    || fail "$root: Deployment grafana must mount Secret grafana-elasticsearch-credentials"
+  grep -q 'secretName: grafana-elasticsearch-ca' <<<"$deployment" \
+    || fail "$root: Deployment grafana must mount Secret grafana-elasticsearch-ca"
+  grep -q 'mountPath: /etc/grafana-elasticsearch/credentials$' <<<"$deployment" \
+    || fail "$root: Deployment grafana must mount the credentials at /etc/grafana-elasticsearch/credentials"
+  grep -q 'mountPath: /etc/grafana-elasticsearch/ca$' <<<"$deployment" \
+    || fail "$root: Deployment grafana must mount the CA at /etc/grafana-elasticsearch/ca"
+
+  # Its own store: Jaeger's Application already owns SecretStore elasticsearch
+  # in the same namespace.
+  store="$(document SecretStore elasticsearch-grafana <<<"$out")"
+  grep -q 'remoteNamespace: elasticsearch' <<<"$store" \
+    || fail "$root: SecretStore elasticsearch-grafana must read the elasticsearch namespace through the Kubernetes provider"
+  grep -A1 'serviceAccount:' <<<"$store" | grep -q 'name: grafana-elasticsearch-reader' \
+    || fail "$root: SecretStore elasticsearch-grafana must authenticate as ServiceAccount grafana-elasticsearch-reader"
+  if document SecretStore elasticsearch <<<"$out" | grep -q .; then
+    fail "$root: Grafana must not define SecretStore elasticsearch, which Jaeger's Application owns"
+  fi
+  credentials="$(document ExternalSecret grafana-elasticsearch-credentials <<<"$out")"
+  grep -q 'key: grafana-elasticsearch-user' <<<"$credentials" \
+    && grep -q 'name: elasticsearch-grafana' <<<"$credentials" \
+    || fail "$root: ExternalSecret grafana-elasticsearch-credentials must copy Secret grafana-elasticsearch-user through SecretStore elasticsearch-grafana"
+  grep -q 'key: platform-es-http-certs-public' <<<"$(document ExternalSecret grafana-elasticsearch-ca <<<"$out")" \
+    || fail "$root: ExternalSecret grafana-elasticsearch-ca must copy ECK's Secret platform-es-http-certs-public"
+
+  policy="$(document NetworkPolicy grafana-allow-elasticsearch <<<"$out")"
+  grep -A2 'podSelector:' <<<"$policy" | grep -qE 'app.kubernetes.io/name: grafana$' \
+    || fail "$root: NetworkPolicy grafana-allow-elasticsearch must select the grafana pods"
+  grep -B8 'kubernetes.io/metadata.name: elasticsearch' <<<"$policy" | grep -qE '^[[:space:]]+- port: 9200$' \
+    || fail "$root: NetworkPolicy grafana-allow-elasticsearch must allow egress to the elasticsearch namespace on port 9200"
+done
+
+# --- the Grafana user in infrastructure/elasticsearch ------------------------
+grep -A2 'fileRealm:' <<<"$es_cr" | grep -q 'secretName: grafana-elasticsearch-user' \
+  || fail "Elasticsearch platform must load the file-realm Secret grafana-elasticsearch-user"
+grep -A2 'roles:' <<<"$es_cr" | grep -q 'secretName: grafana-elasticsearch-roles' \
+  || fail "Elasticsearch platform must load the role Secret grafana-elasticsearch-roles"
+grafana_roles="$(document Secret grafana-elasticsearch-roles <<<"$es_out")"
+for expected in 'grafana_logs_reader:' '"monitor"' '"filebeat-*"' '"read"' '"view_index_metadata"'; do
+  grep -qF -- "$expected" <<<"$grafana_roles" \
+    || fail "Secret grafana-elasticsearch-roles must contain '$expected'"
+done
+if grep -qE 'write|delete|create|manage|all|password' <<<"$grafana_roles"; then
+  fail "Secret grafana-elasticsearch-roles must grant read-only privileges and hold no credential"
+fi
+grafana_user="$(document ExternalSecret grafana-elasticsearch-user <<<"$es_out")"
+grep -q 'type: kubernetes.io/basic-auth' <<<"$grafana_user" \
+  && grep -q 'roles: grafana_logs_reader' <<<"$grafana_user" \
+  && grep -q 'username: grafana' <<<"$grafana_user" \
+  || fail "ExternalSecret grafana-elasticsearch-user must produce a kubernetes.io/basic-auth Secret for user grafana with only grafana_logs_reader"
+grep -A2 'generatorRef:' <<<"$grafana_user" | grep -q 'kind: Password' \
+  || fail "ExternalSecret grafana-elasticsearch-user must take its password from a Password generator"
+grafana_reader="$(document Role grafana-elasticsearch-secret-reader <<<"$es_out")"
+grep -qE '^[[:space:]]+- get$' <<<"$grafana_reader" \
+  || fail "Role grafana-elasticsearch-secret-reader must grant get"
+if grep -qE '^[[:space:]]+- (list|watch|create|update|patch|delete|"\*")$' <<<"$grafana_reader"; then
+  fail "Role grafana-elasticsearch-secret-reader must grant get only"
+fi
+for name in grafana-elasticsearch-user platform-es-http-certs-public; do
+  grep -qE "^[[:space:]]+- $name$" <<<"$grafana_reader" \
+    || fail "Role grafana-elasticsearch-secret-reader must name Secret $name"
+done
+grafana_binding="$(document RoleBinding grafana-elasticsearch-secret-reader <<<"$es_out")"
+grep -A2 'kind: ServiceAccount' <<<"$grafana_binding" | grep -q 'name: grafana-elasticsearch-reader' \
+  && grep -A2 'kind: ServiceAccount' <<<"$grafana_binding" | grep -q 'namespace: observability' \
+  || fail "RoleBinding grafana-elasticsearch-secret-reader must bind observability/grafana-elasticsearch-reader"
+
 # --- the economical roots stay as they are (FR-002) --------------------------
 for component in prometheus grafana; do
   classes="$(render "infrastructure/$component" | storage_classes)"
@@ -358,6 +464,9 @@ for entry in "${ALERTS[@]}"; do
     fail "economical infrastructure/prometheus must not carry the full-profile alert $alert"
   fi
 done
+if render infrastructure/grafana | grep -q 'type: elasticsearch'; then
+  fail "economical infrastructure/grafana must not define an Elasticsearch datasource"
+fi
 economical_jaeger="$(render infrastructure/jaeger)"
 grep -q '^kind: PersistentVolumeClaim$' <<<"$economical_jaeger" \
   || fail "economical infrastructure/jaeger must keep its Badger volume"
@@ -369,4 +478,4 @@ if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: full-profile observability roots (prometheus, grafana) keep encrypted volumes on gp3 (aws) and managed-csi (azure) carry the full-profile alerts with their monitors, and store Jaeger spans in Elasticsearch for 3 days\n'
+printf 'PASS: full-profile observability roots (prometheus, grafana) keep encrypted volumes on gp3 (aws) and managed-csi (azure) carry the full-profile alerts with their monitors, store Jaeger spans in Elasticsearch for 3 days, and link Grafana traces to Elasticsearch logs\n'
