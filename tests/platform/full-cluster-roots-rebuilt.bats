@@ -23,6 +23,7 @@ fail() {
 roots=(eks-full-dev eks-full-staging eks-full-prod)
 environments=(fdev fstg fprd)
 logical_environments=(dev staging prod)
+retired_account='916491''575487'
 
 for index in "${!roots[@]}"; do
   root="${roots[$index]}"
@@ -70,13 +71,21 @@ for index in "${!roots[@]}"; do
       || fail "$root must plan the destination-scoped $capability overlay"
   done
 
-  if grep -Eq 'CHANGEME|microtodosuite-full-(dev|prod)|microtodosuite-demo-full|916491575487|lex-mts-eco-' \
+  if grep -Eq "CHANGEME|microtodosuite-full-(dev|prod)|microtodosuite-demo-full|${retired_account}|lex-mts-eco-" \
       "$directory/registration.yaml" "$directory/planned-inventory.yaml" "$directory/root-app.yaml"; then
     fail "$root still carries a placeholder, retired full-cluster name, retired account, or economical identity"
   fi
 
   rm -f "$render_file"
 done
+
+bootstrap_contract="$ROOT/tests/bootstrap/managed-cluster-bootstrap.bats"
+grep -Fq -- '--cluster "lex-mts-fdev-eks-main"' "$bootstrap_contract" \
+  || fail "the managed bootstrap contract must exercise the rebuilt fdev cluster name"
+if grep -REq 'microtodosuite-full-(dev|prod)|microtodosuite-demo-full' \
+    "$bootstrap_contract" "$ROOT/tests/bootstrap/fixtures"; then
+  fail "managed bootstrap fixtures must not retain retired full-cluster names"
+fi
 
 if [[ "$failures" -ne 0 ]]; then
   printf 'FAIL: %d rebuilt full-cluster root violation(s)\n' "$failures" >&2

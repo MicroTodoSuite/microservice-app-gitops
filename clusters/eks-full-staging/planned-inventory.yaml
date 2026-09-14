@@ -14,9 +14,9 @@ metadata:
   namespace: argocd
   annotations:
     microtodosuite.io/status: planned-not-active
-    microtodosuite.io/physical-cluster: microtodosuite-demo-full
+    microtodosuite.io/physical-cluster: lex-mts-fstg-eks-main
 data:
-  physicalCluster: microtodosuite-demo-full
+  physicalCluster: lex-mts-fstg-eks-main
   logicalEnvironment: full-staging
   profile: full
 
@@ -27,6 +27,7 @@ data:
     - env: staging
       profile: full
       destination: eks-full-staging
+      path: environments/profiles/full/destinations/eks-full-staging
 
   plannedInfrastructure: |
     - name: keda
@@ -38,8 +39,14 @@ data:
     - name: external-secrets
       path: infrastructure/external-secrets
       namespace: external-secrets
+    - name: karpenter
+      path: infrastructure/profiles/full/karpenter/destinations/eks-full-staging
+      namespace: kube-system
+    - name: aws-load-balancer-controller
+      path: infrastructure/profiles/full/aws-load-balancer-controller/destinations/eks-full-staging
+      namespace: kube-system
     - name: kyverno
-      path: infrastructure/kyverno
+      path: infrastructure/profiles/full/kyverno/destinations/eks-full-staging
       namespace: kyverno
     - name: argo-rollouts
       path: infrastructure/argo-rollouts
@@ -48,7 +55,7 @@ data:
       path: infrastructure/ebs-csi-driver
       namespace: kube-system
     - name: prometheus
-      path: infrastructure/prometheus
+      path: infrastructure/profiles/full/prometheus/destinations/eks-full-staging
       namespace: observability
     - name: grafana
       path: infrastructure/grafana
@@ -60,7 +67,10 @@ data:
       path: infrastructure/loki
       namespace: observability
     - name: falco
-      path: infrastructure/falco
+      path: infrastructure/profiles/full/falco/destinations/eks-full-staging
+      namespace: security
+    - name: trivy-operator
+      path: infrastructure/profiles/full/trivy-operator/destinations/eks-full-staging
       namespace: security
     - name: kube-bench
       path: infrastructure/kube-bench

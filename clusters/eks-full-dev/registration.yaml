@@ -1,6 +1,6 @@
 # Git-reviewed registration values for the full-profile dev cluster.
 #
-# A new cluster created by aws/environments/full-dev/foundation.
+# Created by aws/environments/fdev/workload in the rebuilt domain layout.
 #
 # The EKS endpoint, certificate authority data, and OIDC provider ARN stay
 # Terraform-owned bootstrap inputs and are deliberately not duplicated here:
@@ -14,4 +14,4 @@ metadata:
 data:
   repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
   revision: main
-  physicalCluster: microtodosuite-full-dev
+  physicalCluster: lex-mts-fdev-eks-main
