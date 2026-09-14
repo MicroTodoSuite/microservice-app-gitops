@@ -317,6 +317,23 @@ The external inventory governs every application credential and operator-supplie
 - Keep the imperative triggers in the collector: violates Decision 17 and makes evidence irreproducible.
 - Keep audit Jobs for one hour or rely on the log pipeline alone: the economical log collector does not read the `security` namespace, so reports would be lost.
 
+## Decision 23: Complete the full-profile service runtime in four slices
+
+**Decision**: T090 is delivered in four slices, each a sequential GitOps pull request with its own failing test first in `tests/platform/service-runtime-full.bats`. T071's `runtime-config.bats` belongs to its owner, so the lane adds its own test and T071 stays annotated as not delivered here. The five services' full overlays already render startup, readiness, and liveness probes and CPU and memory requests and limits, and the prod Rollouts reference their Deployment through `workloadRef`; T083 already added Istio retries, timeouts, connection pools, and outlier detection. The test pins those instead of changing them.
+
+1. **Business ServiceMonitors per destination.** Each `infrastructure/profiles/full/prometheus/destinations/eks-full-<environment>` root points the five business ServiceMonitors (`auth-api`, `todos-api`, `users-api`, `frontend`, `log-message-processor`) at `microtodo-<environment>`, the only business namespace its cluster holds. They inherit `microtodo-dev` from the economical root, so full staging would scrape no business target and full prod no stable one. The canary ServiceMonitors keep `microtodo-prod`, the only environment that composes the canary strategy, and the economical root does not change.
+2. **Disruption and spread.** Every service's full topology adds a PodDisruptionBudget with `maxUnavailable: 1`, which never blocks a Karpenter drain of a single replica, and `topologySpreadConstraints` over `kubernetes.io/hostname` and `topology.kubernetes.io/zone` with `whenUnsatisfiable: ScheduleAnyway`, which leaves no pod Pending while a cluster runs one stable node (Decision 9) (maintainer decision).
+3. **Bounded scaling.** KEDA ScaledObjects scale auth-api, todos-api, users-api, and frontend on their request rate through the Prometheus scaler, with `minReplicaCount` equal to each overlay's replicas and a bounded `maxReplicaCount`, targeting the Deployment in dev and staging and the Rollout in prod. The full Prometheus NetworkPolicy admits only the KEDA operator on port 9090. log-message-processor stays at one replica: it subscribes to a Redis pub/sub channel, so each extra replica would process every message again. No CPU scaler: the clusters run no metrics-server, and adding one is outside the plan (maintainer decision).
+4. **Controlled configuration and feature toggles.** Each service gets a `<service>-feature-toggles` ConfigMap in the full profile that its Deployment reads. Every key must default to `"false"` and be documented with its owner and purpose, and changing one is a reviewed commit. No service has incomplete behavior today, so the ConfigMaps declare no key, and the test enforces the contract for any future one (maintainer decision). Non-secret runtime settings stay in the existing GitOps ConfigMaps.
+
+**Rationale**: The ServiceMonitors come first because they correct a T085 defect and because the scaling slice reads the request-rate series they collect. A soft spread and `maxUnavailable: 1` keep the disruption budget meaningful once a service has two replicas without stalling consolidation or scheduling on the single-node bootstrap capacity.
+
+**Alternatives rejected**:
+
+- CPU scaling with metrics-server: adds a component the plan does not name.
+- `minAvailable: 1` with `DoNotSchedule` spread: blocks every drain of a single replica and leaves pods Pending on one node.
+- Toggles implemented in each service's code: five repositories of change with no incomplete behavior to protect.
+
 ## Resolved Unknowns
 
 All product and architectural choices are resolved. The remaining Azure account values and stage cost ceilings are deliberately runtime facts requiring authenticated discovery or explicit human acceptance. Their absence does not authorize defaults; the stage contracts make them fail-closed implementation gates.
