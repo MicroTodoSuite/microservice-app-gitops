@@ -195,6 +195,9 @@ jobs:
       - name: Validate the karpenter render (spec 009 T086)
         run: tests/platform/karpenter.bats
 
+      - name: Validate rebuilt full-cluster roots (spec 009 T050/T063/T065)
+        run: tests/platform/full-cluster-roots-rebuilt.bats
+
       - name: Validate the sonarqube hardening render (spec 009 T084)
         run: tests/platform/sonarqube.bats
 
