@@ -1,0 +1,29 @@
+# Replaces the single-destination route with a named, weighted, subset-aware
+# one (spec 009, T110): Argo Rollouts rewrites the canary/stable weights on
+# this exact route name ("primary") as the rollout progresses. Retries/
+# timeout policy is unchanged from topology-full/virtual-service.yaml.
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: frontend
+spec:
+  http:
+    - name: primary
+      route:
+        - destination:
+            host: frontend
+            subset: stable
+            port:
+              number: 8080
+          weight: 100
+        - destination:
+            host: frontend
+            subset: canary
+            port:
+              number: 8080
+          weight: 0
+      timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: connect-failure,refused-stream,5xx

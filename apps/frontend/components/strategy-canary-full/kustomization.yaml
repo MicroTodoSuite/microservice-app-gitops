@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Full-only Istio-routed canary (spec 009, T110). Swaps in for
+# ../strategy-canary in profiles/full/overlays/prod only — the economical
+# profile keeps the replica-weighted native canary in ../strategy-canary
+# unchanged. Traffic shifts by VirtualService weight instead of by pod count,
+# so it patches the DestinationRule/VirtualService that
+# ../../../../components/topology-full already added, rather than owning
+# them.
+resources:
+  - rollout.yaml
+
+patches:
+  - path: destination-rule-subsets.yaml
+    target:
+      kind: DestinationRule
+      name: frontend
+  - path: virtual-service-routes.yaml
+    target:
+      kind: VirtualService
+      name: frontend

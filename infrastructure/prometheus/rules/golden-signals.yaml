@@ -63,6 +63,27 @@ spec:
               or label_replace(rate(http_server_requests_seconds_count{job="users-api"}[5m]), "workload", "users-api", "", "")
               or label_replace(rate(log_message_processing_duration_seconds_count[5m]), "workload", "log-message-processor", "", "")
             )
+        # p99 latency for the full-profile canary gate (spec 009, T110). Needs
+        # real histogram buckets, not just _sum/_count: users-api already
+        # exposes them (management.metrics.distribution.percentiles-histogram
+        # enabled in application.properties) and log-message-processor's
+        # Histogram always has, so both resolve today. auth-api/todos-api
+        # resolve once T016/T017 add a Histogram. frontend is deliberately
+        # excluded, not just missing data: its only latency-adjacent metric is
+        # the nginx-prometheus-exporter's request Counter (no duration
+        # histogram is scraped until T018 adds one), so there is no metric
+        # family to reference at all, unlike the other two whose names are
+        # already fixed by their existing avg5m expression above.
+        - record: workload:http_request_duration_seconds:p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le, workload, revision) (
+                label_replace(rate(auth_api_request_duration_seconds_bucket[5m]), "workload", "auth-api", "", "")
+                or label_replace(rate(todo_api_request_duration_seconds_bucket[5m]), "workload", "todos-api", "", "")
+                or label_replace(rate(http_server_requests_seconds_bucket{job="users-api"}[5m]), "workload", "users-api", "", "")
+                or label_replace(rate(log_message_processing_duration_seconds_bucket[5m]), "workload", "log-message-processor", "", "")
+              )
+            )
     - name: microtodosuite.golden-signals.alerts
       rules:
         # Decided in the Clarifications session: 5xx ratio above 5% sustained

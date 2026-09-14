@@ -1,0 +1,10 @@
+# Argo Rollouts manages the actual pod-selector labels under these two
+# subsets at runtime (spec 009, T110); the names just need to exist here.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: auth-api
+spec:
+  subsets:
+    - name: canary
+    - name: stable
