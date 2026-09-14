@@ -128,3 +128,8 @@ diverge. The pilot proves integration, not durable storage or disaster recovery.
 ```
 
 Cleanup targets only pilot-owned local resources.
+
+<!-- test/slack-approval-gateway-e2e-2: second connectivity check, after fixing the retired gemini-2.5-flash model name. Will be closed without merging once the Slack message is confirmed. -->
+<!-- retry after fixing the slack bot token scope -->
+<!-- retry after inviting the bot to the channel -->
+<!-- retry after fixing the slack channel id -->
