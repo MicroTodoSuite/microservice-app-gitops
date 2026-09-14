@@ -572,7 +572,14 @@ to stay empty at their bootstrap revision.
     `tests/platform/service-runtime-full.bats` (commits `7e24d80` failing,
     `88fadfb` implementing). Nothing was scaled in a cluster; that evidence
     belongs to T094.
-  - [ ] Documented default-off `<service>-feature-toggles` ConfigMaps.
+  - [X] Documented default-off `<service>-feature-toggles` ConfigMaps. Delivered in
+    `apps/*/components/topology-full/` and `docs/feature-toggles.md`, tested by
+    `tests/platform/service-runtime-full.bats` (commits `cbdf8b6` failing,
+    `2c457eb` implementing).
+  > All four slices are delivered in the repository. T090 stays unchecked: the
+  > runtime-config portion of T071 it must make pass lives in
+  > `tests/platform/runtime-config.bats`, which T071 has not created, and no
+  > probe, budget, scaling, or toggle has run against a cluster (T094).
 - [ ] T091 [US3] Define explicit dependency-wave capability activation in `clusters/eks-full-{dev,staging,prod}/activation-infrastructure.yaml`, activate SonarQube/PostgreSQL only in full-dev after ingress/storage/secrets, and keep business activation separate; make T068 pass.
 - [ ] T092 [US3] Run every service test/contract suite, all Kustomize/kubeconform/policy tests, image/secret scans, and resource-budget calculations; merge T082's reviewed organization-workflow PR through protected `main`, execute that exact revision for every locked third-party image before any EKS capability activation, and prove upstream-to-ECR digest mapping, complete OCI graph, scan pass, approved keyless signature identity, and absence of mutable/unmirrored references; retain redacted output in `evidence/runs/<timestamp>-full-platform-static/` and stop on any skip/failure.
 - [ ] T093 [US3] Merge the full-dev platform dependency waves through reviewed GitOps PRs through the Istio NLB and capture its real hostname; implement validated optional records in `../microservice-app-ops/aws/modules/environment-foundation/route53.tf` and the dev root, inventory current registrar-hosted records, then use one reviewed saved plan/Infracost plus external backup/approval to create exactly one separately addressed `microtodosuite.online` Route 53 zone and only `full-dev.microtodosuite.online` and `sonar-full-dev.microtodosuite.online` CNAMEs to that NLB with zero legacy-zone replacement/destruction; change registrar delegation only to the exact Terraform output name servers, verify public NS/SOA agreement, wait read-only for both trusted HTTP-01 certificates, SonarQube/PostgreSQL, and every wave to become Synced/Healthy, and revert/stop on record loss, capacity, storage, CRD, policy, secret, TLS, DNS, or economical regression.
