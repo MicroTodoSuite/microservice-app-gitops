@@ -1,9 +1,8 @@
 # Git-reviewed registration values for the full-profile staging cluster.
 #
-# Maps to the EXISTING physical cluster microtodosuite-demo-full, which
-# aws/environments/demo-full/foundation already owns. The physical name is
-# deliberately not renamed: renaming would replace a running cluster rather
-# than adopt it.
+# Created by aws/environments/fstg/workload in the rebuilt domain layout.
+# Full staging is fstg; the legacy demo-full foundation is not this rollout
+# path and is never adopted by this registration.
 #
 # The EKS endpoint, certificate authority data, and OIDC provider ARN stay
 # Terraform-owned bootstrap inputs and are deliberately not duplicated here:
@@ -17,4 +16,4 @@ metadata:
 data:
   repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
   revision: main
-  physicalCluster: microtodosuite-demo-full
+  physicalCluster: lex-mts-fstg-eks-main

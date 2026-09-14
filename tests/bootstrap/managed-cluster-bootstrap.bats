@@ -41,7 +41,7 @@ run_bootstrap() {
   BOOTSTRAP_FIXTURE_DIR="$FIXTURES/$fixture" \
   PATH="$FIXTURES/$fixture/bin:$PATH" \
     "$BOOTSTRAP" \
-      --cluster "microtodosuite-full-dev" \
+      --cluster "lex-mts-fdev-eks-main" \
       --expected-account "575172595729" \
       --revision "main" \
       --root-app "clusters/eks-full-dev/root-app.yaml" \

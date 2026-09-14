@@ -190,6 +190,13 @@ description: "Dependency-ordered implementation tasks for the full multi-cloud p
 - [X] T048 [P] [US2] Create the full-prod root in `../microservice-app-ops/aws/environments/full-prod/foundation/` with backend key `environments/full-prod/foundation/terraform.tfstate`, `10.30.0.0/16`, the exact four reviewed `/32` operator CIDRs, consumer mode, one On-Demand bootstrap node, spoke-owned TGW routes, opt-in EBS/Karpenter/AWS-load-balancer prerequisites, and cluster-specific prod JWT/IRSA outputs; make T041 pass.
 - [X] T049 [US2] Assert the existing `../microservice-app-ops/aws/environments/demo-full/foundation/demo-full.s3.tfbackend` still uses the shared bucket/region/KMS and its own existing key; make T042 pass without renaming or replacing physical staging resources.
 - [X] T050 [P] [US2] Create one-environment in-cluster roots in `clusters/eks-full-dev/`, `clusters/eks-full-staging/`, and `clusters/eks-full-prod/`, mapping staging to physical `microtodosuite-demo-full`, declaring each root's exact planned logical activation/capability inventory, and keeping both generated business and infrastructure activation lists empty at the recorded bootstrap revision.
+
+  > **Re-delivered on the rebuilt layout, 2026-09-14.** The three roots retain
+  > their logical destination names, but their physical registrations are now
+  > `lex-mts-fdev-eks-main`, `lex-mts-fstg-eks-main`, and
+  > `lex-mts-fprd-eks-main`. Their planned inventories point to destination-
+  > scoped identity overlays and all three activation lists remain empty. The
+  > legacy `demo-full` cluster is not adopted.
 - [X] T051 [US2] Implement the identity/revision/checksum-guarded two-mutation helper in `scripts/managed/bootstrap-cluster.sh`, update `docs/bootstrap-boundary.md`, and make T044 pass.
 
 **Reconciliation, 2026-09-14.** The legacy `aws/shared/egress` and
