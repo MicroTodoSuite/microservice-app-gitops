@@ -11,21 +11,6 @@
 # Decision 1 in microservice-app-docs/full-platform/infrastructure-execution-plan.md:
 # the full profile is pinned to the retired account 916491575487. Re-pointing
 # it amends spec 009, so it is a maintainer decision, not a sweep.
-apps/auth-api/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/auth-api/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/auth-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/frontend/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/frontend/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/frontend/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/log-message-processor/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/log-message-processor/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/log-message-processor/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/todos-api/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/todos-api/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/todos-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/users-api/profiles/full/overlays/dev/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/users-api/profiles/full/overlays/prod/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
-apps/users-api/profiles/full/overlays/staging/kustomization.yaml  916491575487  # decision 1: full-profile image repository in the retired account
 scripts/managed/collect-foundational-evidence.sh  916491575487  # decision 1: full-profile evidence collector expects the retired account
 scripts/managed/full-profile-toolchain.lock  916491575487  # decision 1: full-profile platform mirror repository in the retired account
 specs/009-full-platform-rollout/quickstart.md  916491575487  # decision 1: full-profile operating instructions name the retired account
