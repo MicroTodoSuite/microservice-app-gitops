@@ -805,7 +805,7 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   generated Application Healthy and Synced.
   - [X] Commit a failing activation contract, run in CI in place of the
     quiescence contract.
-  - [ ] Restore the activation lists so the contract passes.
+  - [X] Restore the activation lists so the contract passes.
   - [ ] Merge through the required approval and verify the live Applications.
 
 ---
