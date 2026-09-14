@@ -3,7 +3,8 @@
 # Decision 23): the probes and resource bounds the full overlays already render,
 # business ServiceMonitors that scrape each full destination's own namespace
 # (slice 1), disruption budgets with soft topology spread (slice 2), and
-# bounded KEDA scaling with only the KEDA operator reaching Prometheus (slice 3).
+# bounded KEDA scaling with only the KEDA operator reaching Prometheus (slice 3),
+# and default-off feature toggles beside the controlled ConfigMaps (slice 4).
 # Offline by design: no live cluster is touched.
 set -euo pipefail
 
@@ -278,8 +279,74 @@ if grep -q 'kubernetes.io/metadata.name: keda' <<<"$(document NetworkPolicy prom
   fail "economical infrastructure/prometheus must not admit keda"
 fi
 
+# --- slice 4: controlled configuration and default-off feature toggles ------
+# Each service container reads its GitOps-controlled settings and a hashed
+# feature-toggle ConfigMap; every toggle is FEATURE_<NAME>, "false", and
+# documented (FR-034, Decision 23).
+TOGGLE_CONTRACT=docs/feature-toggles.md
+
+# Print one container's block, by container name, from a rendered Deployment.
+container_block() {
+  awk -v name="$1" '
+    function check() { if (!done && block ~ ("\n(      - |        )name: " name "\n")) { printf "%s", block; done = 1 } }
+    /^      containers:$/ { f = 1; block = ""; next }
+    f && /^      - / { check(); block = "\n" $0 "\n"; next }
+    f && /^        / { block = block $0 "\n"; next }
+    f { check(); f = 0 }
+    END { if (f) check() }
+  '
+}
+
+# Print "name optional" for each configMapRef under a container's envFrom.
+env_from_config_maps() {
+  awk '
+    /^      (- |  )envFrom:$/ { f = 1; next }
+    f && /^        - configMapRef:$/ { if (name != "") print name, optional; name = ""; optional = "false"; next }
+    f && /^            name: / { name = $2; next }
+    f && /^            optional: / { optional = $2; next }
+    f && /^        - / { next }
+    f && /^          / { next }
+    f { f = 0 }
+    END { if (name != "") print name, optional }
+  '
+}
+
+[[ -f "$TOGGLE_CONTRACT" ]] || fail "$TOGGLE_CONTRACT must document the feature-toggle contract"
+for service in "${SERVICES[@]}"; do
+  for environment in "${ENVIRONMENTS[@]}"; do
+    overlay="apps/$service/profiles/full/overlays/$environment"
+    out="$(render "$overlay" 2>/dev/null)" || continue
+    toggles_names="$(awk '/^---$/ { k = "" } /^kind: / { k = $2 } k == "ConfigMap" && /^  name: / { print $2 }' <<<"$out" \
+      | grep -E "^$service-feature-toggles-[a-z0-9]{10}$" || true)"
+    if [[ "$(grep -c . <<<"$toggles_names" || true)" != 1 ]]; then
+      fail "$overlay must render exactly one hashed ConfigMap $service-feature-toggles, found: ${toggles_names:-none}"
+      continue
+    fi
+    toggles="$(document ConfigMap "$toggles_names" <<<"$out")"
+    grep -qE "^    microtodosuite.io/feature-toggle-contract: $TOGGLE_CONTRACT$" <<<"$toggles" \
+      || fail "$overlay: ConfigMap $toggles_names must carry microtodosuite.io/feature-toggle-contract: $TOGGLE_CONTRACT"
+    while IFS= read -r entry; do
+      [[ -z "$entry" ]] && continue
+      key="${entry%%:*}" value="${entry#*: }"
+      [[ "$key" =~ ^FEATURE_[A-Z0-9_]+$ ]] || fail "$overlay: feature toggle $key must be named FEATURE_<NAME>"
+      [[ "$value" == '"false"' || "$value" == "'false'" ]] \
+        || fail "$overlay: feature toggle $key must default to \"false\", found: $value"
+      grep -qE "^\| $service \| \`$key\` \| \`\"false\"\` \| [^|]*[^ |][^|]* \| [^|]*[^ |][^|]* \|$" "$TOGGLE_CONTRACT" 2>/dev/null \
+        || fail "$overlay: feature toggle $key must have a row with its owner and purpose in $TOGGLE_CONTRACT"
+    done < <(awk '/^data:$/ { f = 1; next } f && /^  [^ ]/ { sub(/^  /, ""); print; next } f { exit }' <<<"$toggles")
+    sources="$(document Deployment "$service" <<<"$out" | container_block "$service" | env_from_config_maps)"
+    grep -qx "$toggles_names false" <<<"$sources" \
+      || fail "$overlay: container $service must read ConfigMap $toggles_names through envFrom, not optionally"
+    grep -qx "$service-config false" <<<"$sources" \
+      || fail "$overlay: container $service must keep reading its controlled ConfigMap $service-config"
+  done
+  if grep -qE "^  name: $service-feature-toggles" <<<"$(render "apps/$service/profiles/economical/overlays/dev")"; then
+    fail "apps/$service/profiles/economical/overlays/dev must not render feature toggles"
+  fi
+done
+
 if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: the five services render probes and bounded resources in every full overlay, each full destination scrapes its own business namespace, every full service has a one-pod disruption budget and a soft hostname and zone spread, and the four HTTP services scale between their replicas and 5 on request rate with only KEDA reaching Prometheus\n'
+printf 'PASS: the five services render probes and bounded resources in every full overlay, each full destination scrapes its own business namespace, every full service has a one-pod disruption budget and a soft hostname and zone spread, and the four HTTP services scale between their replicas and 5 on request rate with only KEDA reaching Prometheus, and every full service reads a documented, default-off feature-toggle ConfigMap beside its controlled settings\n'
