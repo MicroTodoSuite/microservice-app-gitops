@@ -394,7 +394,7 @@ for cloud in aws azure; do
     || fail "$root: SecretStore elasticsearch-grafana must read the elasticsearch namespace through the Kubernetes provider"
   grep -A1 'serviceAccount:' <<<"$store" | grep -q 'name: grafana-elasticsearch-reader' \
     || fail "$root: SecretStore elasticsearch-grafana must authenticate as ServiceAccount grafana-elasticsearch-reader"
-  if document SecretStore elasticsearch <<<"$out" | grep -q .; then
+  if [[ -n "$(document SecretStore elasticsearch <<<"$out")" ]]; then
     fail "$root: Grafana must not define SecretStore elasticsearch, which Jaeger's Application owns"
   fi
   credentials="$(document ExternalSecret grafana-elasticsearch-credentials <<<"$out")"
@@ -452,7 +452,12 @@ for cloud in aws azure; do
   root="infrastructure/profiles/full/prometheus/$cloud"
   [[ -f "$root/kustomization.yaml" ]] || continue
   route="$(document AlertmanagerConfig slack-golden-signals <<<"$(render "$root")")"
-  title="$(grep -E '^[[:space:]]+title:' <<<"$route")"
+  # Kustomize folds a long title onto continuation lines; read all of them.
+  title="$(awk '
+    /^[[:space:]]+title:/ { f = 1; indent = match($0, /[^ ]/); print; next }
+    f && match($0, /[^ ]/) > indent && $0 !~ /^[[:space:]]*[A-Za-z_]+:/ { print; next }
+    { f = 0 }
+  ' <<<"$route")"
   for label in environment cluster alertname workload; do
     grep -qF ".CommonLabels.$label" <<<"$title" \
       || fail "$root: the Slack title must show .CommonLabels.$label"
@@ -484,7 +489,7 @@ for entry in 'eks-full-dev|dev' 'eks-full-staging|staging' 'eks-full-prod|prod';
     || fail "$root: Prometheus k8s must set exactly the cluster and environment external labels"
   [[ "$(storage_classes <<<"$out")" == gp3 ]] \
     || fail "$root must keep the aws root's gp3 volumes"
-  document PrometheusRule full-profile-alerts <<<"$out" | grep -q . \
+  [[ -n "$(document PrometheusRule full-profile-alerts <<<"$out")" ]] \
     || fail "$root must keep the full-profile alerts"
 done
 
@@ -499,12 +504,12 @@ for component in prometheus grafana; do
 done
 economical_prometheus="$(render infrastructure/prometheus)"
 # The vendored kube-prometheus CR declares an empty externalLabels map.
-document Prometheus k8s <<<"$economical_prometheus" | grep -qE '^  externalLabels: \{\}$' \
+grep -qE '^  externalLabels: \{\}$' <<<"$(document Prometheus k8s <<<"$economical_prometheus")" \
   || fail "economical Prometheus k8s must keep the vendored empty externalLabels"
-if document AlertmanagerConfig slack-golden-signals <<<"$economical_prometheus" | grep -qE '\.CommonLabels\.(cluster|environment)'; then
+if grep -qE '\.CommonLabels\.(cluster|environment)' <<<"$(document AlertmanagerConfig slack-golden-signals <<<"$economical_prometheus")"; then
   fail "economical Slack title must stay as it is"
 fi
-if document Alertmanager main <<<"$economical_prometheus" | grep -q 'volumeClaimTemplate:'; then
+if grep -q 'volumeClaimTemplate:' <<<"$(document Alertmanager main <<<"$economical_prometheus")"; then
   fail "economical Alertmanager main must stay without a volume; the full-profile roots add it"
 fi
 for entry in "${ALERTS[@]}"; do
@@ -513,7 +518,7 @@ for entry in "${ALERTS[@]}"; do
     fail "economical infrastructure/prometheus must not carry the full-profile alert $alert"
   fi
 done
-if render infrastructure/grafana | grep -q 'type: elasticsearch'; then
+if grep -q 'type: elasticsearch' <<<"$(render infrastructure/grafana)"; then
   fail "economical infrastructure/grafana must not define an Elasticsearch datasource"
 fi
 economical_jaeger="$(render infrastructure/jaeger)"
