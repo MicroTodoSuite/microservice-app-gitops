@@ -97,10 +97,10 @@ the pinned Kyverno CLI with no network against the rendered rule.
 - Falcosidekick's Slack webhook comes from AWS Secrets Manager through an
   ExternalSecret and `SecretStore/aws-secrets-manager` in `security`, which
   authenticates as the ServiceAccount `security-external-secrets-jwt` with the
-  IRSA role `microtodosuite-security-secrets-reader`. No webhook value is
+  IRSA role `lex-mts-eco-role-secsecret`. No webhook value is
   committed.
 - Trivy Operator's ServiceAccount, which its scan Jobs also use, assumes the
-  IRSA role `microtodosuite-security-trivy-ecr-reader` to pull the suite's
+  IRSA role `lex-mts-eco-role-trivyecr` to pull the suite's
   private ECR images, because the nodes do not let pods reach instance metadata.
 - Both roles are defined in `microservice-app-ops` under
   `aws/modules/environment-foundation/security-irsa.tf`.

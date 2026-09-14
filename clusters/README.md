@@ -32,7 +32,7 @@ one-time bootstrap of that cluster's root Application.
 
 ## Economical version
 
-The existing AWS cluster named `microtodosuite-dev` and its legacy
+The existing AWS cluster named `lex-mts-eco-eks-main` and its legacy
 `clusters/eks-dev` registration are adopted as the one shared cluster. The
 physical name and GitOps path remain unchanged so the live root Application is
 not replaced or orphaned. During normal operation, environment policy uses

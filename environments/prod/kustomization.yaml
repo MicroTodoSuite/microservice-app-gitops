@@ -20,7 +20,7 @@ patches:
       metadata:
         name: external-secrets-jwt
         annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-prod-jwt-reader
+          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-jwtprd
   - target:
       group: external-secrets.io
       version: v1
@@ -35,4 +35,4 @@ patches:
         data:
           - secretKey: JWT_SECRET
             remoteRef:
-              key: microtodosuite/prod/auth-api-secrets
+              key: lex-mts-eco-sm-jwtprd

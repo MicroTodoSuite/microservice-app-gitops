@@ -18,7 +18,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:ecr:microtodosuite/auth-api",
+      "resourceId": "aws:ecr:lex-mts-shd-ecr-authapi",
       "kind": "service-ecr-repository",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["all-clusters", "service-ci"],
@@ -26,7 +26,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:ecr:microtodosuite/frontend",
+      "resourceId": "aws:ecr:lex-mts-shd-ecr-frontend",
       "kind": "service-ecr-repository",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["all-clusters", "service-ci"],
@@ -34,7 +34,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:ecr:microtodosuite/log-message-processor",
+      "resourceId": "aws:ecr:lex-mts-shd-ecr-logmsgproc",
       "kind": "service-ecr-repository",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["all-clusters", "service-ci"],
@@ -42,7 +42,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:ecr:microtodosuite/todos-api",
+      "resourceId": "aws:ecr:lex-mts-shd-ecr-todosapi",
       "kind": "service-ecr-repository",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["all-clusters", "service-ci"],
@@ -50,7 +50,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:ecr:microtodosuite/users-api",
+      "resourceId": "aws:ecr:lex-mts-shd-ecr-usersapi",
       "kind": "service-ecr-repository",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["all-clusters", "service-ci"],
@@ -74,7 +74,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:iam:role/microtodosuite-github-ecr-publisher",
+      "resourceId": "aws:iam:role/lex-mts-shd-role-ecrpublish",
       "kind": "github-ecr-publisher-role",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["service-ci"],
@@ -82,7 +82,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:iam:role/microtodosuite-kyverno-ecr-verifier",
+      "resourceId": "aws:iam:role/lex-mts-eco-role-kyvernoecr",
       "kind": "shared-irsa-role",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["economical-cluster", "full-eks-clusters"],
@@ -90,7 +90,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:iam:role/microtodosuite-observability-secrets-reader",
+      "resourceId": "aws:iam:role/lex-mts-eco-role-obssecret",
       "kind": "shared-irsa-role",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["economical-cluster", "full-eks-clusters"],
@@ -98,7 +98,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:iam:role/microtodosuite-security-secrets-reader",
+      "resourceId": "aws:iam:role/lex-mts-eco-role-secsecret",
       "kind": "shared-irsa-role",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": ["economical-cluster", "full-eks-clusters"],
