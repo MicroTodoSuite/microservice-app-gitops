@@ -292,6 +292,23 @@ The external inventory governs every application credential and operator-supplie
 - Roll indices over through an ILM policy (`rotation.auto_rollover`): the policy must exist before Jaeger starts, which needs an imperative Elasticsearch API call; the maintainer chose the index cleaner.
 - Keep Badger in the full profile: evolution plan section 17 names embedded storage with short retention as the economical substitution.
 
+## Decision 22: Harden admission and runtime security in four slices
+
+**Decision**: T088 is delivered in four sequential slices, in the order the maintainer chose, each with its own failing test in `tests/platform/security-hardening.bats`:
+
+1. **Service CI signature identity.** `verify-approved-release-signatures` accepts the service CI's keyless identity through an anchored `subjectRegExp` limited to `https://github.com/MicroTodoSuite/.github/.github/workflows/ci.yml@` followed by a 40-character commit SHA, and keeps the exact GitHub issuer and, for each of the five services, its `githubWorkflowRepository`, `githubWorkflowRef: refs/heads/main`, and `githubWorkflowTrigger: push`. Fulcio puts a GitHub job's `job_workflow_ref` in the certificate SAN, so the SHA in an accepted identity is the one each service's reviewed `main` pins. The exact pin it replaces, `ci.yml@5c4e133fc528ef6ff596d146150321ca94760721`, already rejects every image the five services now sign through a newer `.github` revision, and would reject each later one.
+2. **Read-only evidence.** `scripts/managed/verify-security.sh` stops creating Jobs and running commands in business pods. kube-bench, kube-hunter, and Falco triggers become checked-in manifests that stay out of every kustomization until a reviewed commit adds them (Decision 17), and the imperative-mutation policy test also catches mutations behind shell wrappers such as `kube()`.
+3. **Full-profile admission.** Digest and signature policies cover business and GitOps-installed platform namespaces, accept only the service CI identity or the platform-mirror workflow identity, and leave Terraform-managed EKS system add-ons outside their namespaced scope, with unsigned, unmirrored, mutable, and wrong-identity failure fixtures checked by the pinned Kyverno CLI wherever offline evaluation is possible.
+4. **Runtime audit.** Falco, kube-bench, and kube-hunter get exact RBAC and resource bounds, and audit Jobs are kept for 7 days (`ttlSecondsAfterFinished: 604800`), so each report stays readable until kube-hunter's next weekly run.
+
+**Rationale**: Slice 1 comes first because the pinned identity would deny the promotions already opened for the economical profile as soon as its cluster reconciles again. A regular expression over the reusable workflow's path keeps the property the pin was meant to give (only the reviewed `main` of one of the five services, through the shared CI workflow, can produce an admitted image) without coupling every `.github` release to a GitOps change.
+
+**Alternatives rejected**:
+
+- Pin the new exact SHA: repeats the same breakage on the next `.github` release.
+- Keep the imperative triggers in the collector: violates Decision 17 and makes evidence irreproducible.
+- Keep audit Jobs for one hour or rely on the log pipeline alone: the economical log collector does not read the `security` namespace, so reports would be lost.
+
 ## Resolved Unknowns
 
 All product and architectural choices are resolved. The remaining Azure account values and stage cost ceilings are deliberately runtime facts requiring authenticated discovery or explicit human acceptance. Their absence does not authorize defaults; the stage contracts make them fail-closed implementation gates.

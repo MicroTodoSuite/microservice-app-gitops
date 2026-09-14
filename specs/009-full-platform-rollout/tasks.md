@@ -483,6 +483,18 @@ to stay empty at their bootstrap revision.
   > T087 stays unchecked: no cluster registration exists yet, and the
   > `CLUSTER_ID` decision above is still open.
 - [ ] T088 [P] [US3] Harden `infrastructure/{kyverno,falco,kube-bench,kube-hunter}/` with immutable-digest and signature policies covering all business plus GitOps-installed platform namespaces, accepting only the approved service-CI or platform-mirror workflow identities while explicitly excluding Terraform-managed EKS system add-ons from namespaced admission scope; add unsigned/unmirrored/mutable/wrong-identity failure fixtures, resource bounds, exact RBAC, scheduled audit retention, and GitOps-owned trigger Jobs, remove imperative creation from `scripts/managed/verify-security.sh`, and make T071 pass.
+  T088 is delivered in four slices (`research.md` Decision 22), each with its own
+  failing test first in `tests/platform/security-hardening.bats`:
+  - [ ] The signature policy accepts the service CI identity through an anchored
+    workflow-path regular expression instead of one pinned `.github` SHA.
+  - [ ] `scripts/managed/verify-security.sh` is read-only, triggers are
+    disabled-by-default GitOps manifests, and the imperative-mutation test
+    catches shell wrappers.
+  - [ ] Full-profile digest and signature policies over business and platform
+    namespaces with the platform-mirror identity, EKS add-on exclusion, and
+    unsigned, unmirrored, mutable, and wrong-identity fixtures.
+  - [ ] Exact RBAC and resource bounds for Falco, kube-bench, and kube-hunter,
+    with audit Jobs kept for 7 days.
 - [ ] T089 [US3] Add cloud-specific SecretStore/ClusterSecretStore and ExternalSecret overlays in `infrastructure/external-secrets/overlays/{aws,azure}/` and service full overlays for the exact JWT/Alertmanager/Falco/Grafana names, replace the full-profile Grafana generator with a cloud-secret reference, add the full-dev Sonar DB/admin ExternalSecrets, and add External Secret-backed contextual ArgoCD Notifications reusing the approved notification secret in `infrastructure/argocd-notifications/`; use exact IRSA/workload-identity subjects and no committed value, and make T070 pass.
 - [ ] T090 [US3] Add startup/readiness/liveness probes, requests/limits, PodDisruptionBudgets, topology spread, ServiceMonitors, full topology, KEDA ScaledObjects, resilience settings, controlled ConfigMaps, and documented default-off feature toggles for all five services under `apps/*/base/`, `components/topology-full/`, `profiles/full/overlays/*/`, and `environments/full/`; make the runtime-config portion of T071 pass.
 - [ ] T091 [US3] Define explicit dependency-wave capability activation in `clusters/eks-full-{dev,staging,prod}/activation-infrastructure.yaml`, activate SonarQube/PostgreSQL only in full-dev after ingress/storage/secrets, and keep business activation separate; make T068 pass.
