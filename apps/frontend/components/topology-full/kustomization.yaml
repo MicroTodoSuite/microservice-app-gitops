@@ -36,6 +36,22 @@ patches:
             labelSelector:
               matchLabels:
                 app.kubernetes.io/name: frontend
+  # The service container reads its feature toggles beside its controlled
+  # settings (spec 009 T090, research.md Decision 23).
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: frontend
+    patch: |-
+      - op: test
+        path: /spec/template/spec/containers/0/name
+        value: frontend
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          configMapRef:
+            name: frontend-feature-toggles
 
 # Full-profile traffic policy (spec 009, T083). Components support resources;
 # these render into every full overlay that includes this component.
@@ -43,3 +59,12 @@ resources:
   - pod-disruption-budget.yaml
   - destination-rule.yaml
   - virtual-service.yaml
+
+# Default-off feature toggles (spec 009 T090, research.md Decision 23). The
+# generated name carries a content hash, so a reviewed change rolls the pods.
+# Every key follows docs/feature-toggles.md.
+configMapGenerator:
+  - name: frontend-feature-toggles
+    options:
+      annotations:
+        microtodosuite.io/feature-toggle-contract: docs/feature-toggles.md
