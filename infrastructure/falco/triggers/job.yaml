@@ -1,0 +1,61 @@
+# Falco 0.44.1 ships falco-rules-5.1.0, whose stable rule "Search Private Keys
+# or Passwords" (priority WARNING) matches any spawned process named find whose
+# arguments contain id_rsa. This Job runs exactly that search in its own
+# container, as a non-root user with no terminal, service account token, host
+# namespace, or network, so the finding needs nothing inside a business pod.
+#
+# The image is the already pinned kube-bench image: it is Alpine with a real
+# /usr/bin/find binary (not a busybox applet), so the process name is find.
+# find exits 0 whether or not it matches, and /tmp holds no key.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: falco-evidence-trigger
+  labels:
+    app.kubernetes.io/name: falco-evidence-trigger
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/trigger: evidence
+spec:
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 120
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: falco-evidence-trigger
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: search-private-keys
+          image: aquasec/kube-bench@sha256:75506f222d1eb6ce2a751a5533bdc0a3b54c898e2e49e7751d0ee22cfb862679
+          command: ["find", "/tmp", "-name", "id_rsa"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+# The trigger needs no network at all.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: falco-evidence-trigger-deny-all
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: falco-evidence-trigger
+  policyTypes: ["Ingress", "Egress"]

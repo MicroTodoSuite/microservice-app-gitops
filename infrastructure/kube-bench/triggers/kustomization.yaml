@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# On-demand kube-bench evidence run (spec 009 T088, research.md Decision 22,
+# Decision 17). Disabled by default: infrastructure/kube-bench/kustomization.yaml
+# does not include this directory. To collect evidence, add "- triggers" to its
+# resources in a reviewed pull request, let ArgoCD sync, read the report with
+# scripts/managed/verify-security.sh, then revert that commit. Nothing is
+# created in the cluster by hand.
+resources:
+  - job.yaml
+
+namespace: security

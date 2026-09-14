@@ -75,9 +75,11 @@ Available, and no scan Job remains once it completes.
 
 ## Capability contract
 
-- Falco: a deliberately triggered anomalous action (e.g. `kubectl exec` an
-  interactive shell into a running business-workload pod) produces a Falco
-  finding identifying the exact rule, pod, and namespace.
+- Falco: a deliberately triggered anomalous action (the checked-in
+  `infrastructure/falco/triggers` Job, which runs `find /tmp -name id_rsa` and
+  matches the stable rule "Search Private Keys or Passwords"; amended by spec
+  009 T088) produces a Falco finding identifying the exact rule, pod, and
+  namespace.
 - Falcosidekick: that same finding produces a real Slack message in the
   channel spec 006 already uses, within 1 minute.
 - kube-bench: a triggered (or scheduled) run produces a report with a real

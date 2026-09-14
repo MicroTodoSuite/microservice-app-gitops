@@ -1,0 +1,50 @@
+# One passive kube-hunter run with exactly the job spec of ../cronjob.yaml;
+# tests/platform/security-hardening.bats keeps the two identical.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kube-hunter-evidence
+  labels:
+    app.kubernetes.io/name: kube-hunter
+    app.kubernetes.io/part-of: microtodosuite
+    microtodosuite.io/trigger: evidence
+spec:
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 900
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kube-hunter
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: kube-hunter
+          image: aquasec/kube-hunter@sha256:e64fe49f059f513a09c772a8972172b2af6833d092c06cc311171d7135e4525a
+          command: ["kube-hunter"]
+          args: ["--pod"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

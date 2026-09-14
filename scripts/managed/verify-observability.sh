@@ -64,15 +64,31 @@ else
   record_check FAIL "ServiceMonitors are listable in $OBS_NAMESPACE"
 fi
 
-log "Querying a live golden-signal metric (traffic) for auth-api"
-if kube run --rm -i --restart=Never --context "$CONTEXT" prom-query-check \
-  --image=curlimages/curl:8.11.1 -- \
-  curl -sf "http://prometheus-k8s.$OBS_NAMESPACE.svc:9090/api/v1/query?query=workload:http_requests:rate5m%7Bworkload=%22auth-api%22%7D" \
-  | tee "$EVIDENCE_DIR/raw/dashboard-query.json" >/dev/null; then
+# A local port-forward, not a pod created for the query (spec 009 T088): it
+# changes no cluster state, and unlike the API server's service proxy it is not
+# blocked by the NetworkPolicy that admits only Prometheus, Grafana, and the
+# adapter to port 9090.
+log "Querying a live golden-signal metric (traffic) for auth-api through a local port-forward"
+prometheus_port=19090
+kube port-forward -n "$OBS_NAMESPACE" svc/prometheus-k8s "$prometheus_port:9090" >"$EVIDENCE_DIR/raw/port-forward.log" 2>&1 &
+port_forward_pid=$!
+trap 'kill "$port_forward_pid" 2>/dev/null || true' EXIT
+prometheus_ready=false
+for _ in $(seq 1 20); do
+  if curl -sf "http://127.0.0.1:$prometheus_port/-/ready" >/dev/null 2>&1; then
+    prometheus_ready=true
+    break
+  fi
+  sleep 0.5
+done
+if [[ "$prometheus_ready" == true ]] \
+  && curl -sf "http://127.0.0.1:$prometheus_port/api/v1/query?query=workload:http_requests:rate5m%7Bworkload=%22auth-api%22%7D" \
+    | tee "$EVIDENCE_DIR/raw/dashboard-query.json" >/dev/null; then
   record_check PASS "live Prometheus query for auth-api traffic"
 else
   record_check FAIL "live Prometheus query for auth-api traffic"
 fi
+kill "$port_forward_pid" 2>/dev/null || true
 
 log "Evidence retained under $EVIDENCE_DIR"
 log "Remaining checks (canary abort/promote, Slack alert firing/resolution,"
