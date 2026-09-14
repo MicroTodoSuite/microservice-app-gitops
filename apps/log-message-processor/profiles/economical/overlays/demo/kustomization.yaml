@@ -29,5 +29,5 @@ patches:
                   limits: {cpu: 250m, memory: 256Mi}
 images:
   - name: log-message-processor
-    newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
+    newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-logmsgproc
     digest: sha256:6a28da9a405a0c29b743626c073f45908940e772ea6b59a89eea317327622445

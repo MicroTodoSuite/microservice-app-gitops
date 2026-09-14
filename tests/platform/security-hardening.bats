@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Admission and runtime security hardening render test (spec 009, T088,
 # research.md Decision 22): the service CI signing identity (slice 1),
-# read-only evidence with GitOps-owned triggers (slice 2), and exact RBAC,
-# resource bounds, and audit retention (slice 4). Offline by design:
-# no live cluster is touched, and no image signature is verified here; that
-# needs the registry and Rekor.
+# read-only evidence with GitOps-owned triggers (slice 2), immutable digests
+# over the full profile's platform namespaces (slice 3, partial), and exact
+# RBAC, resource bounds, and audit retention (slice 4). Offline by design: no
+# live cluster is touched, the pinned Kyverno CLI runs with no network, and no
+# image signature is verified here; that needs the registry and Rekor.
 set -euo pipefail
 
 command -v kubeconform >/dev/null || { printf 'FAIL: kubeconform is required\n' >&2; exit 1; }
@@ -125,7 +126,11 @@ for expected in \
   'failureAction: Enforce' \
   'required: true' \
   'failurePolicy: Fail' \
-  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/*'; do
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-frontend*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-logmsgproc*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-todosapi*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-usersapi*'; do
   grep -qF -- "$expected" <<<"$signatures" \
     || fail "verify-approved-release-signatures must keep '$expected'"
 done
@@ -289,8 +294,130 @@ done
 grep -qE '^  successfulJobsHistoryLimit: 7$' <<<"$(render infrastructure/kube-bench | document CronJob kube-bench)" \
   || fail "CronJob kube-bench runs daily and must keep 7 successful Jobs, or its history limit deletes reports before the TTL"
 
+# --- slice 3, partial: immutable digests over full-profile platform namespaces
+# The full profile's own Kyverno root extends the digest rule from microtodo-*
+# to every namespace a GitOps infrastructure root renders, and from containers
+# to init and ephemeral containers. The platform-mirror identity and the
+# unsigned, wrong-identity, and unmirrored fixtures wait for the mirror
+# repository (research.md Decision 22).
+FULL_KYVERNO=infrastructure/profiles/full/kyverno/aws
+KYVERNO_CLI_IMAGE='ghcr.io/kyverno/kyverno-cli@sha256:7224ed05508c24419c3df98114c28ba682ad0a940dcdb7b9fdba0a4b6bf943cf'
+ADMISSION_FIXTURES=tests/platform/fixtures/full-profile-admission
+# kube-system holds the Terraform-managed EKS add-ons and, like kyverno, is
+# excluded by Kyverno's webhook; the bootstrap installs argocd with tagged images.
+OUTSIDE_ADMISSION=(kube-system kyverno argocd)
+
+# Print a render without one document (kind and metadata.name), so two renders
+# can be compared everywhere else.
+without_document() {
+  awk -v kind="$1" -v name="$2" '
+    function flush() {
+      if (!(doc ~ ("\nkind: " kind "\n") && doc ~ ("\n  name: " name "\n"))) printf "---%s", doc
+      doc = "\n"
+    }
+    BEGIN { doc = "\n" }
+    /^---$/ { flush(); next }
+    { doc = doc $0 "\n" }
+    END { flush() }
+  '
+}
+
+# Print the namespaces of the rule's match, one per line, sorted.
+rule_namespaces() {
+  awk '
+    /^ *namespaces:$/ { match($0, /^ */); indent = RLENGTH; on = 1; next }
+    on && match($0, /^ *- /) && RLENGTH - 2 >= indent {
+      value = substr($0, RLENGTH + 1); gsub(/["'\'']/, "", value); print value; next
+    }
+    { on = 0 }
+  ' | sort -u
+}
+
+# Print every namespace a render places objects in, including Namespace
+# objects, ignoring null placeholders in vendored templates.
+rendered_namespaces() {
+  awk '
+    function flush() {
+      if (kind == "Namespace" && name != "") print name
+      if (namespace != "") print namespace
+      kind = name = namespace = ""; in_metadata = 0
+    }
+    /^---$/ { flush(); next }
+    /^kind: / { kind = $2; next }
+    /^metadata:$/ { in_metadata = 1; next }
+    /^[^ #]/ { in_metadata = 0 }
+    in_metadata && /^  name: / { name = $2 }
+    in_metadata && /^  namespace: [a-z0-9]([-a-z0-9]*[a-z0-9])?$/ && $2 != "null" { namespace = $2 }
+    END { flush() }
+  '
+}
+
+shared_policy="$(document ClusterPolicy require-immutable-images <<<"$kyverno_out")"
+[[ "$(rule_namespaces <<<"$shared_policy")" == 'microtodo-*' ]] \
+  || fail "infrastructure/kyverno must keep require-immutable-images on microtodo-* only, so the economical cluster does not change"
+
+if [[ ! -f "$FULL_KYVERNO/kustomization.yaml" ]]; then
+  fail "$FULL_KYVERNO must exist as the full profile's Kyverno root"
+else
+  grep -qxE -- '- \.\./\.\./\.\./\.\./kyverno|  - \.\./\.\./\.\./\.\./kyverno' "$FULL_KYVERNO/kustomization.yaml" \
+    || fail "$FULL_KYVERNO must take infrastructure/kyverno as its base"
+  full_kyverno_out="$(render "$FULL_KYVERNO")"
+  [[ "$(without_document ClusterPolicy require-immutable-images <<<"$full_kyverno_out")" == \
+     "$(without_document ClusterPolicy require-immutable-images <<<"$kyverno_out")" ]] \
+    || fail "$FULL_KYVERNO must render exactly infrastructure/kyverno apart from ClusterPolicy require-immutable-images"
+  full_policy="$(document ClusterPolicy require-immutable-images <<<"$full_kyverno_out")"
+  # Only the rules differ: admission, background, and the failure action stay
+  # exactly as in the shared policy.
+  without_rules() {
+    awk '/^  rules:$/ { skip = 1; next } skip && /^(  - |   )/ { next } { skip = 0; print }'
+  }
+  [[ -n "$full_policy" && "$(without_rules <<<"$full_policy")" == "$(without_rules <<<"$shared_policy")" ]] \
+    || fail "full-profile require-immutable-images must match the shared policy everywhere but its rules"
+
+  # Business namespaces plus every namespace any GitOps infrastructure root renders.
+  platform=""
+  while IFS= read -r root; do
+    if ! root_out="$(render "$root")"; then
+      fail "$root must render to derive its namespaces"
+      continue
+    fi
+    platform+="$(rendered_namespaces <<<"$root_out")"$'\n'
+  done < <(find infrastructure -name kustomization.yaml -not -path '*/components/*' -printf '%h\n' | sort -u)
+  outside_re="^($(IFS='|'; printf '%s' "${OUTSIDE_ADMISSION[*]}"))$"
+  expected="$( { printf 'microtodo-*\n'; grep -vE "$outside_re" <<<"$platform" | grep . || true; } | sort -u)"
+  actual="$(rule_namespaces <<<"$full_policy")"
+  missing="$(comm -23 <(printf '%s\n' "$expected") <(printf '%s\n' "$actual") | paste -sd ' ' -)"
+  extra="$(comm -13 <(printf '%s\n' "$expected") <(printf '%s\n' "$actual") | paste -sd ' ' -)"
+  [[ -z "$missing" ]] || fail "full-profile require-immutable-images must match these rendered namespaces: $missing"
+  [[ -z "$extra" ]] || fail "full-profile require-immutable-images must not match namespaces no root renders: $extra"
+  for namespace in "${OUTSIDE_ADMISSION[@]}"; do
+    if grep -qxF -- "$namespace" <<<"$actual"; then
+      fail "full-profile require-immutable-images must leave $namespace outside admission"
+    fi
+  done
+  grep -qE '^  validationFailureAction: Enforce$' <<<"$full_policy" \
+    || fail "full-profile require-immutable-images must stay in Enforce"
+
+  # The rendered rule decides the fixtures offline through the pinned Kyverno CLI.
+  if ! command -v docker >/dev/null; then
+    fail "docker is required to run the pinned Kyverno CLI ($KYVERNO_CLI_IMAGE)"
+  else
+    admission_dir="$(mktemp -d)"
+    trap 'rm -rf "$admission_dir"' EXIT
+    cp "$ADMISSION_FIXTURES/kyverno-test.yaml" "$ADMISSION_FIXTURES/resources.yaml" "$admission_dir/"
+    printf '%s\n' "$full_policy" >"$admission_dir/require-immutable-images.yaml"
+    chmod -R a+rX "$admission_dir"
+    if ! cli_out="$(docker run --rm --network none --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "$admission_dir:/fixtures:ro" -w /fixtures "$KYVERNO_CLI_IMAGE" \
+        test . --remove-color 2>&1)"; then
+      printf '%s\n' "$cli_out" >&2
+      fail "the full-profile admission fixtures must all match their expected Kyverno result ($ADMISSION_FIXTURES)"
+    fi
+  fi
+fi
+
 if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: Kyverno admits images signed by the shared CI at any full commit SHA from the five services'"'"' reviewed main, and nothing else; evidence triggers are disabled-by-default GitOps Jobs and the collectors only read; audit pods hold no API permission, bound their resources, and keep reports for 7 days\n'
+printf 'PASS: Kyverno admits images signed by the shared CI at any full commit SHA from the five services'"'"' reviewed main, and nothing else; evidence triggers are disabled-by-default GitOps Jobs and the collectors only read; full-profile admission requires digests in every container of business and GitOps-installed platform namespaces; audit pods hold no API permission, bound their resources, and keep reports for 7 days\n'

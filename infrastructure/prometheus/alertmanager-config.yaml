@@ -2,14 +2,14 @@
 # (SecretStore is namespace-scoped, so the observability namespace needs its
 # own copy). Trusts exactly this ServiceAccount subject
 # (system:serviceaccount:observability:observability-external-secrets-jwt),
-# provisioned by the microtodosuite-observability-secrets-reader IRSA role in
+# provisioned by the lex-mts-eco-role-obssecret IRSA role in
 # microservice-app-ops (aws/modules/environment-foundation/observability-irsa.tf).
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: observability-external-secrets-jwt
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-observability-secrets-reader
+    eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-obssecret
 automountServiceAccountToken: false
 ---
 apiVersion: external-secrets.io/v1
@@ -47,7 +47,7 @@ spec:
   data:
     - secretKey: SLACK_WEBHOOK_URL
       remoteRef:
-        key: microtodosuite/observability/alertmanager-slack-webhook
+        key: lex-mts-eco-sm-slackobs
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: AlertmanagerConfig

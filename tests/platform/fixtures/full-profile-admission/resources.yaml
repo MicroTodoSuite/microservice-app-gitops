@@ -1,0 +1,121 @@
+# Admission fixtures for the full-profile immutable-digest rule (spec 009 T088,
+# research.md Decision 22, slice 3). tests/platform/security-hardening.bats runs
+# them through the pinned Kyverno CLI against the rendered rule; see
+# kyverno-test.yaml beside this file for the expected result of each Pod.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pinned-service-with-native-sidecar
+  namespace: microtodo-prod
+spec:
+  containers:
+    - name: auth-api
+      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi@sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+  initContainers:
+    - name: istio-proxy
+      image: registry.istio.io/release/proxyv2@sha256:485c87f71654b14e89911a9424a208d92b347b59c2bfefdc9707aaa83fe5618e
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mutable-service
+  namespace: microtodo-dev
+spec:
+  containers:
+    - name: auth-api
+      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi:1.5.0
+---
+# What Istio 1.30.3 injects today: <hub>/proxyv2:<tag> as a native sidecar.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tagged-istio-native-sidecar
+  namespace: microtodo-staging
+spec:
+  containers:
+    - name: auth-api
+      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi@sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+  initContainers:
+    - name: istio-proxy
+      image: registry.istio.io/release/proxyv2:1.30.3
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mutable-init-container
+  namespace: observability
+spec:
+  containers:
+    - name: grafana
+      image: grafana/grafana@sha256:3fd54ae1214669f8355f065ec9f6445d5279a3d77095ab048ca045685272429b
+  initContainers:
+    - name: init
+      image: docker.io/library/busybox:1.36
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mutable-ephemeral-container
+  namespace: security
+spec:
+  containers:
+    - name: falcosidekick
+      image: falcosecurity/falcosidekick@sha256:d4f0d7c538ede3fe4a491143c45c0787bf4fc24e6fcac6d39dff6721d75a9419
+  ephemeralContainers:
+    - name: debugger
+      image: docker.io/library/busybox:1.36
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mutable-second-container
+  namespace: elasticsearch
+spec:
+  containers:
+    - name: elasticsearch
+      image: docker.elastic.co/elasticsearch/elasticsearch@sha256:a3545404e436e348721786bed638042a81f2181ebe2e2636501bb43940677747
+    - name: sidecar
+      image: docker.io/library/busybox:1.36
+---
+# Trivy's scan Jobs name their image as repository:tag@digest.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tag-and-digest
+  namespace: security
+spec:
+  containers:
+    - name: trivy
+      image: mirror.gcr.io/aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: terraform-managed-add-on
+  namespace: kube-system
+spec:
+  containers:
+    - name: coredns
+      image: registry.k8s.io/coredns/coredns:v1.12.1
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: admission-controller
+  namespace: kyverno
+spec:
+  containers:
+    - name: kyverno
+      image: reg.kyverno.io/kyverno/kyverno:v1.18.2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bootstrap-argocd
+  namespace: argocd
+spec:
+  containers:
+    - name: argocd-server
+      image: quay.io/argoproj/argocd:v3.5.0

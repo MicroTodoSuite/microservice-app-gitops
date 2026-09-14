@@ -95,4 +95,4 @@ patches:
       metadata:
         name: trivy-operator
         annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-security-trivy-ecr-reader
+          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-trivyecr

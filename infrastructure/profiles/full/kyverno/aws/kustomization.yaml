@@ -1,0 +1,76 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Full-profile Kyverno for EKS (spec 009 T088, research.md Decision 22, slice 3,
+# partial). Everything, including the signature policy and the verifier's IRSA,
+# comes unchanged from infrastructure/kyverno, which the economical cluster
+# keeps using. Only the immutable-digest rule differs: it covers every
+# namespace a GitOps infrastructure root renders as well as microtodo-*, and
+# init and ephemeral containers as well as containers, because a native
+# sidecar is an init container and Kyverno's Pod webhook also receives
+# pods/ephemeralcontainers.
+#
+# Outside the rule: kube-system, the default namespace of the Terraform-managed
+# EKS add-ons, and kyverno, both already excluded by Kyverno's webhook; and
+# argocd, which the bootstrap installs with tagged images, so denying its pods
+# would stop the reconciliation that repairs the cluster.
+#
+# tests/platform/security-hardening.bats derives the namespace list from the
+# renders and runs the fixtures in tests/platform/fixtures/full-profile-admission
+# through the pinned Kyverno CLI.
+resources:
+  - ../../../../kyverno
+
+patches:
+  - target:
+      group: kyverno.io
+      version: v1
+      kind: ClusterPolicy
+      name: require-immutable-images
+    patch: |-
+      - op: test
+        path: /spec/rules/0/name
+        value: require-sha256-digest
+      - op: replace
+        path: /spec/rules/0
+        value:
+          name: require-sha256-digest
+          skipBackgroundRequests: true
+          match:
+            any:
+              - resources:
+                  kinds:
+                    - Pod
+                  namespaces:
+                    - "microtodo-*"
+                    - argo-rollouts
+                    - cert-manager
+                    - chaos-mesh
+                    - elastic-system
+                    - elasticsearch
+                    - external-secrets
+                    - filebeat
+                    - istio-system
+                    - keda
+                    - kiali
+                    - kibana
+                    - logstash
+                    - observability
+                    - opencost
+                    - redis
+                    - security
+                    - sonarqube
+          validate:
+            allowExistingViolations: true
+            message: >-
+              Business and platform workload images must use an immutable
+              SHA-256 digest in every container, init container, and ephemeral
+              container.
+            pattern:
+              spec:
+                containers:
+                  - image: "*@sha256:*"
+                =(initContainers):
+                  - image: "*@sha256:*"
+                =(ephemeralContainers):
+                  - image: "*@sha256:*"

@@ -209,10 +209,10 @@ default-deny NetworkPolicy plus the specific allowances they need (for example
 ## Secrets and identities
 
 The Slack webhook never appears in Git. `ExternalSecret/alertmanager-slack-webhook`
-reads `microtodosuite/observability/alertmanager-slack-webhook` from AWS Secrets
+reads `lex-mts-eco-sm-slackobs` from AWS Secrets
 Manager through `SecretStore/aws-secrets-manager`, which authenticates as the
 ServiceAccount `observability-external-secrets-jwt`. That ServiceAccount assumes
-the IRSA role `microtodosuite-observability-secrets-reader`, defined in
+the IRSA role `lex-mts-eco-role-obssecret`, defined in
 `microservice-app-ops` under
 `aws/modules/environment-foundation/observability-irsa.tf`. The observability
 roots own no other AWS identity.

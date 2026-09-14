@@ -64,15 +64,43 @@ A finding is not dismissed by narrowing scope. Every HIGH or CRITICAL
 vulnerability, and every finding from the other tools, ends in a remediation or
 an explicit, justified, time-bounded exception (spec 008 FR-010).
 
+## Full-profile admission
+
+The full profile's Kyverno root, `infrastructure/profiles/full/kyverno/aws`,
+renders `infrastructure/kyverno` unchanged except for the
+`require-immutable-images` rule (spec 009 T088, research.md Decision 22). The
+economical cluster keeps the shared root, whose rule covers `microtodo-*` only.
+
+- The full rule denies any Pod whose container, init container, or ephemeral
+  container image lacks a SHA-256 digest, in `microtodo-*` and in every
+  namespace a GitOps infrastructure root renders: `argo-rollouts`,
+  `cert-manager`, `chaos-mesh`, `elastic-system`, `elasticsearch`,
+  `external-secrets`, `filebeat`, `istio-system`, `keda`, `kiali`, `kibana`,
+  `logstash`, `observability`, `opencost`, `redis`, `security`, and
+  `sonarqube`. `tests/platform/security-hardening.bats` derives that list from
+  the renders, so a new root fails the test until the rule names its namespace.
+- Outside the rule: `kube-system`, where the Terraform-managed EKS add-ons run,
+  and `kyverno`, both already excluded by Kyverno's webhook; and `argocd`,
+  which the bootstrap installs with tagged images.
+- Istio 1.30.3 injects its proxy as `<hub>/proxyv2:<tag>`, so full-profile
+  business pods with sidecar injection are denied until the Istio root pins the
+  proxy by digest (T069).
+- The platform-mirror signature identity, and unsigned, wrong-identity, and
+  unmirrored fixtures, wait for the mirror repository. No full-profile root is
+  active yet; T091 activates them.
+
+The fixtures in `tests/platform/fixtures/full-profile-admission/` run through
+the pinned Kyverno CLI with no network against the rendered rule.
+
 ## Secrets and identities
 
 - Falcosidekick's Slack webhook comes from AWS Secrets Manager through an
   ExternalSecret and `SecretStore/aws-secrets-manager` in `security`, which
   authenticates as the ServiceAccount `security-external-secrets-jwt` with the
-  IRSA role `microtodosuite-security-secrets-reader`. No webhook value is
+  IRSA role `lex-mts-eco-role-secsecret`. No webhook value is
   committed.
 - Trivy Operator's ServiceAccount, which its scan Jobs also use, assumes the
-  IRSA role `microtodosuite-security-trivy-ecr-reader` to pull the suite's
+  IRSA role `lex-mts-eco-role-trivyecr` to pull the suite's
   private ECR images, because the nodes do not let pods reach instance metadata.
 - Both roles are defined in `microservice-app-ops` under
   `aws/modules/environment-foundation/security-irsa.tf`.

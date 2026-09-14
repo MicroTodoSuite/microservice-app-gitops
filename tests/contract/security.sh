@@ -254,7 +254,7 @@ require_trivy_env OPERATOR_TARGET_NAMESPACES 'microtodo-dev,microtodo-staging,mi
 # images transformer cannot pin it.
 require_trivy_setting trivy.tag '[0-9.]+@sha256:[a-f0-9]{64}'
 # Private ECR access through IRSA, never static credentials (FR-017).
-grep -Eq '^    eks\.amazonaws\.com/role-arn: arn:aws:iam::[0-9]{12}:role/microtodosuite-security-trivy-ecr-reader$' "$trivy" \
+grep -Eq '^    eks\.amazonaws\.com/role-arn: arn:aws:iam::[0-9]{12}:role/lex-mts-eco-role-trivyecr$' "$trivy" \
   || fail "the trivy-operator ServiceAccount must carry the Trivy ECR reader role ARN"
 require_container_probes "$trivy" trivy-operator
 

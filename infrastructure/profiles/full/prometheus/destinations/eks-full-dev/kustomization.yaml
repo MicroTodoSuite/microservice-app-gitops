@@ -2,8 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Prometheus for the eks-full-dev destination (spec 009 T085, research.md
-# Decision 21). The aws root is the base; this root only names the cluster and
-# the environment its alerts come from. clusters/eks-full-dev's activation
+# Decision 21). The aws root is the base; this root names the cluster and the
+# environment its alerts come from, and points the business ServiceMonitors at
+# microtodo-dev (spec 009 T090, research.md Decision 23). clusters/eks-full-dev's activation
 # names this path, and cluster matches the physicalCluster its registration
 # declares.
 resources:
@@ -21,3 +22,16 @@ patches:
         value:
           cluster: microtodosuite-full-dev
           environment: dev
+  # The five business ServiceMonitors inherit microtodo-dev from the economical
+  # root; this cluster holds only microtodo-dev (research.md Decision 23). The
+  # canary ServiceMonitors keep microtodo-prod.
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: '^(auth-api|todos-api|users-api|frontend|log-message-processor)$'
+    patch: |-
+      - op: replace
+        path: /spec/namespaceSelector/matchNames
+        value:
+          - microtodo-dev

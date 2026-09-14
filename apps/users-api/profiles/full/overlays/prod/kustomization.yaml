@@ -26,5 +26,5 @@ patches:
                   limits: {cpu: 500m, memory: 512Mi}
 images:
   - name: users-api
-    newName: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
+    newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-usersapi
     digest: sha256:48936907d0b4fb68bd2f0644f8246517c9c9ad8c61e874c8ce3a31b89f11d845

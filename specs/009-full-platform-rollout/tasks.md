@@ -529,6 +529,16 @@ to stay empty at their bootstrap revision.
     unsigned, unmirrored, mutable, and wrong-identity fixtures. Done after the
     fourth slice and partially: the mirror repository and identity wait for the
     full-profile account amendment and T082 (Decision 22).
+    Partially delivered: the immutable-digest rule over `microtodo-*` and every
+    GitOps-installed platform namespace, for containers, init containers, and
+    ephemeral containers, with `kube-system`, `kyverno`, and `argocd` outside
+    it, in `infrastructure/profiles/full/kyverno/aws`, and the mutable-image
+    fixtures in `tests/platform/fixtures/full-profile-admission/` run through the
+    pinned Kyverno CLI, tested by `tests/platform/security-hardening.bats`
+    (commits `abefa96` failing, `2e6c173` implementing, with test correction
+    `41289c3`). Still open: the
+    platform-mirror identity and the unsigned, wrong-identity, and unmirrored
+    fixtures. Nothing was admitted or denied in a cluster; that belongs to T094.
   - [X] Exact RBAC and resource bounds for Falco, kube-bench, and kube-hunter,
     with audit Jobs kept for 7 days. Delivered in
     `infrastructure/{kube-bench,kube-hunter}/cronjob.yaml`, their triggers, and
@@ -538,6 +548,21 @@ to stay empty at their bootstrap revision.
     evidence belongs to spec 008 T025 and T094.
 - [ ] T089 [US3] Add cloud-specific SecretStore/ClusterSecretStore and ExternalSecret overlays in `infrastructure/external-secrets/overlays/{aws,azure}/` and service full overlays for the exact JWT/Alertmanager/Falco/Grafana names, replace the full-profile Grafana generator with a cloud-secret reference, add the full-dev Sonar DB/admin ExternalSecrets, and add External Secret-backed contextual ArgoCD Notifications reusing the approved notification secret in `infrastructure/argocd-notifications/`; use exact IRSA/workload-identity subjects and no committed value, and make T070 pass.
 - [ ] T090 [US3] Add startup/readiness/liveness probes, requests/limits, PodDisruptionBudgets, topology spread, ServiceMonitors, full topology, KEDA ScaledObjects, resilience settings, controlled ConfigMaps, and documented default-off feature toggles for all five services under `apps/*/base/`, `components/topology-full/`, `profiles/full/overlays/*/`, and `environments/full/`; make the runtime-config portion of T071 pass.
+  T090 is delivered in four slices (`research.md` Decision 23), each with its own
+  failing test first in `tests/platform/service-runtime-full.bats`; probes,
+  requests and limits, the full topology, and the Istio resilience settings
+  already render and are pinned by that test:
+  - [X] Business ServiceMonitors scrape each full destination's own
+    `microtodo-<environment>` namespace. Delivered in
+    `infrastructure/profiles/full/prometheus/destinations/eks-full-{dev,staging,prod}`,
+    tested by `tests/platform/service-runtime-full.bats` (commits `42c0480`
+    failing, `5d547b1` implementing). Nothing was scraped in a cluster; that
+    evidence belongs to T094.
+  - [ ] PodDisruptionBudgets with `maxUnavailable: 1` and soft hostname and zone
+    topology spread for the five services.
+  - [ ] Bounded KEDA ScaledObjects on request rate for the four HTTP services,
+    with log-message-processor fixed at one replica.
+  - [ ] Documented default-off `<service>-feature-toggles` ConfigMaps.
 - [ ] T091 [US3] Define explicit dependency-wave capability activation in `clusters/eks-full-{dev,staging,prod}/activation-infrastructure.yaml`, activate SonarQube/PostgreSQL only in full-dev after ingress/storage/secrets, and keep business activation separate; make T068 pass.
 - [ ] T092 [US3] Run every service test/contract suite, all Kustomize/kubeconform/policy tests, image/secret scans, and resource-budget calculations; merge T082's reviewed organization-workflow PR through protected `main`, execute that exact revision for every locked third-party image before any EKS capability activation, and prove upstream-to-ECR digest mapping, complete OCI graph, scan pass, approved keyless signature identity, and absence of mutable/unmirrored references; retain redacted output in `evidence/runs/<timestamp>-full-platform-static/` and stop on any skip/failure.
 - [ ] T093 [US3] Merge the full-dev platform dependency waves through reviewed GitOps PRs through the Istio NLB and capture its real hostname; implement validated optional records in `../microservice-app-ops/aws/modules/environment-foundation/route53.tf` and the dev root, inventory current registrar-hosted records, then use one reviewed saved plan/Infracost plus external backup/approval to create exactly one separately addressed `microtodosuite.online` Route 53 zone and only `full-dev.microtodosuite.online` and `sonar-full-dev.microtodosuite.online` CNAMEs to that NLB with zero legacy-zone replacement/destruction; change registrar delegation only to the exact Terraform output name servers, verify public NS/SOA agreement, wait read-only for both trusted HTTP-01 certificates, SonarQube/PostgreSQL, and every wave to become Synced/Healthy, and revert/stop on record loss, capacity, storage, CRD, policy, secret, TLS, DNS, or economical regression.

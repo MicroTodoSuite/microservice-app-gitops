@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.0",
   "resources": [
     {
-      "resourceId": "aws:ecr:microtodosuite/auth-api",
+      "resourceId": "aws:ecr:lex-mts-shd-ecr-authapi",
       "kind": "service-ecr-repository",
       "ownerState": "environments/dev/foundation/terraform.tfstate",
       "consumers": [],
@@ -10,7 +10,7 @@
       "status": "existing"
     },
     {
-      "resourceId": "aws:ecr:microtodosuite/auth-api",
+      "resourceId": "aws:ecr:lex-mts-shd-ecr-authapi",
       "kind": "service-ecr-repository",
       "ownerState": "environments/full-dev/foundation/terraform.tfstate",
       "consumers": [],
