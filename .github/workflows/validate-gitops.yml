@@ -192,6 +192,9 @@ jobs:
       - name: Validate the sonarqube hardening render (spec 009 T084)
         run: tests/platform/sonarqube.bats
 
+      - name: Validate the full-profile observability roots (spec 009 T085)
+        run: tests/platform/observability-full.bats
+
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
 
