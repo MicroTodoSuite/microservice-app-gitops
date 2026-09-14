@@ -510,7 +510,8 @@ to stay empty at their bootstrap revision.
     it, in `infrastructure/profiles/full/kyverno/aws`, and the mutable-image
     fixtures in `tests/platform/fixtures/full-profile-admission/` run through the
     pinned Kyverno CLI, tested by `tests/platform/security-hardening.bats`
-    (commits `abefa96` failing, `2e6c173` implementing). Still open: the
+    (commits `abefa96` failing, `2e6c173` implementing, with test correction
+    `41289c3`). Still open: the
     platform-mirror identity and the unsigned, wrong-identity, and unmirrored
     fixtures. Nothing was admitted or denied in a cluster; that belongs to T094.
   - [X] Exact RBAC and resource bounds for Falco, kube-bench, and kube-hunter,
