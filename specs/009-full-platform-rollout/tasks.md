@@ -817,6 +817,11 @@ Terraform runtime teardown while retaining a reversible GitOps root.
 - [ ] T171 After T170 merges, wait for ArgoCD to reconcile the exact Git
   revision, capture read-only live evidence, and bind a fresh Terraform
   runtime-down plan to that quiescent revision before any apply.
+  > **Not delivered as written; superseded 2026-09-14.** No read-only live
+  > evidence of the quiescent revision is recorded here. The runtime was
+  > destroyed on 2026-09-11 from a reviewed lifecycle bundle
+  > (microservice-app-ops spec 004 T019) and rebuilt under the new names; T173
+  > reactivates the registration.
 - [X] T172 [US1] Preserve External Secrets as the sole temporary infrastructure
   Application while dependent ExternalSecret finalizers complete, verify the
   stuck observability namespace and generated Applications are deleted, then
@@ -825,6 +830,16 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   - [X] Retain only the reviewed External Secrets controller through GitOps.
   - [X] Verify the dependent finalizers, namespace, and Applications are gone.
   - [X] Restore empty infrastructure activation through a reviewed commit.
+- [ ] T173 [US1] Reactivate the economical EKS registration after the
+  2026-09-14 rebuild of `lex-mts-eco-eks-main` under the new names
+  (microservice-app-ops spec 004 T021–T023): replace the quiescence contract
+  with an activation contract, restore the business, environment-policy, and
+  infrastructure activation lists, and after the reviewed merge verify every
+  generated Application Healthy and Synced.
+  - [X] Commit a failing activation contract, run in CI in place of the
+    quiescence contract.
+  - [X] Restore the activation lists so the contract passes.
+  - [ ] Merge through the required approval and verify the live Applications.
 
 ---
 
