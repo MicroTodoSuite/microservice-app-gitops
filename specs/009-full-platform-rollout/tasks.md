@@ -545,12 +545,35 @@ to stay empty at their bootstrap revision.
 ### Tests first
 
 - [ ] T142 [P] [US6] Add tamper, stale-timestamp, failed-requirement, missing-Infracost, missing-state-backup, missing-human-approval, and economical-regression fixtures to `tests/evidence/validate-evidence.bats`; confirm they fail before T145.
+
+  > **Partial delivery, gitops PR (evidence integrity).** Added and wired the
+  > `missing-infracost`, `missing-state-backup`, and `stale-timestamp` fixtures
+  > (plus a `terraform-stage-valid` positive control), each confirmed accepted
+  > by the pre-extension validator and rejected after T145's extension.
+  > `missing-human-approval` is already covered by the existing
+  > `missing-approval.json` fixture the suite tests. **Still to add** (stays
+  > unchecked): the `tamper`, `failed-requirement`, and `economical-regression`
+  > fixtures, which pair with the economical pre/post parity check left open in
+  > T145.
 - [ ] T143 [P] [US6] Add CI tests for recurring source/image/cluster vulnerability findings and actionable ownership in `../.github/tests/workflows/continuous-security.bats`.
 - [ ] T144 [P] [US6] Add OpenCost allocation/label/query tests for cluster, environment, profile, namespace, and service in `tests/platform/opencost-allocation.bats`.
 
 ### Implementation
 
 - [ ] T145 [US6] Extend `scripts/managed/validate-full-profile-evidence.sh` and `.github/workflows/validate-gitops.yml` to verify artifact hashes, freshness, requirement coverage, stage dependencies, cost/backup/approval fields, and economical pre/post parity; make T142 pass.
+
+  > **Partial delivery, gitops PR (evidence integrity).** Extended the validator
+  > with **freshness** (future timestamps always rejected; stale ones rejected
+  > when `EVIDENCE_MAX_AGE_DAYS` is set — CI sets 30) and **cost/backup fields**
+  > (a Terraform stage, i.e. non-empty `scope.stateKeys`, must carry an
+  > `infracost` and a `state-backup` artifact), and wired
+  > `tests/evidence/validate-evidence.bats` into `validate-gitops.yml`. Artifact
+  > hashes and approval fields were already verified by the pre-existing
+  > validator. **Still open** (stays unchecked): **economical pre/post parity**
+  > (baseline vs postBaseline comparison) and its `economical-regression`
+  > fixture, plus explicit requirement-coverage/stage-dependency assertions
+  > beyond what the referenced-path and `stage-dependencies.bats` checks already
+  > provide.
 - [ ] T146 [US6] Add scheduled reusable source/image/cluster vulnerability assessment and issue-routing behavior in `../.github/.github/workflows/continuous-security.yml`, then wire the five service repositories and ops/GitOps callers; make T143 pass.
 - [ ] T147 [US6] Complete OpenCost labels, Prometheus queries, Grafana dashboard, and evidence collector in `infrastructure/opencost/`, `infrastructure/grafana/dashboards/full-profile-cost.yaml`, and `scripts/managed/verify-full-profile-cost.sh`; make T144 pass.
 - [ ] T148 [P] [US6] Implement read-only multi-cluster desired/live/failure/rollback evidence collection in `scripts/managed/verify-full-platform.sh`, replacing warning-as-success behavior in `scripts/managed/verify-observability.sh` and `verify-security.sh` with explicit pass/fail/blocked output.
