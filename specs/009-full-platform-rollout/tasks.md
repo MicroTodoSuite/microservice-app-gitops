@@ -393,8 +393,11 @@ to stay empty at their bootstrap revision.
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
   T085 is delivered in four slices (`research.md` Decision 21), each with its own
   failing test first:
-  - [ ] Per-cloud full-profile roots with encrypted persistence for Prometheus,
+  - [X] Per-cloud full-profile roots with encrypted persistence for Prometheus,
     Alertmanager, and Grafana, tested by `tests/platform/observability-full.bats`.
+    Delivered in `infrastructure/profiles/full/{prometheus,grafana}/{aws,azure}/`
+    (commits `baf0783` failing, `07cd194` implementing). No cluster activates
+    the roots yet; their live evidence belongs to T094.
   - [ ] Error-rate, p99, scaling, platform, and security rules with the
     ServiceMonitors that scrape their sources.
   - [ ] Jaeger on the ECK Elasticsearch backend through a dedicated
