@@ -32,4 +32,4 @@ patches:
 images:
   - name: todos-api
     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
-    digest: sha256:d87af1c7b126522453a10a7474f164d9de450c3bcd0d8e928dc3748baa9cf191
+    digest: sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
