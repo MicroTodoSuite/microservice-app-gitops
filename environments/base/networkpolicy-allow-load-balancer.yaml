@@ -1,0 +1,23 @@
+# Lets the shared ALB's nodes, which live in the economical public subnets,
+# reach the frontend's HTTP port, for requests and health checks (spec 009 T174).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-load-balancer-to-frontend
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 10.10.0.0/24
+        - ipBlock:
+            cidr: 10.10.1.0/24
+        - ipBlock:
+            cidr: 10.10.2.0/24
+      ports:
+        - protocol: TCP
+          port: 8080

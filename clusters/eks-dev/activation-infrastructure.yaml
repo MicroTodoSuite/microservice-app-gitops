@@ -1,6 +1,7 @@
 # Shared-cluster platform: the thirteen controllers the cluster ran before the
 # 2026-09-11 quiescence, plus trivy-operator, which the security contract
-# requires of an active registration (T173).
+# requires of an active registration (T173), and the AWS Load Balancer Controller
+# that publishes the economical environments (T174).
 - op: replace
   path: /spec/generators/0/list/elements
   value:
@@ -46,3 +47,6 @@
     - name: trivy-operator
       path: infrastructure/trivy-operator
       namespace: security
+    - name: aws-load-balancer-controller
+      path: infrastructure/profiles/economical/aws-load-balancer-controller/destinations/eks-dev
+      namespace: kube-system

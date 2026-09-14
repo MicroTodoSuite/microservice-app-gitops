@@ -11,6 +11,18 @@ resources:
 
 patches:
   - target:
+      group: networking.k8s.io
+      version: v1
+      kind: Ingress
+      name: frontend
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: staging.eco.microtodosuite.online
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: staging.eco.microtodosuite.online
+  - target:
       version: v1
       kind: ServiceAccount
       name: external-secrets-jwt
