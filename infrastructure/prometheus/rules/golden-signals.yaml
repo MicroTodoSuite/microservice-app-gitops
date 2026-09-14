@@ -66,14 +66,17 @@ spec:
         # p99 latency for the full-profile canary gate (spec 009, T110). Needs
         # real histogram buckets, not just _sum/_count: users-api already
         # exposes them (management.metrics.distribution.percentiles-histogram
-        # enabled in application.properties) and log-message-processor's
-        # Histogram always has, so both resolve today. auth-api/todos-api
-        # resolve once T016/T017 add a Histogram. frontend is deliberately
-        # excluded, not just missing data: its only latency-adjacent metric is
-        # the nginx-prometheus-exporter's request Counter (no duration
-        # histogram is scraped until T018 adds one), so there is no metric
-        # family to reference at all, unlike the other two whose names are
-        # already fixed by their existing avg5m expression above.
+        # enabled in application.properties), log-message-processor's
+        # Histogram always has, and auth-api/todos-api now do too (spec 011
+        # OpenTelemetry instrumentation, verified in each service's
+        # metrics.go/metrics.js: an explicit-bucket Histogram on the exact
+        # auth_api_request_duration_seconds/todo_api_request_duration_seconds
+        # series this file's avg5m expression already reads) — all four
+        # resolve today. frontend is deliberately excluded, not just missing
+        # data: its only latency-adjacent metric is the
+        # nginx-prometheus-exporter's request Counter (no duration histogram
+        # is scraped until T018 adds one), so there is no metric family to
+        # reference at all.
         - record: workload:http_request_duration_seconds:p99_5m
           expr: |
             histogram_quantile(0.99,
