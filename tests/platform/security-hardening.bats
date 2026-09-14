@@ -122,7 +122,11 @@ for expected in \
   'failureAction: Enforce' \
   'required: true' \
   'failurePolicy: Fail' \
-  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/*'; do
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-frontend*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-logmsgproc*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-todosapi*' \
+  '- 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-usersapi*'; do
   grep -qF -- "$expected" <<<"$signatures" \
     || fail "verify-approved-release-signatures must keep '$expected'"
 done
