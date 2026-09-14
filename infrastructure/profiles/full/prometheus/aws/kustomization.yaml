@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Full-profile Prometheus and Alertmanager on EKS (spec 009 T085,
+# research.md Decision 21). The economical root is the base and stays
+# unchanged; this root adds only what the full profile changes.
+#
+# Prometheus already keeps its data on the gp3 class, which
+# infrastructure/ebs-csi-driver declares with encrypted: "true".
+resources:
+  - ../../../../prometheus
+
+patches:
+  # Alertmanager keeps silences and its notification log in memory in the
+  # economical profile, so a restart forgets both. One replica, as in the
+  # economical profile (research.md Decision 10); the operator's default
+  # retention of 120h bounds what the volume holds.
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: Alertmanager
+      name: main
+    patch: |-
+      - op: add
+        path: /spec/storage
+        value:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: gp3
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 1Gi

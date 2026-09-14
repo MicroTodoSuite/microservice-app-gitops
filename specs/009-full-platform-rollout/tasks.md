@@ -391,6 +391,19 @@ to stay empty at their bootstrap revision.
   > exposure, and the tooling NodePool/EC2NodeClass userData remain deferred
   > to the activating registration (Phase 4).
 - [ ] T085 [P] [US3] Complete Prometheus, Alertmanager, Grafana, Jaeger, and OpenTelemetry correlation under `infrastructure/{prometheus,grafana,jaeger}/`, including cloud-specific encrypted persistence for stateful components, error-rate/p99/scaling/platform/security rules, and External Secret-backed notifications.
+  T085 is delivered in four slices (`research.md` Decision 21), each with its own
+  failing test first:
+  - [X] Per-cloud full-profile roots with encrypted persistence for Prometheus,
+    Alertmanager, and Grafana, tested by `tests/platform/observability-full.bats`.
+    Delivered in `infrastructure/profiles/full/{prometheus,grafana}/{aws,azure}/`
+    (commits `baf0783` failing, `07cd194` implementing). No cluster activates
+    the roots yet; their live evidence belongs to T094.
+  - [ ] Error-rate, p99, scaling, platform, and security rules with the
+    ServiceMonitors that scrape their sources.
+  - [ ] Jaeger on the ECK Elasticsearch backend through a dedicated
+    least-privilege user, and trace-to-log correlation in Grafana.
+  - [ ] Notifications that carry the cluster and environment through the
+    External Secret-backed Alertmanager route.
 - [ ] T086 [P] [US3] Vendor checksum-pinned Karpenter 1.14.1 under `infrastructure/karpenter/` and create per-cluster Spot-only NodePools/EC2NodeClasses with reviewed 2-vCPU/8-GiB allowlists, Terraform-output interruption queue, independent ceilings, disruption budgets, and aggregate <=24-vCPU Spot limit.
 
   > **Partial delivery, gitops PR (Karpenter vendoring).** The controller and

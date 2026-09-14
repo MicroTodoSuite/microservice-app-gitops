@@ -265,6 +265,23 @@ The external inventory governs every application credential and operator-supplie
 
 **Rationale**: The feature has many repositories and destinations. A stable evidence contract prevents configuration from being mistaken for a verified outcome.
 
+## Decision 21: Complete full-profile observability through per-cloud roots
+
+**Decision**: T085 adds full-profile Kustomize roots at `infrastructure/profiles/full/{prometheus,grafana,jaeger}/{aws,azure}/`. Each root takes the economical `infrastructure/<component>/` root as its base and patches only what the full profile changes, so the economical render stays unchanged and a full cluster's activation list (T091) names the root for its cloud.
+
+- **Persistence.** Prometheus, Alertmanager, and Grafana keep their data on encrypted volumes of the destination cloud. EKS uses the GitOps-owned `gp3` StorageClass in `infrastructure/ebs-csi-driver/`, which sets `encrypted: "true"`. AKS uses the built-in `managed-csi` Azure Disk class; Azure encrypts every managed disk at rest with platform-managed keys. Alertmanager, which keeps silences and its notification log only in memory in the economical profile, gets a volume. Every component keeps one replica, per Decision 10.
+- **Traces.** Jaeger stores spans in the ECK-managed Elasticsearch `platform` instead of embedded Badger, as evolution plan section 17 describes the full profile, so it needs no volume of its own. It authenticates as a dedicated least-privilege Elasticsearch user whose password is generated in the cluster and never committed; that password is controller-owned internal bootstrap material under FR-026, not an operator-supplied value. Grafana links a trace to the logs Elasticsearch holds for the same `trace_id`.
+- **Rules.** Beside the existing error-rate alert, the full roots add a p99 latency alert on `workload:http_request_duration_seconds:p99_5m`, scaling alerts from KEDA, platform alerts from Argo CD, External Secrets, and cert-manager, and security alerts from Falco and Kyverno, each with the ServiceMonitor that scrapes its source. Metric names come from the pinned upstream source of each component.
+- **Notifications.** Alerts keep the External Secret-backed Slack route and carry the cluster and the environment as Prometheus external labels, so each notification identifies its destination (FR-022, FR-030).
+
+**Rationale**: The economical roots are the protected rollback target (Decision 1); full-profile differences belong in separate roots rather than in patches to them. The roots sit outside the economical directories because Kustomize rejects a base directory that contains the root using it. Storage classes are the one persistence input that differs by cloud, and both clouds encrypt through their class without a per-cluster key value in Git.
+
+**Alternatives rejected**:
+
+- Patch storage, rules, or Jaeger storage into the economical roots: changes the economical render (FR-002).
+- Authenticate Jaeger as the `elastic` superuser: breaks least privilege (FR-036).
+- Keep Badger in the full profile: evolution plan section 17 names embedded storage with short retention as the economical substitution.
+
 ## Resolved Unknowns
 
 All product and architectural choices are resolved. The remaining Azure account values and stage cost ceilings are deliberately runtime facts requiring authenticated discovery or explicit human acceptance. Their absence does not authorize defaults; the stage contracts make them fail-closed implementation gates.
