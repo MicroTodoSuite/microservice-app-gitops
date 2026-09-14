@@ -10,7 +10,7 @@ metadata:
 spec:
   containers:
     - name: auth-api
-      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api@sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi@sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
   initContainers:
     - name: istio-proxy
       image: registry.istio.io/release/proxyv2@sha256:485c87f71654b14e89911a9424a208d92b347b59c2bfefdc9707aaa83fe5618e
@@ -24,7 +24,7 @@ metadata:
 spec:
   containers:
     - name: auth-api
-      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:1.5.0
+      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi:1.5.0
 ---
 # What Istio 1.30.3 injects today: <hub>/proxyv2:<tag> as a native sidecar.
 apiVersion: v1
@@ -35,7 +35,7 @@ metadata:
 spec:
   containers:
     - name: auth-api
-      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api@sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+      image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-authapi@sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
   initContainers:
     - name: istio-proxy
       image: registry.istio.io/release/proxyv2:1.30.3
