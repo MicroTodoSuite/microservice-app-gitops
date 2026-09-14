@@ -6,7 +6,7 @@
 service: auth-api | frontend | log-message-processor | todos-api | users-api
 sourceSha: <40-hex reviewed main SHA>
 imageDigest: sha256:<64-hex>
-imageRef: 916491575487.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>@<digest>
+imageRef: <AWS_ACCOUNT_ID>.dkr.ecr.<aws_region>.amazonaws.com/microtodosuite/<service>@<digest>
 environment: dev | staging | prod
 profile: economical | full
 destination: eks-dev | eks-full-dev | eks-full-staging | eks-full-prod | aks-dr

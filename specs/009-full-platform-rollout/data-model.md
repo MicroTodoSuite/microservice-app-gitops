@@ -26,8 +26,8 @@ One logical environment at one physical destination.
 | `environment` | enum | `dev`, `staging`, or `prod`; AKS DR consumes `prod`. |
 | `destination_role` | enum | `primary` or `dr`; only AKS uses `dr`. |
 | `cloud` | enum | `aws` or `azure`. |
-| `account_or_subscription` | string | AWS must equal `916491575487`; Azure must match authenticated approved input. |
-| `region` | string | `us-east-1` for AWS; verified approved Azure location for DR. |
+| `account_or_subscription` | string | AWS must equal the declared `AWS_ACCOUNT_ID`; Azure must match authenticated approved input. |
+| `region` | string | The environment's declared `aws_region` for AWS (`us-east-1`); verified approved Azure location for DR. |
 | `cluster_name` | string | Unique physical name; `microtodosuite-demo-full` maps only to full staging. |
 | `network_cidr` | CIDR | Non-overlapping across all managed and discovered networks. |
 | `pod_service_cidrs` | object/null | AKS-only verified pod, service, and DNS ranges; none may overlap discovered connected networks. |

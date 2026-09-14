@@ -38,8 +38,8 @@
       "required": ["gitActor"],
       "properties": {
         "gitActor": { "type": "string", "minLength": 1 },
-        "awsAccountId": { "const": "916491575487" },
-        "awsArn": { "type": "string", "pattern": "^arn:aws:(iam|sts)::916491575487:" },
+        "awsAccountId": { "type": "string", "pattern": "^[0-9]{12}$", "description": "The AWS_ACCOUNT_ID that microservice-app-ops/config/aws-account.env declares." },
+        "awsArn": { "type": "string", "pattern": "^arn:aws:(iam|sts)::[0-9]{12}:" },
         "azureSubscriptionId": { "type": "string", "minLength": 1 },
         "azureTenantIdHash": { "$ref": "#/$defs/sha256" }
       }

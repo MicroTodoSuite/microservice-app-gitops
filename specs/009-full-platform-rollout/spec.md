@@ -14,6 +14,16 @@ active-active assumption, and the scope boundary follow constitution 4.0.0 and
 independent recovery domain reached by failover, and an approved rebuild is not
 a retirement.
 
+**Amended**: 2026-09-14 — the AWS account and region are parameters, not
+literals (Decision 1 of the governance program, taken 2026-09-11 in
+`microservice-app-docs/docs/Governance and IaC standards program.md` §11;
+microservice-app-ai-agents specs/001 T028). The account is `AWS_ACCOUNT_ID` in
+`microservice-app-ops/config/aws-account.env`, which that repository's
+`scripts/set-aws-account.sh` changes in one reviewed commit
+(microservice-app-ops#33). The region is the `aws_region` each AWS environment
+declares in its `.tfvars`: `us-east-1` for every one of them, under ADR-0001.
+The research baseline of 2026-08-24 keeps the account it measured.
+
 ## Clarifications
 
 ### Session 2026-09-07
@@ -81,7 +91,7 @@ consume the private resources of another environment.
    foundation owns only the full-profile staging environment.
 2. **Given** the full-profile development and production environments are
    created, **When** their isolation is tested, **Then** each has a dedicated,
-   non-overlapping network and cluster in AWS account `916491575487`.
+   non-overlapping network and cluster in the declared AWS account.
 3. **Given** an environment's GitOps root is reconciled, **When** it generates
    workload and platform applications, **Then** every generated destination is
    the same cluster and only the logical environment owned by that cluster is
@@ -266,7 +276,8 @@ rollback that leaves the economical platform intact.
 #### Cloud foundations and environment isolation
 
 - **FR-006**: Full development, staging, and production MUST each run in a
-  dedicated AWS cluster and dedicated VPC within account `916491575487`.
+  dedicated AWS cluster and dedicated VPC within the declared AWS account
+  (`AWS_ACCOUNT_ID` in `microservice-app-ops/config/aws-account.env`).
 - **FR-007**: The existing `demo-full` foundation MUST own full-profile staging,
   retaining its dedicated `10.20.0.0/16` VPC and distinct remote state.
 - **FR-008**: Full-profile development and production MUST use new,
@@ -498,8 +509,9 @@ rollback that leaves the economical platform intact.
 
 - The merged MicroTodoSuite Constitution v3.0.0 is the governing authority for
   this feature, and its economical-to-full safeguards remain in force.
-- AWS account `916491575487` and region `us-east-1` remain the approved AWS
-  destination for the full profile.
+- The declared AWS account, in the region each environment declares
+  (`us-east-1` for every AWS environment), remains the approved AWS destination
+  for the full profile.
 - `demo-full` is assigned to full-profile staging because its existing
   `10.20.0.0/16` network was reserved for staging in the approved foundation
   configuration. Its one-NAT and `m7i-flex.large` choices are accepted
