@@ -504,8 +504,13 @@ to stay empty at their bootstrap revision.
     unsigned, unmirrored, mutable, and wrong-identity fixtures. Done after the
     fourth slice and partially: the mirror repository and identity wait for the
     full-profile account amendment and T082 (Decision 22).
-  - [ ] Exact RBAC and resource bounds for Falco, kube-bench, and kube-hunter,
-    with audit Jobs kept for 7 days.
+  - [X] Exact RBAC and resource bounds for Falco, kube-bench, and kube-hunter,
+    with audit Jobs kept for 7 days. Delivered in
+    `infrastructure/{kube-bench,kube-hunter}/cronjob.yaml`, their triggers, and
+    `infrastructure/falco/evidence-trigger-serviceaccount.yaml`, tested by
+    `tests/platform/security-hardening.bats` (commits `7f99e97` failing,
+    `9a39328` implementing). No audit Job has run against a cluster; that
+    evidence belongs to spec 008 T025 and T094.
 - [ ] T089 [US3] Add cloud-specific SecretStore/ClusterSecretStore and ExternalSecret overlays in `infrastructure/external-secrets/overlays/{aws,azure}/` and service full overlays for the exact JWT/Alertmanager/Falco/Grafana names, replace the full-profile Grafana generator with a cloud-secret reference, add the full-dev Sonar DB/admin ExternalSecrets, and add External Secret-backed contextual ArgoCD Notifications reusing the approved notification secret in `infrastructure/argocd-notifications/`; use exact IRSA/workload-identity subjects and no committed value, and make T070 pass.
 - [ ] T090 [US3] Add startup/readiness/liveness probes, requests/limits, PodDisruptionBudgets, topology spread, ServiceMonitors, full topology, KEDA ScaledObjects, resilience settings, controlled ConfigMaps, and documented default-off feature toggles for all five services under `apps/*/base/`, `components/topology-full/`, `profiles/full/overlays/*/`, and `environments/full/`; make the runtime-config portion of T071 pass.
 - [ ] T091 [US3] Define explicit dependency-wave capability activation in `clusters/eks-full-{dev,staging,prod}/activation-infrastructure.yaml`, activate SonarQube/PostgreSQL only in full-dev after ingress/storage/secrets, and keep business activation separate; make T068 pass.
