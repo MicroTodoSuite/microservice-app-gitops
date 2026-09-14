@@ -527,8 +527,12 @@ to stay empty at their bootstrap revision.
   failing test first in `tests/platform/service-runtime-full.bats`; probes,
   requests and limits, the full topology, and the Istio resilience settings
   already render and are pinned by that test:
-  - [ ] Business ServiceMonitors scrape each full destination's own
-    `microtodo-<environment>` namespace.
+  - [X] Business ServiceMonitors scrape each full destination's own
+    `microtodo-<environment>` namespace. Delivered in
+    `infrastructure/profiles/full/prometheus/destinations/eks-full-{dev,staging,prod}`,
+    tested by `tests/platform/service-runtime-full.bats` (commits `42c0480`
+    failing, `5d547b1` implementing). Nothing was scraped in a cluster; that
+    evidence belongs to T094.
   - [ ] PodDisruptionBudgets with `maxUnavailable: 1` and soft hostname and zone
     topology spread for the five services.
   - [ ] Bounded KEDA ScaledObjects on request rate for the four HTTP services,
