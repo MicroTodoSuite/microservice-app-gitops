@@ -501,7 +501,9 @@ to stay empty at their bootstrap revision.
     against a cluster; that evidence belongs to spec 008 T025 and T094.
   - [ ] Full-profile digest and signature policies over business and platform
     namespaces with the platform-mirror identity, EKS add-on exclusion, and
-    unsigned, unmirrored, mutable, and wrong-identity fixtures.
+    unsigned, unmirrored, mutable, and wrong-identity fixtures. Done after the
+    fourth slice and partially: the mirror repository and identity wait for the
+    full-profile account amendment and T082 (Decision 22).
   - [ ] Exact RBAC and resource bounds for Falco, kube-bench, and kube-hunter,
     with audit Jobs kept for 7 days.
 - [ ] T089 [US3] Add cloud-specific SecretStore/ClusterSecretStore and ExternalSecret overlays in `infrastructure/external-secrets/overlays/{aws,azure}/` and service full overlays for the exact JWT/Alertmanager/Falco/Grafana names, replace the full-profile Grafana generator with a cloud-secret reference, add the full-dev Sonar DB/admin ExternalSecrets, and add External Secret-backed contextual ArgoCD Notifications reusing the approved notification secret in `infrastructure/argocd-notifications/`; use exact IRSA/workload-identity subjects and no committed value, and make T070 pass.
