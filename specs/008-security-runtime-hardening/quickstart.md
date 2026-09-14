@@ -71,25 +71,36 @@ kubectl --context eks-dev get jobs -n security
 
 ## 5. Prove a real Falco finding reaches Slack
 
+Amended by spec 009 T088: nothing is run inside a business pod. In a
+reviewed pull request, add `- triggers` to the resources of
+`infrastructure/falco/kustomization.yaml`; ArgoCD then runs the
+`falco-evidence-trigger` Job, which executes `find /tmp -name id_rsa`. After it
+syncs:
+
 ```bash
-# Pick any running business-workload pod and trigger a rule Falco's
-# default ruleset flags (spawning an interactive shell is one of the
-# most reliable defaults):
-kubectl --context eks-dev -n microtodo-dev exec -it deploy/auth-api -- /bin/sh -c 'echo triggering-falco-finding'
-kubectl --context eks-dev -n security logs daemonset/falco --tail=20
+kubectl --context eks-dev -n security logs -l app.kubernetes.io/name=falco --since=15m --prefix \
+  | grep "Search Private Keys or Passwords"
+./scripts/managed/verify-security.sh --context eks-dev
 ```
 
-Expected: a Falco finding referencing the exact pod/namespace within
-seconds, and a corresponding Slack message in the configured channel within
-1 minute.
+Expected: a Falco finding from the stable rule "Search Private Keys or
+Passwords" naming the `falco-evidence-trigger` pod and the `security`
+namespace within seconds, and a corresponding Slack message in the configured
+channel within 1 minute. Revert the activation commit afterwards.
 
 ## 6. Prove the audit reports are real
 
+Amended by spec 009 T088: no Job is created by hand. Either read the
+newest scheduled run, or activate the checked-in triggers by adding
+`- triggers` to the resources of `infrastructure/kube-bench/kustomization.yaml`
+and `infrastructure/kube-hunter/kustomization.yaml` in a reviewed pull request,
+and revert it once the reports are read:
+
 ```bash
-kubectl --context eks-dev -n security create job --from=cronjob/kube-bench kube-bench-manual-$(date +%s)
-kubectl --context eks-dev -n security create job --from=cronjob/kube-hunter kube-hunter-manual-$(date +%s)
-# wait for each Job to complete, then:
-kubectl --context eks-dev -n security logs job/<the-job-name>
+kubectl --context eks-dev -n security get jobs
+kubectl --context eks-dev -n security logs job/kube-bench-evidence
+kubectl --context eks-dev -n security logs job/kube-hunter-evidence
+./scripts/managed/verify-security.sh --context eks-dev
 ```
 
 Expected: kube-bench's log shows a real PASS/FAIL/WARN per `eks` target

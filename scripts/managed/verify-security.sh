@@ -5,9 +5,9 @@
 # the "log a WARNING, print VERIFIED regardless" behavior this script had
 # before.
 #
-# STATUS: skeleton only, covers User Story 1 (Falco) so far. This has NOT
-# been run against a live cluster - the environment that wrote it has no
-# eks-dev AWS/kubectl credentials (see specs/008-security-runtime-
+# It only reads: it creates, execs into, and changes nothing (spec 009 T088).
+# STATUS: not yet run against a live cluster - the environment that wrote it
+# has no eks-dev AWS/kubectl credentials (see specs/008-security-runtime-
 # hardening/tasks.md, Notes).
 set -euo pipefail
 
@@ -61,54 +61,44 @@ else
   record_check FAIL "Falcosidekick Deployment status"
 fi
 
-log "Triggering a real Falco finding: spawning a shell in a running business-workload pod"
-if kube exec -n microtodo-dev deploy/auth-api -- /bin/sh -c 'echo triggering-falco-finding-$(date +%s)'; then
-  record_check PASS "trigger command executed in a business-workload pod"
-  sleep 3
-  log "Checking Falco logs for the resulting finding"
-  if kube logs daemonset/falco -n "$NAMESPACE" --tail=50 | tee "$EVIDENCE_DIR/raw/falco-finding.log" \
-    | grep -i "shell\|notice\|warning" >/dev/null; then
-    record_check PASS "Falco finding observed in the last 50 log lines"
-  else
-    record_check FAIL "Falco finding observed in the last 50 log lines"
-  fi
+# Every check below only reads (spec 009 T088, research.md Decision 22). A
+# finding or report that does not exist yet is BLOCKED, not triggered here:
+# the triggers are checked-in Jobs under infrastructure/*/triggers/ that a
+# reviewed commit activates and a revert removes.
+log "Reading Falco findings from the last 24 hours on every Falco pod"
+falco_rule="Search Private Keys or Passwords"
+: >"$EVIDENCE_DIR/raw/falco-findings.log"
+for pod in $(kube get pods -n "$NAMESPACE" -l app.kubernetes.io/name=falco -o name 2>/dev/null); do
+  kube logs -n "$NAMESPACE" "$pod" --since=24h >>"$EVIDENCE_DIR/raw/falco-findings.log" 2>/dev/null || true
+done
+if grep -F "$falco_rule" "$EVIDENCE_DIR/raw/falco-findings.log" >/dev/null; then
+  record_check PASS "Falco reported \"$falco_rule\" in the last 24 hours"
 else
-  record_check FAIL "trigger command executed in a business-workload pod"
-  record_check BLOCKED "Falco finding check (trigger command did not run)"
+  record_check BLOCKED "no \"$falco_rule\" finding in the last 24 hours: activate infrastructure/falco/triggers through a reviewed commit, rerun, then revert it"
 fi
 
-log "Triggering a manual kube-bench run and capturing its report"
-if kube create job --from=cronjob/kube-bench "kube-bench-manual-$(date +%s)" -n "$NAMESPACE"; then
-  record_check PASS "manual kube-bench Job triggered"
-  sleep 5
-  if kube get pods -n "$NAMESPACE" -l app.kubernetes.io/name=kube-bench | tee "$EVIDENCE_DIR/raw/kube-bench-pods.txt" >/dev/null; then
-    record_check PASS "kube-bench pod listed after trigger"
-  else
-    record_check FAIL "kube-bench pod listed after trigger"
+# report_latest_job <component> <trigger path>: reads the newest Job the
+# CronJob or its checked-in trigger created for <component>.
+report_latest_job() {
+  local component="$1" trigger="$2" job report="$EVIDENCE_DIR/raw/$1-report.log"
+  job="$(kube get jobs -n "$NAMESPACE" -l "app.kubernetes.io/name=$component" \
+    --sort-by=.metadata.creationTimestamp -o name 2>/dev/null | tail -n 1)"
+  if [[ -z "$job" ]]; then
+    record_check BLOCKED "no $component Job to read: wait for its schedule or activate $trigger through a reviewed commit, then revert it"
+    return
   fi
-  log "Once the Job completes, run: kubectl --context $CONTEXT -n $NAMESPACE logs job/<name>"
-  log "to capture the real PASS/FAIL/WARN report (not automated here - a"
-  log "manually-triggered Job's pod name is only known after it starts)."
-else
-  record_check FAIL "manual kube-bench Job triggered"
-  record_check BLOCKED "kube-bench pod listed after trigger (Job did not start)"
-fi
+  if kube logs -n "$NAMESPACE" "$job" >"$report" 2>&1 && [[ -s "$report" ]]; then
+    record_check PASS "$component report read from $job"
+  else
+    record_check FAIL "$component report from $job is missing or empty"
+  fi
+}
 
-log "Triggering a manual kube-hunter run and capturing its report"
-if kube create job --from=cronjob/kube-hunter "kube-hunter-manual-$(date +%s)" -n "$NAMESPACE"; then
-  record_check PASS "manual kube-hunter Job triggered"
-  sleep 5
-  if kube get pods -n "$NAMESPACE" -l app.kubernetes.io/name=kube-hunter | tee "$EVIDENCE_DIR/raw/kube-hunter-pods.txt" >/dev/null; then
-    record_check PASS "kube-hunter pod listed after trigger"
-  else
-    record_check FAIL "kube-hunter pod listed after trigger"
-  fi
-  log "Once the Job completes, run: kubectl --context $CONTEXT -n $NAMESPACE logs job/<name>"
-  log "to capture the real vulnerability report (or explicit 'none found')."
-else
-  record_check FAIL "manual kube-hunter Job triggered"
-  record_check BLOCKED "kube-hunter pod listed after trigger (Job did not start)"
-fi
+log "Reading the latest kube-bench report"
+report_latest_job kube-bench infrastructure/kube-bench/triggers
+
+log "Reading the latest kube-hunter report"
+report_latest_job kube-hunter infrastructure/kube-hunter/triggers
 
 log "Checking Trivy Operator and the vulnerability reports it keeps (User Story 4)"
 if kube get deployment trivy-operator -n "$NAMESPACE" -o wide | tee "$EVIDENCE_DIR/raw/trivy-operator.txt" >/dev/null; then

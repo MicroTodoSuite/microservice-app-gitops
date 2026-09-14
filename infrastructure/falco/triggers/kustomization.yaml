@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# On-demand Falco finding (spec 009 T088, research.md Decision 22, Decision
+# 17). Disabled by default: infrastructure/falco/kustomization.yaml does not
+# include this directory. To prove a finding, add "- triggers" to its resources
+# in a reviewed pull request, let ArgoCD sync, read the finding with
+# scripts/managed/verify-security.sh, then revert that commit. No command runs
+# in any business pod.
+resources:
+  - job.yaml
+
+namespace: security

@@ -491,9 +491,14 @@ to stay empty at their bootstrap revision.
     `tests/platform/security-hardening.bats` (commits `e89288e` failing,
     `5b85afe` fixing, with test correction `c573448`). No signature was verified
     live; that belongs to T094.
-  - [ ] `scripts/managed/verify-security.sh` is read-only, triggers are
-    disabled-by-default GitOps manifests, and the imperative-mutation test
-    catches shell wrappers.
+  - [X] `scripts/managed/verify-security.sh` and `verify-observability.sh` are
+    read-only, triggers are disabled-by-default GitOps manifests, and the
+    imperative-mutation test catches `exec` and shell wrappers. Delivered in
+    `infrastructure/{kube-bench,kube-hunter,falco}/triggers/`, both collectors,
+    and `tests/policy/no-imperative-managed-mutations.bats`, tested by
+    `tests/platform/security-hardening.bats` (commits `91e2eee` failing,
+    `eea93d5` implementing, with test correction `9801c0d`). No trigger has run
+    against a cluster; that evidence belongs to spec 008 T025 and T094.
   - [ ] Full-profile digest and signature policies over business and platform
     namespaces with the platform-mirror identity, EKS add-on exclusion, and
     unsigned, unmirrored, mutable, and wrong-identity fixtures.

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Admission and runtime security hardening render test (spec 009, T088,
-# research.md Decision 22). Offline by design: no live cluster is touched, and
-# no image signature is verified here; that needs the registry and Rekor.
+# research.md Decision 22): the service CI signing identity (slice 1) and
+# read-only evidence with GitOps-owned triggers (slice 2). Offline by design:
+# no live cluster is touched, and no image signature is verified here; that
+# needs the registry and Rekor.
 set -euo pipefail
 
 command -v kubeconform >/dev/null || { printf 'FAIL: kubeconform is required\n' >&2; exit 1; }
@@ -127,8 +129,90 @@ for expected in \
     || fail "verify-approved-release-signatures must keep '$expected'"
 done
 
+# --- slice 2: read-only evidence and GitOps-owned triggers ------------------
+validate() {
+  local path="$1" out
+  out="$(render "$path" | kubeconform -strict -ignore-missing-schemas -summary 2>&1)" || {
+    fail "$path does not render or does not pass kubeconform: $out"
+    return
+  }
+  grep -q 'Invalid: 0, Errors: 0' <<<"$out" || fail "$path has invalid or errored resources: $out"
+}
+KUBE_BENCH_IMAGE='aquasec/kube-bench@sha256:75506f222d1eb6ce2a751a5533bdc0a3b54c898e2e49e7751d0ee22cfb862679'
+
+for component in kube-bench kube-hunter falco; do
+  triggers="infrastructure/$component/triggers"
+  if [[ ! -f "$triggers/kustomization.yaml" ]]; then
+    fail "$triggers is missing"
+    continue
+  fi
+  # Disabled by default: only a reviewed commit adds triggers to the parent.
+  if grep -qE '^[[:space:]]*-[[:space:]]*(\./)?triggers/?[[:space:]]*$' "infrastructure/$component/kustomization.yaml"; then
+    fail "infrastructure/$component must not include triggers/ until a reviewed commit activates it"
+  fi
+  validate "$triggers"
+  trigger_out="$(render "$triggers")"
+  if grep -E '^  namespace:' <<<"$trigger_out" | grep -qvE '^  namespace: security$'; then
+    fail "$triggers must render every namespaced resource into security"
+  fi
+  if grep -qE '^kind: (CronJob|Pod|Deployment|DaemonSet)$' <<<"$trigger_out"; then
+    fail "$triggers must hold one-shot Jobs, not workloads that keep running"
+  fi
+done
+
+# A kube-bench or kube-hunter trigger runs exactly what the schedule runs.
+for entry in 'kube-bench|kube-bench-evidence' 'kube-hunter|kube-hunter-evidence'; do
+  component="${entry%%|*}" job="${entry#*|}"
+  [[ -f "infrastructure/$component/triggers/kustomization.yaml" ]] || continue
+  cron_spec="$(render "infrastructure/$component" | document CronJob "$component" \
+    | awk '/^  jobTemplate:$/ { t = 1; next } t && /^    spec:$/ { s = 1; next } s && /^      / { sub(/^    /, ""); print; next } s { exit }')"
+  job_spec="$(render "infrastructure/$component/triggers" | document Job "$job" \
+    | awk '/^spec:$/ { s = 1; next } s && /^  / { print; next } s { exit }')"
+  if [[ -z "$job_spec" ]]; then
+    fail "infrastructure/$component/triggers must define Job $job"
+  elif [[ "$job_spec" != "$cron_spec" ]]; then
+    fail "Job $job must repeat CronJob $component's job spec exactly"
+  fi
+done
+
+# The Falco trigger is its own non-root Job, never a shell in a business pod.
+if [[ -f infrastructure/falco/triggers/kustomization.yaml ]]; then
+  falco_job="$(render infrastructure/falco/triggers | document Job falco-evidence-trigger)"
+  if [[ -z "$falco_job" ]]; then
+    fail "infrastructure/falco/triggers must define Job falco-evidence-trigger"
+  else
+    grep -qF "image: $KUBE_BENCH_IMAGE" <<<"$falco_job" \
+      || fail "falco-evidence-trigger must run the pinned kube-bench image, which ships a real find binary"
+    # Kustomize sorts keys, so command, the first key of the container, opens
+    # its list item line ("- command:").
+    command_block="$(awk '/^ +(- )?command:$/ { c = 1; next } c && /^ +- / { sub(/^ +- /, ""); printf "%s ", $0; next } c { exit }' <<<"$falco_job")"
+    [[ "$command_block" == "find /tmp -name id_rsa " ]] \
+      || fail "falco-evidence-trigger must run exactly find /tmp -name id_rsa, found: ${command_block:-none}"
+    grep -qE '^ +runAsNonRoot: true$' <<<"$falco_job" || fail "falco-evidence-trigger must run as non-root"
+    grep -qE '^ +automountServiceAccountToken: false$' <<<"$falco_job" || fail "falco-evidence-trigger must not mount a service account token"
+    if grep -qE '^ +(tty|stdin|hostPID|hostNetwork|privileged): true$' <<<"$falco_job"; then
+      fail "falco-evidence-trigger must not use a terminal, host namespaces, or privilege"
+    fi
+  fi
+fi
+
+# The collector only reads, and tells the operator which trigger to activate.
+for expected in 'Search Private Keys or Passwords' 'infrastructure/falco/triggers' 'infrastructure/kube-bench/triggers' 'infrastructure/kube-hunter/triggers'; do
+  grep -qF -- "$expected" scripts/managed/verify-security.sh \
+    || fail "scripts/managed/verify-security.sh must name '$expected'"
+done
+grep -qE '\bport-forward\b' scripts/managed/verify-observability.sh \
+  || fail "scripts/managed/verify-observability.sh must query Prometheus through a local port-forward"
+
+# No operator instruction still mutates the cluster by hand.
+for doc in docs/security-runtime.md specs/008-security-runtime-hardening/quickstart.md specs/008-security-runtime-hardening/contracts/security-registration.md; do
+  if grep -nE 'create job|kubectl[^|]*\bexec\b' "$doc"; then
+    fail "$doc must not instruct creating Jobs or exec into pods by hand"
+  fi
+done
+
 if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: Kyverno admits images signed by the shared CI at any full commit SHA from the five services'"'"' reviewed main, and nothing else\n'
+printf 'PASS: Kyverno admits images signed by the shared CI at any full commit SHA from the five services'"'"' reviewed main, and nothing else; evidence triggers are disabled-by-default GitOps Jobs and the collectors only read\n'

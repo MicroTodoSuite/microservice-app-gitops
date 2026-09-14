@@ -106,8 +106,18 @@ The read-only live verifier collects evidence under
 ./scripts/managed/verify-security.sh --context eks-dev
 ```
 
-It is still a skeleton that has not run against a cluster. A manual audit run
-uses the scheduled definition, for example
-`kubectl --context eks-dev -n security create job --from=cronjob/kube-bench kube-bench-manual-<suffix>`
-(`specs/008-security-runtime-hardening/quickstart.md`). Live acceptance for
-spec 008 waits for the economical cluster to be rebuilt.
+It only reads: the Falco pods' logs from the last 24 hours, and the logs of the
+newest kube-bench and kube-hunter Jobs. When there is no finding or no run yet,
+it reports BLOCKED and names the trigger to activate; it never creates a Job or
+runs a command inside a pod (spec 009 T088).
+
+Triggers are checked-in Jobs that no kustomization includes:
+`infrastructure/kube-bench/triggers/` and `infrastructure/kube-hunter/triggers/`
+repeat their CronJob's job spec, and `infrastructure/falco/triggers/` runs
+`find /tmp -name id_rsa` in its own non-root Job, which Falco's stable rule
+"Search Private Keys or Passwords" reports. To collect evidence, add `- triggers`
+to that component's `kustomization.yaml` resources in a reviewed pull request,
+let ArgoCD sync, run the collector, and revert the commit
+(`specs/008-security-runtime-hardening/quickstart.md`). The collector has not
+run against a cluster yet; live acceptance for spec 008 waits for the
+economical cluster to be rebuilt.
