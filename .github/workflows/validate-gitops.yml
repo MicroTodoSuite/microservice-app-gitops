@@ -107,6 +107,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
+      - name: Validate GitHub Actions runtime pins
+        run: tests/contract/github-actions-runtime.sh
+
       - name: Install pinned JSON Schema runtime
         run: python3 -m pip install --disable-pip-version-check --no-cache-dir 'jsonschema==4.25.1'
 
