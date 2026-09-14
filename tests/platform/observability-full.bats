@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Full-profile observability render test (spec 009, T085, research.md
 # Decision 21): per-cloud Prometheus, Alertmanager, and Grafana roots with
-# encrypted persistence (first slice), and the full-profile alerts with the
-# monitors that scrape their sources (second slice). Offline by design: no live
-# cluster is touched.
+# encrypted persistence (first slice), the full-profile alerts with the
+# monitors that scrape their sources (second slice), and Jaeger on the ECK
+# Elasticsearch backend with 3-day retention (third slice). Offline by design:
+# no live cluster is touched.
 set -euo pipefail
 
 command -v kubeconform >/dev/null || { printf 'FAIL: kubeconform is required\n' >&2; exit 1; }
@@ -195,6 +196,135 @@ for cloud in aws azure; do
   done
 done
 
+# --- Jaeger on the ECK Elasticsearch backend ---------------------------------
+ES_URL='https://platform-es-http.elasticsearch.svc:9200'
+CLEANER_IMAGE='jaegertracing/jaeger-es-index-cleaner@sha256:387d6532670c097999e6851ac7e22980804d5a4742b7f7ea03013d3397606add'
+
+for cloud in aws azure; do
+  root="infrastructure/profiles/full/jaeger/$cloud"
+  if [[ ! -f "$root/kustomization.yaml" ]]; then
+    fail "$root is missing"
+    continue
+  fi
+  grep -qE '^[[:space:]]*-[[:space:]]*\.\./\.\./\.\./\.\./jaeger[[:space:]]*$' "$root/kustomization.yaml" \
+    || fail "$root must take the economical infrastructure/jaeger root as its base"
+  validate "$root" "$root"
+  out="$(render "$root")"
+
+  # Spans live in Elasticsearch, so neither Badger nor a volume remains.
+  if grep -q '^kind: PersistentVolumeClaim$' <<<"$out"; then
+    fail "$root must not keep a PersistentVolumeClaim; spans live in Elasticsearch"
+  fi
+  if grep -qi 'badger' <<<"$out"; then
+    fail "$root must not configure Badger storage"
+  fi
+
+  config="$(document ConfigMap jaeger-config <<<"$out")"
+  for expected in \
+    'elasticsearch:' \
+    "- $ES_URL" \
+    'username: jaeger' \
+    'password_file: /etc/jaeger/elasticsearch/password' \
+    'ca_file: /etc/jaeger/elasticsearch-ca/ca.crt'; do
+    grep -qF -- "$expected" <<<"$config" \
+      || fail "$root: jaeger-config must contain '$expected'"
+  done
+  for index in spans services dependencies sampling; do
+    awk -v index_name="$index" '
+      $0 ~ ("^[[:space:]]+" index_name ":$") { found = 1; next }
+      found && /shards: 1$/ { shards = 1 }
+      found && /replicas: 0$/ { replicas = 1 }
+      found && /^[[:space:]]+[a-z_]+:$/ { found = 0 }
+      END { exit !(shards && replicas) }
+    ' <<<"$config" \
+      || fail "$root: jaeger-config must give the $index index one shard and no replica (single-node Elasticsearch)"
+  done
+
+  deployment="$(document Deployment jaeger <<<"$out")"
+  grep -A1 'secretName: jaeger-elasticsearch-credentials' <<<"$deployment" >/dev/null \
+    || fail "$root: Deployment jaeger must mount Secret jaeger-elasticsearch-credentials"
+  grep -q 'secretName: jaeger-elasticsearch-ca' <<<"$deployment" \
+    || fail "$root: Deployment jaeger must mount Secret jaeger-elasticsearch-ca"
+  grep -q 'mountPath: /etc/jaeger/elasticsearch$' <<<"$deployment" \
+    || fail "$root: Deployment jaeger must mount the credentials at /etc/jaeger/elasticsearch"
+  grep -q 'mountPath: /etc/jaeger/elasticsearch-ca$' <<<"$deployment" \
+    || fail "$root: Deployment jaeger must mount the CA at /etc/jaeger/elasticsearch-ca"
+
+  store="$(document SecretStore elasticsearch <<<"$out")"
+  grep -q 'remoteNamespace: elasticsearch' <<<"$store" \
+    || fail "$root: SecretStore elasticsearch must read the elasticsearch namespace through the Kubernetes provider"
+  grep -A1 'serviceAccount:' <<<"$store" | grep -q 'name: jaeger-elasticsearch-reader' \
+    || fail "$root: SecretStore elasticsearch must authenticate as ServiceAccount jaeger-elasticsearch-reader"
+  grep -q 'key: jaeger-elasticsearch-user' <<<"$(document ExternalSecret jaeger-elasticsearch-credentials <<<"$out")" \
+    || fail "$root: ExternalSecret jaeger-elasticsearch-credentials must copy Secret jaeger-elasticsearch-user"
+  grep -q 'key: platform-es-http-certs-public' <<<"$(document ExternalSecret jaeger-elasticsearch-ca <<<"$out")" \
+    || fail "$root: ExternalSecret jaeger-elasticsearch-ca must copy ECK's Secret platform-es-http-certs-public"
+
+  cleaner="$(document CronJob jaeger-es-index-cleaner <<<"$out")"
+  if [[ -z "$cleaner" ]]; then
+    fail "$root: CronJob jaeger-es-index-cleaner is missing"
+  else
+    grep -qF "image: $CLEANER_IMAGE" <<<"$cleaner" \
+      || fail "$root: jaeger-es-index-cleaner must run $CLEANER_IMAGE"
+    grep -A2 'args:' <<<"$cleaner" | grep -qE '^[[:space:]]+- "?3"?$' \
+      || fail "$root: jaeger-es-index-cleaner must keep 3 days of indices"
+    grep -A3 'args:' <<<"$cleaner" | grep -qF -- "- $ES_URL" \
+      || fail "$root: jaeger-es-index-cleaner must target $ES_URL"
+    grep -A4 'name: ES_PASSWORD' <<<"$cleaner" | grep -q 'name: jaeger-elasticsearch-credentials' \
+      || fail "$root: jaeger-es-index-cleaner must read ES_PASSWORD from Secret jaeger-elasticsearch-credentials"
+    grep -A1 'name: ES_TLS_CA' <<<"$cleaner" | grep -q 'value: /etc/jaeger/elasticsearch-ca/ca.crt' \
+      || fail "$root: jaeger-es-index-cleaner must verify Elasticsearch with the copied CA"
+  fi
+
+  # Egress from Jaeger and the cleaner to Elasticsearch's HTTP port.
+  awk '/^kind: NetworkPolicy$/{p=1} p' <<<"$out" | grep -B8 -A8 'kubernetes.io/metadata.name: elasticsearch' | grep -q 'port: 9200' \
+    || fail "$root: a NetworkPolicy must allow egress to the elasticsearch namespace on port 9200"
+done
+
+grep -A3 '"id": "jaeger-es-index-cleaner"' scripts/managed/full-profile-toolchain.lock \
+  | grep -q '"upstreamDigest": "sha256:387d6532670c097999e6851ac7e22980804d5a4742b7f7ea03013d3397606add"' \
+  || fail "the toolchain lock must pin jaeger-es-index-cleaner 2.20.0 by digest"
+
+# --- the Jaeger user in infrastructure/elasticsearch -------------------------
+es_out="$(render infrastructure/elasticsearch)"
+es_cr="$(document Elasticsearch platform <<<"$es_out")"
+grep -A1 'fileRealm:' <<<"$es_cr" | grep -q 'secretName: jaeger-elasticsearch-user' \
+  || fail "Elasticsearch platform must load the file-realm Secret jaeger-elasticsearch-user"
+grep -A1 'roles:' <<<"$es_cr" | grep -q 'secretName: jaeger-elasticsearch-roles' \
+  || fail "Elasticsearch platform must load the role Secret jaeger-elasticsearch-roles"
+
+roles="$(document Secret jaeger-elasticsearch-roles <<<"$es_out")"
+for expected in 'jaeger_writer:' 'manage_index_templates' 'jaeger-span-*' 'jaeger-service-*' 'jaeger-dependencies-*' 'jaeger-sampling-*' 'delete_index'; do
+  grep -qF -- "$expected" <<<"$roles" \
+    || fail "Secret jaeger-elasticsearch-roles must contain '$expected'"
+done
+if grep -qiE 'password' <<<"$roles"; then
+  fail "Secret jaeger-elasticsearch-roles must hold roles only, never a credential"
+fi
+
+user="$(document ExternalSecret jaeger-elasticsearch-user <<<"$es_out")"
+grep -q 'type: kubernetes.io/basic-auth' <<<"$user" \
+  || fail "ExternalSecret jaeger-elasticsearch-user must produce a kubernetes.io/basic-auth Secret for ECK's file realm"
+grep -q 'roles: jaeger_writer' <<<"$user" \
+  || fail "ExternalSecret jaeger-elasticsearch-user must grant only jaeger_writer"
+grep -A2 'generatorRef:' <<<"$user" | grep -q 'kind: Password' \
+  || fail "ExternalSecret jaeger-elasticsearch-user must take its password from a Password generator"
+
+reader="$(document Role jaeger-elasticsearch-secret-reader <<<"$es_out")"
+grep -qE '^[[:space:]]+- get$' <<<"$reader" \
+  || fail "Role jaeger-elasticsearch-secret-reader must grant get"
+if grep -qE '^[[:space:]]+- (list|watch|create|update|patch|delete|"\*")$' <<<"$reader"; then
+  fail "Role jaeger-elasticsearch-secret-reader must grant get only"
+fi
+for name in jaeger-elasticsearch-user platform-es-http-certs-public; do
+  grep -qE "^[[:space:]]+- $name$" <<<"$reader" \
+    || fail "Role jaeger-elasticsearch-secret-reader must name Secret $name"
+done
+binding="$(document RoleBinding jaeger-elasticsearch-secret-reader <<<"$es_out")"
+grep -A2 'kind: ServiceAccount' <<<"$binding" | grep -q 'name: jaeger-elasticsearch-reader' \
+  && grep -A2 'kind: ServiceAccount' <<<"$binding" | grep -q 'namespace: observability' \
+  || fail "RoleBinding jaeger-elasticsearch-secret-reader must bind observability/jaeger-elasticsearch-reader"
+
 # --- the economical roots stay as they are (FR-002) --------------------------
 for component in prometheus grafana; do
   classes="$(render "infrastructure/$component" | storage_classes)"
@@ -214,9 +344,15 @@ for entry in "${ALERTS[@]}"; do
     fail "economical infrastructure/prometheus must not carry the full-profile alert $alert"
   fi
 done
+economical_jaeger="$(render infrastructure/jaeger)"
+grep -q '^kind: PersistentVolumeClaim$' <<<"$economical_jaeger" \
+  || fail "economical infrastructure/jaeger must keep its Badger volume"
+if grep -q 'platform-es-http' <<<"$economical_jaeger"; then
+  fail "economical infrastructure/jaeger must not point at Elasticsearch"
+fi
 
 if (( failures > 0 )); then
   printf '%d failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: full-profile observability roots (prometheus, grafana) keep encrypted volumes on gp3 (aws) and managed-csi (azure) and carry the full-profile alerts with their monitors\n'
+printf 'PASS: full-profile observability roots (prometheus, grafana) keep encrypted volumes on gp3 (aws) and managed-csi (azure) carry the full-profile alerts with their monitors, and store Jaeger spans in Elasticsearch for 3 days\n'
