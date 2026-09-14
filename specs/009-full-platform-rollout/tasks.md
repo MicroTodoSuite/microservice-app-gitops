@@ -371,6 +371,16 @@ to stay empty at their bootstrap revision.
   > Controller IRSA ARN (Phase 4), the ingress Gateway + its
   > trusted-certificate references and NLB wiring (AWS-blocked), and the
   > mirrored-ECR-digest requirement (T082 mirror does not exist yet).
+  >
+  > **Partial delivery, rebuilt full-cluster identities, 2026-09-14.** Each
+  > full EKS destination now overlays the vendored controller with its exact
+  > `lex-mts-<env>-role-lbcontrol` annotation, cluster name, `us-east-1`, and
+  > VPC `Name` tag. Region and VPC discovery no longer depend on IMDS, which
+  > the bootstrap nodes expose with hop limit 1. The same destination roots
+  > replace the economical JWT, Alertmanager, Falcosidekick, Trivy, and
+  > Kyverno identities without changing their economical bases. T083 remains
+  > unchecked: the overlays are wired but inactive, and the ingress Gateway,
+  > trusted certificate, mirrored images, and live EKS evidence still remain.
 - [ ] T084 [P] [US3] Vendor checksum-pinned ECK 3.5.0 and add resource-bounded Elasticsearch, Kibana, Logstash, and Filebeat desired state under `infrastructure/{eck-operator,elasticsearch,kibana,logstash,filebeat}/` with cloud-specific encrypted retained-storage overlays (`gp3` on EKS and the Terraform-approved Azure Disk class on AKS); harden `infrastructure/sonarqube/` for its full-dev-only tooling role with SonarQube `26.8.0.126808-community`, PostgreSQL `16.15-alpine3.24`, mirrored manifest digests, encrypted retained gp3 PVCs, dedicated taint/toleration and GitOps-owned EC2NodeClass user data that sets `vm.max_map_count` without a privileged pod, probes, PDBs, NetworkPolicy, resource budget, backup/recovery tests, and rollback documentation.
 
   > **Partial delivery, gitops PR (ECK stack).** The ECK half of T084:
@@ -478,6 +488,16 @@ to stay empty at their bootstrap revision.
   > refused`) — the identical IMDS-region-discovery dependency that also
   > stops `infrastructure/aws-load-balancer-controller/` from running
   > outside EC2/EKS. Not registered in any cluster.
+  >
+  > **Partial delivery, rebuilt full-cluster settings, 2026-09-14.** The
+  > fdev, fstg, and fprd destination overlays now replace every `CHANGEME`
+  > with the exact cluster, interruption queue, node role, discovery tag, and
+  > controller IRSA role; they also pass `AWS_REGION=us-east-1` explicitly.
+  > Each overlay includes the Spot-only EC2NodeClass and NodePool and reduces
+  > that NodePool's independent ceiling from the old aggregate placeholder to
+  > 8 vCPU, preserving the approved 24-vCPU total. T086 remains unchecked:
+  > no full cluster activates these overlays and no live scheduling or
+  > interruption evidence exists.
 - [ ] T087 [P] [US3] Vendor checksum-pinned Chaos Mesh 2.8.4 and OpenCost 2.5.29 under `infrastructure/chaos-mesh/` and `infrastructure/opencost/`; add disabled experiment roots and cluster/environment/service cost labels.
 
   > **Partial delivery, gitops PR (Chaos Mesh + OpenCost vendoring).** Both

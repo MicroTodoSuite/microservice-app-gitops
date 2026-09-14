@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../aws
+
+patches:
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: kyverno-admission-controller
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/eks.amazonaws.com~1role-arn
+        value: arn:aws:iam::575172595729:role/lex-mts-fdev-role-kyvernoecr

@@ -41,15 +41,27 @@ render_checked() {
   }
 }
 
+document() {
+  awk -v kind="$1" -v name="$2" '
+    function flush() {
+      if (doc ~ ("\nkind: " kind "\n") && doc ~ ("\n  name: " name "\n")) printf "%s", doc
+      doc = "\n"
+    }
+    BEGIN { doc = "\n" }
+    /^---$/ { flush(); next }
+    { doc = doc $0 "\n" }
+    END { flush() }
+  '
+}
+
 destinations=(eks-full-dev eks-full-staging eks-full-prod)
 environments=(fdev fstg fprd)
-logical_environments=(dev staging prod)
 codes=(dev stg prd)
+retired_account="916491575""487"
 
 for index in "${!destinations[@]}"; do
   destination="${destinations[$index]}"
   environment="${environments[$index]}"
-  logical_environment="${logical_environments[$index]}"
   code="${codes[$index]}"
   cluster="lex-mts-${environment}-eks-main"
   prefix="lex-mts-${environment}"
@@ -95,17 +107,41 @@ for index in "${!destinations[@]}"; do
       || fail "$destination render is missing exact rebuilt value $literal"
   done
 
-  grep -Fq -- "--cluster-name=$cluster" "$combined" \
+  karpenter_deployment="$(document Deployment karpenter <"$combined")"
+  karpenter_service_account="$(document ServiceAccount karpenter <"$combined")"
+  load_balancer_deployment="$(document Deployment aws-load-balancer-controller <"$combined")"
+  load_balancer_service_account="$(document ServiceAccount aws-load-balancer-controller <"$combined")"
+  ec2_node_class="$(document EC2NodeClass full-profile-spot <"$combined")"
+  nodepool="$(document NodePool full-profile-spot <"$combined")"
+
+  grep -Fq "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/$prefix-role-karpenter" <<<"$karpenter_service_account" \
+    || fail "$destination Karpenter ServiceAccount must use its exact IRSA role"
+  for setting in \
+    "CLUSTER_NAME|$cluster" \
+    "INTERRUPTION_QUEUE|$prefix-sqs-karpenter" \
+    'AWS_REGION|us-east-1'; do
+    name="${setting%%|*}"
+    value="${setting#*|}"
+    grep -A1 -F "name: $name" <<<"$karpenter_deployment" | grep -Fqx "          value: $value" \
+      || fail "$destination Karpenter Deployment must set $name to $value"
+  done
+  grep -Fqx "  role: $prefix-role-node" <<<"$ec2_node_class" \
+    || fail "$destination EC2NodeClass must use $prefix-role-node"
+  [[ "$(grep -Fc "karpenter.sh/discovery: $cluster" <<<"$ec2_node_class")" -eq 2 ]] \
+    || fail "$destination EC2NodeClass must select both security groups and subnets for $cluster"
+
+  grep -Fq "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/$prefix-role-lbcontrol" <<<"$load_balancer_service_account" \
+    || fail "$destination load balancer ServiceAccount must use its exact IRSA role"
+  grep -Fq -- "--cluster-name=$cluster" <<<"$load_balancer_deployment" \
     || fail "$destination load balancer controller must receive its exact cluster name"
-  grep -Fq -- '--aws-region=us-east-1' "$combined" \
+  grep -Fq -- '--aws-region=us-east-1' <<<"$load_balancer_deployment" \
     || fail "$destination load balancer controller must receive the explicit Region"
-  grep -Fq -- "--aws-vpc-tags=Name=$prefix-vpc-main" "$combined" \
+  grep -Fq -- "--aws-vpc-tags=Name=$prefix-vpc-main" <<<"$load_balancer_deployment" \
     || fail "$destination load balancer controller must discover its VPC by exact Name tag"
-  if grep -Fq -- '--aws-vpc-id=' "$combined"; then
+  if grep -Fq -- '--aws-vpc-id=' <<<"$load_balancer_deployment"; then
     fail "$destination load balancer controller must not pin a VPC ID that does not exist yet"
   fi
 
-  nodepool="$(awk 'BEGIN { RS="---" } /kind: NodePool/ { print }' "$combined")"
   [[ "$(grep -c '^kind: NodePool$' "$combined")" -eq 1 ]] \
     || fail "$destination must render exactly one NodePool"
   grep -Fqx '    cpu: "8"' <<<"$nodepool" \
@@ -118,7 +154,7 @@ for index in "${!destinations[@]}"; do
     fi
   done
 
-  if grep -Eq 'CHANGEME|microtodosuite-full-(dev|prod)|microtodosuite-demo-full|916491575487|arn:aws:iam::575172595729:role/lex-mts-eco-' "$combined"; then
+  if grep -Eq "CHANGEME|microtodosuite-full-(dev|prod)|microtodosuite-demo-full|$retired_account|arn:aws:iam::575172595729:role/lex-mts-eco-" "$combined"; then
     fail "$destination render contains a placeholder, retired full-cluster value, retired account, or economical role ARN"
   fi
 
