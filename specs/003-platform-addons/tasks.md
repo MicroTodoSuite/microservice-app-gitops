@@ -126,6 +126,23 @@ request against exact evidence.
 
 ---
 
+## Phase 7: Contract Drift Follow-up
+
+**Purpose**: Keep the feature-owned static contract valid as later features add
+independent infrastructure roots.
+
+- [ ] T031 Reconcile the stale global root-count assertion in
+  `tests/contract/platform-addons.sh`. Reproduction:
+  `tests/contract/platform-addons.sh`. Output:
+  `FAIL: expected exactly fifteen infrastructure roots, found 27`.
+  Diagnosis: the contract is wrong, not the manifests; the 27 direct roots
+  include approved roots introduced by later feature specifications, while
+  feature 003 owns only its required platform-add-on roots. The corrected
+  contract MUST validate the feature-owned inventory without rejecting
+  unrelated roots added by later specifications.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase dependencies

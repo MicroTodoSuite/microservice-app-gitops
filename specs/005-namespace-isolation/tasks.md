@@ -254,6 +254,23 @@ account without exceeding the replacement cluster's two-node capacity.
 
 ---
 
+## Phase 10: Contract Drift Follow-up
+
+**Purpose**: Keep the feature-owned isolation contract aligned with approved
+cross-feature policy additions.
+
+- [ ] T096 Reconcile the stale exact NetworkPolicy count in
+  `tests/contract/namespace-isolation.sh`. Reproduction:
+  `tests/contract/namespace-isolation.sh`. Output:
+  `FAIL: dev steady state must contain default deny plus exact allowances: expected 6, found 7 (environment-dev.yaml)`.
+  Diagnosis: the contract is wrong, not the manifests; service-tracing spec 010
+  T003 intentionally added the narrowly scoped `allow-tracing-egress` policy
+  to the shared environment base. The corrected contract MUST account for that
+  approved policy while retaining exact selector, direction, protocol, and port
+  assertions.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase dependencies
