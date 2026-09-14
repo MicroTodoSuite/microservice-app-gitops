@@ -741,6 +741,10 @@ to stay empty at their bootstrap revision.
   > provide.
 - [ ] T146 [US6] Add scheduled reusable source/image/cluster vulnerability assessment and issue-routing behavior in `../.github/.github/workflows/continuous-security.yml`, then wire the five service repositories and ops/GitOps callers; make T143 pass.
 - [ ] T147 [US6] Complete OpenCost labels, Prometheus queries, Grafana dashboard, and evidence collector in `infrastructure/opencost/`, `infrastructure/grafana/dashboards/full-profile-cost.yaml`, and `scripts/managed/verify-full-profile-cost.sh`; make T144 pass.
+  T144 and T147 are delivered in two slices (`research.md` Decision 24):
+  - [ ] Allocation sources, cluster and profile dimensions, and the cost dashboard,
+    tested by `tests/platform/opencost-allocation.bats` (T144).
+  - [ ] `scripts/managed/verify-full-profile-cost.sh` with its structural test.
 - [X] T148 [P] [US6] Implement read-only multi-cluster desired/live/failure/rollback evidence collection in `scripts/managed/verify-full-platform.sh`, replacing warning-as-success behavior in `scripts/managed/verify-observability.sh` and `verify-security.sh` with explicit pass/fail/blocked output.
 - [ ] T149 [P] [US6] Add stage cost ceilings, actual spend review, availability trade-offs, ownership, and rollback decisions to `../microservice-app-docs/full-platform/stage-register.md` and live operational procedures to `../microservice-app-docs/full-platform/operations.md`.
 - [ ] T150 [US6] Validate every completed stage bundle, recompute all hashes, and generate FR-001..FR-050 and SC-001..SC-014 coverage in `evidence/runs/<timestamp>-final/requirements-matrix.json`; no requirement may be inferred from configuration alone.
