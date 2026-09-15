@@ -32,14 +32,23 @@ destination=infrastructure/profiles/economical/aws-load-balancer-controller/dest
   || fail "missing the economical load balancer controller destination $destination"
 
 activation="$ROOT/clusters/eks-dev/activation-infrastructure.yaml"
-awk -v path="$destination" '
-  $0 == "    - name: aws-load-balancer-controller" {
-    getline path_line
-    getline namespace_line
-    if (path_line == "      path: " path && namespace_line == "      namespace: kube-system") found = 1
-  }
-  END { exit(found ? 0 : 1) }
-' "$activation" || fail "the shared registration must activate the load balancer controller from $destination into kube-system"
+apps_activation="$ROOT/clusters/eks-dev/activation-apps.yaml"
+environments_activation="$ROOT/clusters/eks-dev/activation-environments.yaml"
+activation_is_quiescent=false
+if grep -Fqx '  value: []' "$apps_activation" \
+    && grep -Fqx '  value: []' "$environments_activation"; then
+  activation_is_quiescent=true
+  printf 'SKIP: the approved runtime quiescence intentionally deactivates the load balancer controller.\n'
+else
+  awk -v path="$destination" '
+    $0 == "    - name: aws-load-balancer-controller" {
+      getline path_line
+      getline namespace_line
+      if (path_line == "      path: " path && namespace_line == "      namespace: kube-system") found = 1
+    }
+    END { exit(found ? 0 : 1) }
+  ' "$activation" || fail "the shared registration must activate the load balancer controller from $destination into kube-system"
+fi
 
 controller="$TMP_DIR/controller.yaml"
 render_kustomize "$ROOT/$destination" >"$controller" || fail "$destination does not render"
@@ -99,10 +108,16 @@ for environment in dev staging prod demo; do
     || fail "the $environment frontend does not render"
   grep -Fq 'fieldPath: metadata.namespace' "$frontend" \
     || fail "the $environment frontend must learn its namespace from the downward API"
+  # shellcheck disable=SC2016 # POD_NAMESPACE is a literal manifest expression.
   require_line "$frontend" '          value: http://auth-api.$(POD_NAMESPACE).svc.cluster.local:8000' \
     "the $environment frontend must reach auth-api by its namespace-qualified name"
+  # shellcheck disable=SC2016 # POD_NAMESPACE is a literal manifest expression.
   require_line "$frontend" '          value: http://todos-api.$(POD_NAMESPACE).svc.cluster.local:8082' \
     "the $environment frontend must reach todos-api by its namespace-qualified name"
 done
 
-printf 'PASS: the economical platform publishes each environment through one shared ALB.\n'
+if [[ "$activation_is_quiescent" == true ]]; then
+  printf 'PASS: the quiescent registration preserves the reviewed economical public-entry definitions.\n'
+else
+  printf 'PASS: the economical platform publishes each environment through one shared ALB.\n'
+fi

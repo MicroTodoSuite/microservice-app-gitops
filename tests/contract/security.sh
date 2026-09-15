@@ -52,15 +52,17 @@ reject_text() {
   fi
 }
 
-# An approved economical teardown quiesces eks-dev by replacing every activation
-# list with exactly `value: []` (spec 009 T170, clusters/README.md), a state that
-# tests/contract/economical-runtime-quiescence.sh owns. Registration entries can
-# be asserted only while the infrastructure list is active; a quiesced list is
+# An approved economical teardown first empties business and environment
+# activation, then removes infrastructure controllers in dependency order
+# (spec 009 T175/T176, clusters/README.md). The dedicated runtime-quiescence
+# contract owns the exact staged inventory. Component registration can be
+# asserted only while the business runtime is active; a quiesced runtime is
 # reported as skipped, never as a pass.
-infrastructure_activation_is_quiesced() {
-  local path="$ROOT/clusters/eks-dev/activation-infrastructure.yaml"
-  [[ "$(grep -Ec '^  value: \[\]$' "$path" || true)" == 1 ]] \
-    && ! grep -Eq '^    - ' "$path"
+runtime_activation_is_quiesced() {
+  local apps="$ROOT/clusters/eks-dev/activation-apps.yaml"
+  local environments="$ROOT/clusters/eks-dev/activation-environments.yaml"
+  grep -Fqx '  value: []' "$apps" \
+    && grep -Fqx '  value: []' "$environments"
 }
 
 check_rendered_images() {
@@ -260,8 +262,8 @@ require_container_probes "$trivy" trivy-operator
 
 # --- Registration contract ---
 registration="asserted"
-if infrastructure_activation_is_quiesced; then
-  registration="skipped, eks-dev infrastructure activation is quiesced"
+if runtime_activation_is_quiesced; then
+  registration="skipped, eks-dev runtime activation is quiesced"
   printf 'SKIP: registration contract: %s\n' "$registration" >&2
 else
   for name in falco kube-bench kube-hunter trivy-operator; do

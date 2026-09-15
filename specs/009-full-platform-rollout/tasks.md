@@ -855,6 +855,20 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   > (microservice-app-ops spec 004 T023). The first minutes showed etcd
   > throttling and ArgoCD cache errors while fourteen controllers applied at
   > once, cleared by retries.
+- [X] T175 [US1] Repeat the dependency-cleanup quiescence for the approved
+  2026-09-15 runtime shutdown: replace the active-runtime contract with a
+  failing quiescence contract, empty business and environment activation, and
+  retain External Secrets as the sole infrastructure Application until
+  dependent finalizers clear.
+- [ ] T176 [US1] After T175 merges, verify the reviewed dependency-cleanup
+  revision through read-only ArgoCD and Kubernetes observations, add a failing
+  final-quiescence contract, and empty infrastructure activation through a
+  second reviewed commit.
+- [ ] T177 [US1] After T176 merges, verify the exact final revision leaves the
+  cluster root with no generated child Application, bind both reviewed
+  Terraform down bundles to that revision and the completed volume records,
+  apply the full and economical runtime shutdowns, and record the state backups
+  and final AWS status as evidence.
 
 
 ## Phase 13: Economical Public Access (2026-09-14)
