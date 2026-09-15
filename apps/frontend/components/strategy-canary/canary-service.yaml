@@ -14,3 +14,7 @@ spec:
     app.kubernetes.io/component: business-service
   ports:
     - {name: http, port: 8080, targetPort: http}
+    # The canary ServiceMonitors scrape these through this Service alone, the
+    # one Argo Rollouts points at the canary ReplicaSet.
+    - {name: metrics, port: 9113, targetPort: metrics}
+    - {name: responses, port: 9114, targetPort: 9114}

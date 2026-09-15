@@ -12,31 +12,49 @@ spec:
     - name: microtodosuite.golden-signals.traffic-and-errors
       rules:
         # Traffic: real Counters that already exist in each service today.
-        # Grouped by revision too ("stable" or "canary", set by the
-        # ServiceMonitors in servicemonitors/) so the canary gate can compare
-        # a canary revision's signal against the stable baseline.
+        # Grouped by namespace and by revision ("stable" or "canary", set by
+        # the ServiceMonitors in servicemonitors/), so the canary gate reads the
+        # canary revision's own signal and each environment's stable traffic
+        # stays apart. `and on (job, instance) up == 1` keeps only the targets
+        # Prometheus scrapes now: rate() still reads a vanished target's
+        # samples for the whole window, which would blend the pods that just
+        # left a -canary Service into the canary's figures. users-api's canary
+        # scrape job is users-api-canary. frontend's requests are nginx's own
+        # response counters (frontend repo, njs/metrics.js).
         - record: workload:http_requests:rate5m
           expr: |
-            sum by (workload, revision) (
-              label_replace(rate(auth_api_requests_total[5m]), "workload", "auth-api", "", "")
-              or label_replace(rate(todo_api_requests_total[5m]), "workload", "todos-api", "", "")
-              or label_replace(rate(http_server_requests_seconds_count{job="users-api"}[5m]), "workload", "users-api", "", "")
-              or label_replace(rate(log_messages_processed_total[5m]) + rate(log_messages_failed_total[5m]), "workload", "log-message-processor", "", "")
-              or label_replace(rate(nginx_http_requests_total{job="frontend"}[5m]), "workload", "frontend", "", "")
+            sum by (namespace, workload, revision) (
+              (
+                label_replace(rate(auth_api_requests_total[5m]), "workload", "auth-api", "", "")
+                or label_replace(rate(todo_api_requests_total[5m]), "workload", "todos-api", "", "")
+                or label_replace(rate(http_server_requests_seconds_count{job=~"users-api(-canary)?"}[5m]), "workload", "users-api", "", "")
+                or label_replace(rate(log_messages_processed_total[5m]) + rate(log_messages_failed_total[5m]), "workload", "log-message-processor", "", "")
+                or label_replace(rate(frontend_http_responses_total[5m]), "workload", "frontend", "", "")
+              )
+              and on (job, instance) up == 1
             )
         # Errors: ratio of failed to total, per workload. auth-api/todos-api
-        # already label status on their existing Counter; users-api's status
-        # comes from Micrometer's default tag; log-message-processor already
-        # separates processed vs failed Counters; frontend's ratio comes from
-        # the nginx-prometheus-exporter sidecar's status-code label.
+        # label status on their Counter; users-api's status comes from
+        # Micrometer's default tag; log-message-processor separates processed
+        # vs failed Counters; frontend counts nginx's responses by status code.
+        # A workload that served requests without a 5xx has no numerator
+        # series, so the numerator defaults to zero there instead of leaving
+        # the ratio without a value. A workload that served no request at all
+        # still yields 0/0, NaN, which the canary gate passes explicitly.
         - record: workload:http_errors:ratio5m
           expr: |
-            sum by (workload, revision) (
-              label_replace(rate(auth_api_requests_total{status=~"5.."}[5m]), "workload", "auth-api", "", "")
-              or label_replace(rate(todo_api_requests_total{status=~"5.."}[5m]), "workload", "todos-api", "", "")
-              or label_replace(rate(http_server_requests_seconds_count{job="users-api",status=~"5.."}[5m]), "workload", "users-api", "", "")
-              or label_replace(rate(log_messages_failed_total[5m]), "workload", "log-message-processor", "", "")
-              or label_replace(rate(nginx_http_requests_total{job="frontend",status=~"5.."}[5m]), "workload", "frontend", "", "")
+            (
+              sum by (namespace, workload, revision) (
+                (
+                  label_replace(rate(auth_api_requests_total{status=~"5.."}[5m]), "workload", "auth-api", "", "")
+                  or label_replace(rate(todo_api_requests_total{status=~"5.."}[5m]), "workload", "todos-api", "", "")
+                  or label_replace(rate(http_server_requests_seconds_count{job=~"users-api(-canary)?",status=~"5.."}[5m]), "workload", "users-api", "", "")
+                  or label_replace(rate(log_messages_failed_total[5m]), "workload", "log-message-processor", "", "")
+                  or label_replace(rate(frontend_http_responses_total{status=~"5.."}[5m]), "workload", "frontend", "", "")
+                )
+                and on (job, instance) up == 1
+              )
+              or workload:http_requests:rate5m * 0
             )
             /
             workload:http_requests:rate5m
@@ -80,11 +98,14 @@ spec:
         - record: workload:http_request_duration_seconds:p99_5m
           expr: |
             histogram_quantile(0.99,
-              sum by (le, workload, revision) (
-                label_replace(rate(auth_api_request_duration_seconds_bucket[5m]), "workload", "auth-api", "", "")
-                or label_replace(rate(todo_api_request_duration_seconds_bucket[5m]), "workload", "todos-api", "", "")
-                or label_replace(rate(http_server_requests_seconds_bucket{job="users-api"}[5m]), "workload", "users-api", "", "")
-                or label_replace(rate(log_message_processing_duration_seconds_bucket[5m]), "workload", "log-message-processor", "", "")
+              sum by (le, namespace, workload, revision) (
+                (
+                  label_replace(rate(auth_api_request_duration_seconds_bucket[5m]), "workload", "auth-api", "", "")
+                  or label_replace(rate(todo_api_request_duration_seconds_bucket[5m]), "workload", "todos-api", "", "")
+                  or label_replace(rate(http_server_requests_seconds_bucket{job=~"users-api(-canary)?"}[5m]), "workload", "users-api", "", "")
+                  or label_replace(rate(log_message_processing_duration_seconds_bucket[5m]), "workload", "log-message-processor", "", "")
+                )
+                and on (job, instance) up == 1
               )
             )
     - name: microtodosuite.golden-signals.alerts

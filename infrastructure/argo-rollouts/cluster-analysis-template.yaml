@@ -26,7 +26,12 @@ spec:
           address: http://prometheus-k8s.observability.svc:9090
           query: |
             workload:http_errors:ratio5m{workload="{{ args.workload }}", revision="canary"}
-      successCondition: result[0] <= 0.05
+      # A canary that served no request in the window has a 0/0 ratio, NaN,
+      # which meets neither condition and would leave the run Inconclusive,
+      # pausing the rollout until someone promotes it by hand. It has no
+      # failed request to count, so it passes. A query that returns no series
+      # still errors, and five consecutive errors abort the rollout.
+      successCondition: isNaN(result[0]) || result[0] <= 0.05
       failureCondition: result[0] > 0.05
 ---
 # Full-only latency gate (spec 009, T110): the p99 half of "five-minute

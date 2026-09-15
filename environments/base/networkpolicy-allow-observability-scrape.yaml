@@ -28,3 +28,7 @@ spec:
           protocol: TCP
         - port: metrics
           protocol: TCP
+        # The frontend's response counters (frontend repo, njs/metrics.js),
+        # which no container port names.
+        - port: 9114
+          protocol: TCP

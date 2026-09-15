@@ -45,6 +45,9 @@ spec:
   - name: metrics
     port: 9113
     targetPort: metrics
+  - name: responses
+    port: 9114
+    targetPort: 9114
   selector:
     app.kubernetes.io/component: business-service
     app.kubernetes.io/name: frontend

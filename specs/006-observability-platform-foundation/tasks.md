@@ -157,6 +157,18 @@ values.
   verified live with a real nginx + exporter pair sharing a network
   namespace, confirming both the restriction (denied from outside) and the
   scrape (`nginx_up 1` from the sidecar).
+  Reconciled 2026-09-15: `stub_status` counts requests without their status,
+  so this exporter's `nginx_http_requests_total` never carried the `status`
+  label `workload:http_errors:ratio5m` filtered on, and the frontend had no
+  error ratio. T018a replaces that source.
+- [ ] T018a [US1] [in `frontend` repo, and this repo's `apps/frontend/` and
+  `infrastructure/prometheus/`] Count nginx's responses by status code: an
+  njs counter served as `frontend_http_responses_total` on port 9114
+  (frontend#33), exposed by both frontend Services, allowed by
+  `allow-observability-scrape`, scraped by both frontend ServiceMonitors, and
+  read by the frontend's traffic and error recording rules. Partial: the
+  configuration ships in frontend#33 and on `fix/measurable-canary-gate`;
+  the live scrape is unverified until an image built from frontend#33 runs.
 - [x] T019 [US1] Complete wait loops, dashboard-query evidence capture, and
   controller/availability checks for `prometheus` and `grafana` in
   `scripts/managed/verify-observability.sh`
@@ -198,6 +210,16 @@ minutes; confirm a normal-error-rate canary still promotes.
   `ServiceMonitor`s with a `revision=canary` relabel so the canary query has
   a series to read; group the golden-signal recording rules by
   `(workload, revision)` accordingly
+- [ ] T023b [US2] Make the gate measurable. Admit the Argo Rollouts
+  controller to Prometheus's web port; keep only the `*-canary` Services in
+  the canary ServiceMonitors and scrape microtodo-prod's stable Services as
+  `stable`; count only the targets Prometheus currently scrapes; default a
+  missing 5xx numerator to zero; read users-api's `users-api-canary` job;
+  keep each namespace's series apart; and pass a canary that served no
+  request (NaN) instead of leaving the run Inconclusive. Found when the first
+  production canary, the frontend's on 2026-09-15, aborted on Prometheus
+  timeouts. Partial: the configuration ships on `fix/measurable-canary-gate`;
+  a production canary that the gate judges live remains to be observed.
 - [ ] T024 [US2] Publish the updated `ClusterAnalysisTemplate` as its own
   commit (done: `feat(canary): gate promotion on real Prometheus error rate`
   on `feat/observability-canary-and-alerting`) and wait for it to render and
