@@ -16,6 +16,8 @@ resources:
   - networkpolicy-allow-redis.yaml
   - networkpolicy-allow-observability-scrape.yaml
   - networkpolicy-allow-tracing-egress.yaml
+  - networkpolicy-allow-load-balancer.yaml
+  - ingress-frontend.yaml
   - external-secrets-serviceaccount.yaml
   - secretstore.yaml
   - external-secret.yaml

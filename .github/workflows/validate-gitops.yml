@@ -83,6 +83,9 @@ jobs:
       - name: Validate economical runtime activation
         run: tests/contract/economical-runtime-activation.sh
 
+      - name: Validate the economical public entry point
+        run: tests/contract/economical-public-entry.sh
+
       - name: Validate destination-scoped image promotion
         run: tests/promotion/bump-image.bats
 

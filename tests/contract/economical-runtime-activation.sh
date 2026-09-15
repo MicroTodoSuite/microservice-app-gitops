@@ -72,23 +72,24 @@ expected=(
   "kube-bench security"
   "kube-hunter security"
   "trivy-operator security"
+  "aws-load-balancer-controller kube-system profiles/economical/aws-load-balancer-controller/destinations/eks-dev"
 )
 [[ "$(count '^    - name:' "$infrastructure")" == "${#expected[@]}" ]] \
   || fail "$infrastructure must activate exactly ${#expected[@]} controllers"
 for entry in "${expected[@]}"; do
-  name="${entry% *}"
-  namespace="${entry#* }"
-  awk -v name="$name" -v ns="$namespace" '
+  read -r name namespace directory <<<"$entry"
+  directory="${directory:-$name}"
+  awk -v name="$name" -v ns="$namespace" -v dir="$directory" '
     $0 == "    - name: " name {
       getline path_line
       getline namespace_line
-      if (path_line == "      path: infrastructure/" name && namespace_line == "      namespace: " ns) found = 1
+      if (path_line == "      path: infrastructure/" dir && namespace_line == "      namespace: " ns) found = 1
     }
     END { exit(found ? 0 : 1) }
   ' "$ROOT/$infrastructure" \
-    || fail "$infrastructure must activate $name from infrastructure/$name into $namespace"
-  [[ -f "$ROOT/infrastructure/$name/kustomization.yaml" ]] \
-    || fail "activated controller $name has no infrastructure/$name/kustomization.yaml"
+    || fail "$infrastructure must activate $name from infrastructure/$directory into $namespace"
+  [[ -f "$ROOT/infrastructure/$directory/kustomization.yaml" ]] \
+    || fail "activated controller $name has no infrastructure/$directory/kustomization.yaml"
 done
 if grep -Eq 'name: (redis|sonarqube)$' "$ROOT/$infrastructure"; then
   fail "$infrastructure activates a retired or inactive capability"

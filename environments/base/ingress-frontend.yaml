@@ -1,0 +1,35 @@
+# The environment's public entry point (spec 009 T174; spec 004 FR: exposure is
+# environment-owned). Every economical environment joins one shared
+# internet-facing ALB, lex-mts-eco-alb-main, and routes its own host to its
+# frontend, whose nginx proxies /login and /todos inside the namespace. The
+# host is set per environment. The controller discovers the certificate
+# microservice-app-ops eco/workload issues for the host, so no ARN appears here.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend
+  annotations:
+    alb.ingress.kubernetes.io/group.name: lex-mts-eco-alb-main
+    alb.ingress.kubernetes.io/load-balancer-name: lex-mts-eco-alb-main
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/healthcheck-path: /health/ready
+spec:
+  ingressClassName: alb
+  tls:
+    - hosts:
+        - host.invalid
+  rules:
+    - host: host.invalid
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  name: http

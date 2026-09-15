@@ -848,6 +848,25 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   - [X] Restore the activation lists so the contract passes.
   - [ ] Merge through the required approval and verify the live Applications.
 
+
+## Phase 13: Economical Public Access (2026-09-14)
+
+**Purpose**: Publish the economical environments under the canonical domain
+while both profiles run, at the maintainer's request.
+
+- [ ] T174 [US1] Publish each economical environment through one shared
+  internet-facing ALB under `eco.microtodosuite.online`: production at the
+  host, dev, staging, and demo at `<env>.eco`. microservice-app-ops
+  `eco/security-irsa` owns the controller identity and `eco/workload` the ACM
+  certificate and the address records; this repository activates the AWS Load
+  Balancer Controller for `lex-mts-eco-eks-main`, its IngressClass, and each
+  environment's Ingress and NetworkPolicy.
+  - [X] Commit a failing public-entry contract, run in CI.
+  - [X] Add the controller destination, the IngressClass, the Ingresses, and the
+    NetworkPolicies so the contract passes.
+  - [ ] Merge through the required approval, apply the records, and verify each
+    host over HTTPS.
+
 ---
 
 ## Dependencies & Execution Order
