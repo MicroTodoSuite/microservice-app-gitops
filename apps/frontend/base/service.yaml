@@ -10,3 +10,9 @@ spec:
     - name: metrics
       port: 9113
       targetPort: metrics
+    # nginx's response counters by status code (frontend repo,
+    # njs/metrics.js). The container declares no port for them, so the
+    # Service targets the number.
+    - name: responses
+      port: 9114
+      targetPort: 9114

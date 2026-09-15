@@ -136,3 +136,28 @@ patches:
         path: /spec/alertmanagerConfigMatcherStrategy
         value:
           type: None
+  # Argo Rollouts runs every canary analysis measurement from its controller
+  # pod (argo-rollouts/cluster-analysis-template.yaml). The vendored policy
+  # admits only Prometheus, prometheus-adapter, and Grafana, so the first
+  # production canary, the frontend's on 2026-09-15, aborted after five
+  # timed-out queries. One peer selects the argo-rollouts namespace and the
+  # controller's pods together, and only the web port opens.
+  - target:
+      group: networking.k8s.io
+      version: v1
+      kind: NetworkPolicy
+      name: prometheus-k8s
+    patch: |-
+      - op: add
+        path: /spec/ingress/-
+        value:
+          from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: argo-rollouts
+              podSelector:
+                matchLabels:
+                  app.kubernetes.io/name: argo-rollouts
+          ports:
+            - port: 9090
+              protocol: TCP

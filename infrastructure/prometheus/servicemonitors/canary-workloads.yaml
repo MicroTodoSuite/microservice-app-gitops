@@ -1,17 +1,16 @@
-# Canary-only counterparts to business-workloads.yaml, targeting the
-# `<workload>-canary` Service each apps/*/components/strategy-canary already
-# defines. Argo Rollouts manages that Service's live pod selector to route
-# only to the canary ReplicaSet; the "revision: canary" relabeling below lets
-# the golden-signal recording rules (rules/golden-signals.yaml) tell canary
-# traffic apart from stable traffic with the same metric name.
+# Canary counterparts to business-workloads.yaml. Argo Rollouts points each
+# `<workload>-canary` Service (apps/*/components/strategy-canary) at the canary
+# ReplicaSet alone, so every endpoint keeps only that Service and labels it
+# revision="canary" (spec 006 T023b). The golden-signal recording rules
+# (rules/golden-signals.yaml) then carry the canary's own traffic, which the
+# canary gate (argo-rollouts/cluster-analysis-template.yaml) judges.
 #
-# The canary strategy is only composed in the `prod` overlay today (`staging`
-# and `dev` roll normally, per constitution principle 7), so this targets
-# microtodo-prod, not microtodo-dev like business-workloads.yaml. `prod` is a
-# structurally disabled scaffold right now (replicas: 0), so these targets
-# have no live series until it activates - that activation is out of this
-# feature's scope, but the canary gate this feature builds needs this wiring
-# to be ready for the moment it does.
+# Only microtodo-prod composes the canary strategy (`staging` and `dev` roll
+# normally, per constitution principle 7). Between rollouts a -canary Service
+# follows the stable ReplicaSet, so these series then repeat the stable pods;
+# only an analysis run, which starts once the canary pods are ready, reads
+# them. The full profile's canary routes by Istio subset and has no -canary
+# Service, so these monitors select nothing there.
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -29,6 +28,9 @@ spec:
       path: /metrics
       interval: 30s
       relabelings:
+        - action: keep
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: .+-canary
         - action: replace
           targetLabel: revision
           replacement: canary
@@ -50,6 +52,9 @@ spec:
       path: /metrics
       interval: 30s
       relabelings:
+        - action: keep
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: .+-canary
         - action: replace
           targetLabel: revision
           replacement: canary
@@ -67,10 +72,16 @@ spec:
     matchLabels:
       app.kubernetes.io/name: users-api
   endpoints:
+    # Spring Boot Actuator's web base-path is overridden to "/" in
+    # application.properties, so the Prometheus endpoint is /prometheus, not
+    # the default /actuator/prometheus.
     - port: http
       path: /prometheus
       interval: 30s
       relabelings:
+        - action: keep
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: .+-canary
         - action: replace
           targetLabel: revision
           replacement: canary
@@ -88,10 +99,15 @@ spec:
     matchLabels:
       app.kubernetes.io/name: log-message-processor
   endpoints:
+    # Dedicated metrics port (9090) declared in this service's gitops
+    # Service, separate from any application traffic port.
     - port: metrics
       path: /metrics
       interval: 30s
       relabelings:
+        - action: keep
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: .+-canary
         - action: replace
           targetLabel: revision
           replacement: canary
@@ -109,10 +125,28 @@ spec:
     matchLabels:
       app.kubernetes.io/name: frontend
   endpoints:
+    # nginx-prometheus-exporter sidecar: connection counts from stub_status,
+    # read over the pod's loopback (frontend repo, nginx.conf.template).
     - port: metrics
       path: /metrics
       interval: 30s
       relabelings:
+        - action: keep
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: .+-canary
+        - action: replace
+          targetLabel: revision
+          replacement: canary
+    # nginx's own response counters by status code (frontend repo,
+    # njs/metrics.js), which the error ratio reads: stub_status counts
+    # requests without their status.
+    - port: responses
+      path: /metrics
+      interval: 30s
+      relabelings:
+        - action: keep
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: .+-canary
         - action: replace
           targetLabel: revision
           replacement: canary

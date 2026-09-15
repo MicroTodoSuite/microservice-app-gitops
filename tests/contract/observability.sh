@@ -262,9 +262,13 @@ require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
   'failureCondition: result\[0\] > 0\.05$' \
   "canary analysis must fail when the 5xx ratio exceeds 5%"
+# A canary that served no request in the window has a 0/0 ratio, NaN, which
+# meets neither condition and would leave the run Inconclusive, pausing the
+# rollout for a manual promote. It has no failed request to count, so it
+# passes; a canary with no series at all still errors and aborts (T023b).
 require_text infrastructure/argo-rollouts/cluster-analysis-template.yaml \
-  'successCondition: result\[0\] <= 0\.05$' \
-  "canary analysis must succeed only while the 5xx ratio is at most 5%"
+  'successCondition: isNaN\(result\[0\]\) \|\| result\[0\] <= 0\.05$' \
+  "canary analysis must succeed while the 5xx ratio is at most 5%, or when the canary served no request"
 # The 5-minute window lives in the recording rule the gate reads: every range
 # selector in workload:http_errors:ratio5m must be [5m].
 awk '
@@ -288,6 +292,132 @@ for svc in auth-api todos-api users-api frontend log-message-processor; do
   reject_text "apps/$svc/components/strategy-canary/rollout.yaml" \
     'target-url' \
     "$svc's canary analysis still passes the retired target-url arg"
+done
+
+# --- The canary gate can reach and read its signal (T018a, T023b) ---
+# Print one rendered document by kind and metadata.name.
+document() {
+  awk -v kind="$1" -v name="$2" '
+    function flush() {
+      if (doc ~ ("\nkind: " kind "\n") && doc ~ ("\n  name: " name "\n")) printf "%s", doc
+      doc = "\n"
+    }
+    BEGIN { doc = "\n" }
+    /^---$/ { flush(); next }
+    { doc = doc $0 "\n" }
+    END { flush() }
+  '
+}
+
+# Print the expression of one recording rule, from its record line to the next
+# rule.
+rule_expr() {
+  awk -v record="$1" '
+    $0 ~ ("- record: " record "$") { f = 1; next }
+    f && /^        - (record|alert):/ { f = 0 }
+    f { print }
+  ' "$ROOT/infrastructure/prometheus/rules/golden-signals.yaml"
+}
+
+# Print "<name> <port> <targetPort>" for each port of a rendered Service.
+service_ports() {
+  awk '
+    function flush() { if (name != "") print name, port, target; name = port = target = "" }
+    /^  ports:$/ { f = 1; next }
+    f && /^  - / { flush() }
+    f && /^  [^ -]/ { flush(); f = 0 }
+    f { line = $0; sub(/^  [- ] +/, "", line) }
+    f && line ~ /^name: / { name = substr(line, 7) }
+    f && line ~ /^port: / { port = substr(line, 7) }
+    f && line ~ /^targetPort: / { target = substr(line, 13) }
+    END { flush() }
+  '
+}
+
+# Argo Rollouts runs every analysis measurement from its controller pod. The
+# vendored prometheus-k8s policy admits only Prometheus, prometheus-adapter,
+# and Grafana, so the first production canary aborted on timeouts. One peer
+# must select the argo-rollouts namespace and the controller's pods together,
+# on the web port only.
+awk '
+  function close_peer() { if (ns && pod) peer = 1; ns = 0; pod = 0 }
+  function close_rule() { close_peer(); if (peer && port) found = 1; peer = 0; port = 0 }
+  /^  ingress:$/ { in_ingress = 1; next }
+  in_ingress && /^  - / { close_rule() }
+  in_ingress && /^  [^ -]/ { close_rule(); in_ingress = 0 }
+  in_ingress && /^    - / { close_peer() }
+  in_ingress && /kubernetes\.io\/metadata\.name: argo-rollouts$/ { ns = 1 }
+  in_ingress && /app\.kubernetes\.io\/name: argo-rollouts$/ { pod = 1 }
+  in_ingress && /- port: 9090$/ { port = 1 }
+  END { close_rule(); exit found ? 0 : 1 }
+' <<<"$(document NetworkPolicy prometheus-k8s <"$TMP_DIR/prometheus.yaml")" \
+  || fail "NetworkPolicy prometheus-k8s must admit the argo-rollouts controller on 9090, or no canary analysis can reach Prometheus"
+
+# revision="canary" must mean the canary alone. Argo Rollouts points only the
+# <workload>-canary Service at the canary ReplicaSet; the stable Service
+# selects every pod, the canary's included. Each canary ServiceMonitor keeps
+# only its -canary Service, and each stable one drops it and also selects
+# microtodo-prod, where the stable Service used to be scraped as "canary".
+for wl in auth-api todos-api users-api log-message-processor frontend; do
+  stable="$(document ServiceMonitor "$wl" <"$TMP_DIR/prometheus.yaml")"
+  canary="$(document ServiceMonitor "$wl-canary" <"$TMP_DIR/prometheus.yaml")"
+  endpoints="$(grep -cE '^    port: ' <<<"$canary" || true)"
+  [[ "$endpoints" -ge 1 ]] || fail "ServiceMonitor $wl-canary scrapes no endpoint"
+  [[ "$(grep -cE '^    - action: keep$' <<<"$canary" || true)" == "$endpoints" \
+    && "$(grep -cE '^      regex: \.\+-canary$' <<<"$canary" || true)" == "$endpoints" ]] \
+    || fail "every ServiceMonitor $wl-canary endpoint must keep only the $wl-canary Service"
+  endpoints="$(grep -cE '^    port: ' <<<"$stable" || true)"
+  [[ "$(grep -cE '^    - action: drop$' <<<"$stable" || true)" == "$endpoints" \
+    && "$(grep -cE '^      regex: \.\+-canary$' <<<"$stable" || true)" == "$endpoints" ]] \
+    || fail "every ServiceMonitor $wl endpoint must drop the $wl-canary Service"
+  [[ "$(awk '/^    matchNames:$/ { f = 1; next } f && /^    - / { print $2; next } { f = 0 }' <<<"$stable" | paste -sd ' ' -)" \
+    == "microtodo-dev microtodo-prod" ]] \
+    || fail "ServiceMonitor $wl must scrape the stable Services of microtodo-dev and microtodo-prod"
+done
+
+# The frontend's error ratio comes from nginx's own response counters
+# (frontend repo, njs/metrics.js) on port 9114: stub_status counts requests
+# without their status, so the exporter's counter can never yield a 5xx ratio.
+for monitor in frontend frontend-canary; do
+  grep -qE '^    port: responses$' <<<"$(document ServiceMonitor "$monitor" <"$TMP_DIR/prometheus.yaml")" \
+    || fail "ServiceMonitor $monitor must scrape the frontend's responses port"
+done
+render_kustomize "$ROOT/apps/frontend/profiles/economical/overlays/prod" >"$TMP_DIR/frontend-prod.yaml" \
+  || fail "Kustomize render failed for the economical frontend prod overlay"
+for service in frontend frontend-canary; do
+  ports="$(document Service "$service" <"$TMP_DIR/frontend-prod.yaml" | service_ports)"
+  grep -qx 'responses 9114 9114' <<<"$ports" \
+    || fail "Service $service must expose nginx's response counters as responses 9114 -> 9114, found: $(paste -sd ';' - <<<"$ports")"
+  grep -qx 'metrics 9113 metrics' <<<"$ports" \
+    || fail "Service $service must expose the exporter's metrics port, found: $(paste -sd ';' - <<<"$ports")"
+done
+require_text environments/base/networkpolicy-allow-observability-scrape.yaml 'port: 9114$' \
+  "Prometheus must be allowed to reach the frontend's response counters"
+grep -qF 'frontend_http_responses_total{status=~"5.."}' <<<"$(rule_expr 'workload:http_errors:ratio5m')" \
+  || fail "the frontend's 5xx ratio must count nginx's own 5xx responses"
+if grep -qF 'nginx_http_requests_total' <<<"$(rule_expr 'workload:http_requests:rate5m')$(rule_expr 'workload:http_errors:ratio5m')"; then
+  fail "stub_status's nginx_http_requests_total has no status and must not feed the frontend's ratio"
+fi
+
+# A workload with no 5xx has no numerator series, so the ratio had no value
+# and every measurement errored. The numerator defaults to zero wherever the
+# workload served requests.
+grep -qF 'or workload:http_requests:rate5m * 0' <<<"$(rule_expr 'workload:http_errors:ratio5m')" \
+  || fail "workload:http_errors:ratio5m must count zero errors, not no data, for a workload without 5xx"
+
+# rate() still reads a vanished target's samples for the whole window, so a
+# canary Service that just moved to new pods would blend the old pods' traffic
+# into the canary's ratio for five minutes. Only targets Prometheus scrapes now
+# count. users-api's canary job is users-api-canary, which job="users-api"
+# never matched.
+for record in workload:http_requests:rate5m workload:http_errors:ratio5m workload:http_request_duration_seconds:p99_5m; do
+  expr="$(rule_expr "$record")"
+  grep -qF 'and on (job, instance) up == 1' <<<"$expr" \
+    || fail "$record must count only the targets Prometheus currently scrapes"
+  grep -qF 'job=~"users-api(-canary)?"' <<<"$expr" \
+    || fail "$record must read users-api's canary job as well as its stable one"
+  grep -qE 'by \((le, )?namespace, workload, revision\)' <<<"$expr" \
+    || fail "$record must keep each namespace's series apart"
 done
 
 # --- Secret hygiene: no committed Slack webhook value ---
