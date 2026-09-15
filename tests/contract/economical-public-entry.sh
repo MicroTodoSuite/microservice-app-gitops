@@ -90,4 +90,19 @@ for environment in dev staging prod demo; do
   grep -Fq 'port: 8080' <<<"$policy" || fail "environments/$environment must admit only the frontend's port 8080"
 done
 
+# The frontend proxies /login and /todos with nginx, whose resolver ignores the
+# pod's DNS search list, so the upstreams must be fully qualified in the
+# frontend's own namespace or every login answers 502 (spec 009 T174).
+for environment in dev staging prod demo; do
+  frontend="$TMP_DIR/frontend-$environment.yaml"
+  render_kustomize "$ROOT/apps/frontend/profiles/economical/overlays/$environment" >"$frontend" \
+    || fail "the $environment frontend does not render"
+  grep -Fq 'fieldPath: metadata.namespace' "$frontend" \
+    || fail "the $environment frontend must learn its namespace from the downward API"
+  require_line "$frontend" '          value: http://auth-api.$(POD_NAMESPACE).svc.cluster.local:8000' \
+    "the $environment frontend must reach auth-api by its namespace-qualified name"
+  require_line "$frontend" '          value: http://todos-api.$(POD_NAMESPACE).svc.cluster.local:8082' \
+    "the $environment frontend must reach todos-api by its namespace-qualified name"
+done
+
 printf 'PASS: the economical platform publishes each environment through one shared ALB.\n'
