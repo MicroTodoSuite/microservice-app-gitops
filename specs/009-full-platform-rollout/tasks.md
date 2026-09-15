@@ -864,6 +864,13 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   revision through read-only ArgoCD and Kubernetes observations, add a failing
   final-quiescence contract, and empty infrastructure activation through a
   second reviewed commit.
+  > **Partial, 2026-09-15.** The failing final-quiescence contract and the empty
+  > infrastructure activation are delivered together. AWS read-only evidence
+  > confirmed that the economical ALB was deleted and all four CSI volumes were
+  > detached and deleted after T175 reconciled. Direct ArgoCD and Kubernetes
+  > observations remain blocked because the operator's current public address
+  > is outside the EKS endpoint's reviewed `/32`; the endpoint restriction is
+  > not widened out of band for teardown.
 - [ ] T177 [US1] After T176 merges, verify the exact final revision leaves the
   cluster root with no generated child Application, bind both reviewed
   Terraform down bundles to that revision and the completed volume records,
