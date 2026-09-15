@@ -3,9 +3,10 @@ kind: Kustomization
 
 # Value-only registration of the shared economical-profile AWS EKS cluster.
 # The physical cluster name and this legacy directory remain stable across the
-# account migration. Environment policy, platform infrastructure, and all five
-# business services are active for dev, staging, prod, and demo. An approved
-# runtime teardown empties the three activation patches in one reviewed change.
+# account migration. During an approved runtime teardown, business and
+# environment activation are empty; infrastructure temporarily retains only a
+# cleanup dependency before also becoming empty. The root registration remains
+# stable so reactivation is a reviewed Git change.
 resources:
   - ../base
   - registration.yaml
