@@ -100,10 +100,19 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-      - envFrom:
+      - env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AUTH_API_ADDRESS
+          value: http://auth-api.$(POD_NAMESPACE).svc.cluster.local:8000
+        - name: TODOS_API_ADDRESS
+          value: http://todos-api.$(POD_NAMESPACE).svc.cluster.local:8082
+        envFrom:
         - configMapRef:
             name: frontend-config
-        image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-frontend@sha256:5fe218db17bb8d71d00458c44d8a88e9d7c9875f7e5a4cfee980eef45de0e728
+        image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-frontend@sha256:ff9f348fe90afc3438c77b29aa6a61595dd6733b4c9975a4e4e3f2656e814b85
         livenessProbe:
           httpGet:
             path: /

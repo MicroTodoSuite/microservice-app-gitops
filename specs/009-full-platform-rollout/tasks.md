@@ -866,6 +866,15 @@ while both profiles run, at the maintainer's request.
     NetworkPolicies so the contract passes.
   - [ ] Merge through the required approval, apply the records, and verify each
     host over HTTPS.
+    > **Partial, 2026-09-15.** gitops#190 merged at 00:09:59Z; the controller
+    > created `lex-mts-eco-alb-main`, its four target groups report healthy,
+    > and microservice-app-ops `eco/workload` published the host and wildcard
+    > aliases from a create-only plan. Each host answers HTTP 301 to HTTPS and
+    > HTTPS 200 with a valid certificate, and Google Public DNS resolves them.
+    > The login through the frontend answers 502, a defect older than the
+    > exposure: nginx cannot resolve `auth-api` by its short name. The
+    > namespace-qualified upstreams fix it; this subtask is ticked once a
+    > login and a todo list succeed through each host.
 
 ---
 

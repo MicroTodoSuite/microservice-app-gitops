@@ -18,6 +18,17 @@ spec:
               containerPort: 8080
           envFrom:
             - configMapRef: {name: frontend-config}
+          # nginx proxies through variables and resolves them with its own resolver, which
+          # ignores the pod's DNS search list, so the upstreams are qualified with the
+          # frontend's namespace. These override frontend-config's short names.
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef: {fieldPath: metadata.namespace}
+            - name: AUTH_API_ADDRESS
+              value: http://auth-api.$(POD_NAMESPACE).svc.cluster.local:8000
+            - name: TODOS_API_ADDRESS
+              value: http://todos-api.$(POD_NAMESPACE).svc.cluster.local:8082
           startupProbe:
             httpGet: {path: /, port: http}
             periodSeconds: 3
