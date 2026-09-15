@@ -10,6 +10,6 @@ permissions:
 
 jobs:
   conventions:
-    uses: MicroTodoSuite/.github/.github/workflows/conventions.yml@485da19137c9a7c6275d60d810fb825cfd4307e5
+    uses: MicroTodoSuite/.github/.github/workflows/conventions.yml@5cab22952f67af7e025dc3b18a72cb3acbad86ef
     with:
       infrastructure: true
