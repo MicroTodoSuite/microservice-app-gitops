@@ -83,8 +83,11 @@ monitor_namespaces() {
 
 economical="$(render infrastructure/prometheus)"
 for service in "${SERVICES[@]}"; do
-  [[ "$(document ServiceMonitor "$service" <<<"$economical" | monitor_namespaces)" == microtodo-dev ]] \
-    || fail "economical infrastructure/prometheus must keep ServiceMonitor $service on microtodo-dev"
+  # Economical production runs the canary, so its stable Services are scraped
+  # beside dev's (spec 006 T023b); every full destination narrows the list to
+  # its own namespace below.
+  [[ "$(document ServiceMonitor "$service" <<<"$economical" | monitor_namespaces | paste -sd ' ' -)" == "microtodo-dev microtodo-prod" ]] \
+    || fail "economical infrastructure/prometheus must keep ServiceMonitor $service on microtodo-dev and microtodo-prod"
 done
 
 for environment in "${ENVIRONMENTS[@]}"; do
