@@ -837,7 +837,7 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   - [X] Retain only the reviewed External Secrets controller through GitOps.
   - [X] Verify the dependent finalizers, namespace, and Applications are gone.
   - [X] Restore empty infrastructure activation through a reviewed commit.
-- [ ] T173 [US1] Reactivate the economical EKS registration after the
+- [X] T173 [US1] Reactivate the economical EKS registration after the
   2026-09-14 rebuild of `lex-mts-eco-eks-main` under the new names
   (microservice-app-ops spec 004 T021–T023): replace the quiescence contract
   with an activation contract, restore the business, environment-policy, and
@@ -846,7 +846,15 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   - [X] Commit a failing activation contract, run in CI in place of the
     quiescence contract.
   - [X] Restore the activation lists so the contract passes.
-  - [ ] Merge through the required approval and verify the live Applications.
+  - [X] Merge through the required approval and verify the live Applications.
+  > **Delivered 2026-09-14.** gitops#181 merged at 22:36Z. At 22:56Z all 40
+  > Applications of `lex-mts-eco-eks-main` reported Healthy and Synced, and
+  > dev, staging, prod, and demo ran every service. The cross-service checks
+  > passed through port-forwards: login through users-api, todo list and
+  > create, and log-message-processor receiving the `CREATE` message
+  > (microservice-app-ops spec 004 T023). The first minutes showed etcd
+  > throttling and ArgoCD cache errors while fourteen controllers applied at
+  > once, cleared by retries.
 
 
 ## Phase 13: Economical Public Access (2026-09-14)
