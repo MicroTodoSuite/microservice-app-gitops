@@ -11,4 +11,5 @@ resources:
 # The Elasticsearch datasource and trace-to-log correlation, shared with the
 # azure root.
 components:
+  - ../components/cost
   - ../components/elasticsearch

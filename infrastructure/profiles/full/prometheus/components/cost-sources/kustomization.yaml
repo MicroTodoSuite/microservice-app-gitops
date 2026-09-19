@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Everything Prometheus needs before OpenCost can allocate cost (spec 009 T144
+# and T147, research.md Decision 24). Both full Prometheus roots include this
+# Component, so every full cluster prices the same way; the economical root
+# never includes it, and the economical profile keeps no exporter it does not
+# alert on.
+#
+# sources/ carries the two kube-prometheus exporters OpenCost's metrics
+# reference requires; the ServiceMonitor beside it reads OpenCost's own
+# exporter, where the allocation series that the cost dashboard queries are
+# published.
+resources:
+  - sources
+  - servicemonitor-opencost.yaml

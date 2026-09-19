@@ -16,6 +16,7 @@ components:
   - ../components/alerts
   - ../components/notifications
   - ../components/keda-access
+  - ../components/cost-sources
 
 patches:
   # Alertmanager keeps silences and its notification log in memory in the

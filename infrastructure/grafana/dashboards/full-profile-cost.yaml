@@ -1,0 +1,203 @@
+# Full-profile cost allocation (spec 009 T144 and T147, research.md
+# Decision 24). Rendered only by infrastructure/profiles/full/grafana/{aws,azure}
+# through ../components/cost; the economical Grafana root never loads it,
+# because OpenCost's inputs only run in the full profile.
+#
+# Every cost series comes from OpenCost, which prices the allocation it reads
+# from node-exporter and kube-state-metrics. Metric names, labels, and units
+# are those of OpenCost's own reference (docs/integrations/metrics.md in
+# opencost/opencost-website): node_cpu_hourly_cost is USD per vCPU-hour,
+# node_ram_hourly_cost and pv_hourly_cost are USD per GiB-hour, and the
+# container allocation series are cores and bytes.
+#
+# avg by (node) and avg by (persistentvolume) collapse the instance and
+# provider_id labels the cost series also carry, so a many-to-one join cannot
+# fail on duplicate matches.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-full-profile-cost
+  namespace: observability
+data:
+  full-profile-cost.json: |
+    {
+      "title": "MicroTodoSuite - Full Profile Cost Allocation",
+      "uid": "microtodosuite-full-profile-cost",
+      "tags": [
+        "microtodosuite",
+        "cost",
+        "full-profile"
+      ],
+      "timezone": "utc",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "5m",
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Cluster reporting this cost",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 6,
+            "w": 8,
+            "x": 0,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "description": "OpenCost stamps every series with the CLUSTER_ID its destination root sets, so one Prometheus can hold several clusters without mixing their cost.",
+          "targets": [
+            {
+              "expr": "kubecost_cluster_info",
+              "legendFormat": "{{cluster}} ({{provider}})"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Cluster node cost (USD/hour)",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 6,
+            "w": 16,
+            "x": 8,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyUSD",
+              "min": 0
+            }
+          },
+          "description": "What the nodes cost, whether or not anything is scheduled on them. The allocation panels below can only ever account for a part of it.",
+          "targets": [
+            {
+              "expr": "sum(node_total_hourly_cost)",
+              "legendFormat": "nodes"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Compute cost by namespace (USD/hour)",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 6
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyUSD",
+              "min": 0
+            }
+          },
+          "description": "CPU cores allocated priced at the node's hourly vCPU cost, plus memory allocated priced at its hourly GiB cost. Each full cluster holds one microtodo-<environment> namespace, so a namespace is also an environment.",
+          "targets": [
+            {
+              "expr": "sum by (namespace) (container_cpu_allocation * on (node) group_left() avg by (node) (node_cpu_hourly_cost) + container_memory_allocation_bytes / 1024 / 1024 / 1024 * on (node) group_left() avg by (node) (node_ram_hourly_cost))",
+              "legendFormat": "{{namespace}}"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Compute cost by service (USD/hour)",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 6
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyUSD",
+              "min": 0
+            }
+          },
+          "description": "kube-state-metrics publishes the pod labels this repository allows, so cost joins to the service that owns the pod. Sidecars and init containers are included: they are part of what the service costs.",
+          "targets": [
+            {
+              "expr": "sum by (label_app_kubernetes_io_name) (\n  (container_cpu_allocation * on (node) group_left() avg by (node) (node_cpu_hourly_cost) + container_memory_allocation_bytes / 1024 / 1024 / 1024 * on (node) group_left() avg by (node) (node_ram_hourly_cost))\n  * on (namespace, pod) group_left(label_app_kubernetes_io_name)\n    kube_pod_labels{label_microtodosuite_io_profile=\"full\"}\n)",
+              "legendFormat": "{{label_app_kubernetes_io_name}}"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Compute cost by profile (USD/hour)",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 14
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyUSD",
+              "min": 0
+            }
+          },
+          "description": "Pods the full topology labels report as full; everything else in the cluster reports as an empty profile, which is how platform cost separates from business cost.",
+          "targets": [
+            {
+              "expr": "sum by (label_microtodosuite_io_profile) (\n  (container_cpu_allocation * on (node) group_left() avg by (node) (node_cpu_hourly_cost) + container_memory_allocation_bytes / 1024 / 1024 / 1024 * on (node) group_left() avg by (node) (node_ram_hourly_cost))\n  * on (namespace, pod) group_left(label_microtodosuite_io_profile)\n    kube_pod_labels\n)",
+              "legendFormat": "{{label_microtodosuite_io_profile}}"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Persistent volume cost by namespace (USD/hour)",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 14
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyUSD",
+              "min": 0
+            }
+          },
+          "description": "Claimed volume bytes priced at the volume's hourly cost per GiB. In the full profile this is where Prometheus, Grafana, Alertmanager, and Elasticsearch storage shows up.",
+          "targets": [
+            {
+              "expr": "sum by (namespace) (\n  pod_pvc_allocation / 1024 / 1024 / 1024\n  * on (persistentvolume) group_left() avg by (persistentvolume) (pv_hourly_cost)\n)",
+              "legendFormat": "{{namespace}}"
+            }
+          ]
+        }
+      ]
+    }

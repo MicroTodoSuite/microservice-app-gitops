@@ -15,6 +15,7 @@ resources:
 # The Elasticsearch datasource and trace-to-log correlation, shared with the
 # aws root.
 components:
+  - ../components/cost
   - ../components/elasticsearch
 
 patches:

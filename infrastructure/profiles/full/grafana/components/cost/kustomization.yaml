@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# The full-profile cost dashboard (spec 009 T144 and T147, research.md
+# Decision 24), shared by both full Grafana roots. The economical root never
+# includes this Component, and the dashboard queries series only the full
+# profile produces.
+resources:
+  - ../../../../../grafana/dashboards
+
+patches:
+  # Grafana's file provider reads one directory, and every dashboard ConfigMap
+  # is projected into it. The index is the base's own volume order, which is
+  # why both full roots include this Component before ../components/elasticsearch:
+  # that one merges two volumes ahead of the base's, and this patch would then
+  # reach a different volume. The test operation fails the render instead of
+  # projecting the dashboard somewhere else if that order ever changes again.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: grafana
+    patch: |-
+      - op: test
+        path: /spec/template/spec/volumes/2/name
+        value: dashboards
+      - op: add
+        path: /spec/template/spec/volumes/2/projected/sources/-
+        value:
+          configMap:
+            name: grafana-dashboards-full-profile-cost
