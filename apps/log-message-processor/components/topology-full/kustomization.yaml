@@ -43,6 +43,20 @@ patches:
             labelSelector:
               matchLabels:
                 app.kubernetes.io/name: log-message-processor
+  # Cost allocation (spec 009 T144, research.md Decision 24): the pods carry the
+  # profile whose cost the dashboard reports, beside the app.kubernetes.io/name
+  # they already carry. kube-state-metrics turns both into kube_pod_labels
+  # columns. The label goes on the pod template only; the selector is immutable
+  # once the Deployment exists, and the economical overlays never carry it.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: log-message-processor
+    patch: |-
+      - op: add
+        path: /spec/template/metadata/labels/microtodosuite.io~1profile
+        value: full
   # The service container reads its feature toggles beside its controlled
   # settings (spec 009 T090, research.md Decision 23).
   - target:

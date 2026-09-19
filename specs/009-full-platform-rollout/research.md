@@ -334,6 +334,26 @@ The external inventory governs every application credential and operator-supplie
 - `minAvailable: 1` with `DoNotSchedule` spread: blocks every drain of a single replica and leaves pods Pending on one node.
 - Toggles implemented in each service's code: five repositories of change with no incomplete behavior to protect.
 
+## Decision 24: Complete full-profile cost allocation in two slices
+
+**Decision**: T144 and T147 are delivered in two sequential GitOps pull requests, the first with its own failing test `tests/platform/opencost-allocation.bats` (T144), the second with a structural test for its collector (maintainer decisions).
+
+1. **Allocation sources, dimensions, and dashboard.**
+   - OpenCost's metrics reference (`docs/integrations/metrics.md`) lists node-exporter (`node_cpu_seconds_total`, `node_memory_MemTotal_bytes`, `node_filesystem_size_bytes`, `node_filesystem_free_bytes`) and kube-state-metrics (`kube_node_status_capacity`, `kube_node_status_allocatable`, `kube_pod_container_resource_requests`, `kube_pod_container_resource_limits`, `kube_persistentvolumeclaim_info`, `kube_persistentvolumeclaim_resource_requests_storage_bytes`) as "required for OpenCost to function properly", and neither runs in this repository. The full Prometheus roots add both from the same pinned kube-prometheus v0.18.0 source archive (`scripts/managed/full-profile-toolchain.lock`), by image digest, without their upstream PrometheusRules. They are not named by the evolution plan; they are what FR-033's live cost allocation requires, and the economical profile does not get them (maintainer decision).
+   - Prometheus scrapes OpenCost's own exporter on port 9003 at `/metrics` with `honorLabels: true`, as OpenCost's Prometheus integration configures it.
+   - **Cluster**: each full destination gets its own root, `infrastructure/profiles/full/opencost/destinations/eks-full-<environment>`, with `infrastructure/opencost` as its base, that sets `CLUSTER_ID` to the `physicalCluster` its registration declares (`lex-mts-fdev-eks-main`, `lex-mts-fstg-eks-main`, `lex-mts-fprd-eks-main`), the same per-destination pattern as the full Prometheus roots; the shared root keeps its chart default (maintainer decision).
+   - **Profile**: every full business pod carries `microtodosuite.io/profile: full`, added to the pod template by each service's full topology component without changing any selector, matching the label `clusters/base/apps.yaml` already puts on business Applications (maintainer decision). **Environment** and **namespace** come from the one `microtodo-<environment>` namespace each full cluster holds, and **service** from `app.kubernetes.io/name`, which every business pod already carries.
+   - `infrastructure/grafana/dashboards/full-profile-cost.yaml` holds the cost dashboard; a kustomization beside it lets the full Grafana roots include it, and project it into Grafana's dashboards volume, while the economical Grafana root does not.
+2. **Evidence collector.** `scripts/managed/verify-full-profile-cost.sh` reads cost allocation per destination, read-only, and reports PASS, FAIL, or BLOCKED through `scripts/managed/lib/verify-common.sh`, BLOCKED wherever no cluster is reachable, like `verify-full-platform.sh` (T148).
+
+**Rationale**: Without node and container resource metrics OpenCost has nothing to price, so a dashboard alone would render and never show a cost. A per-destination root is the only place a cluster's own name belongs, because the shared root runs in every cluster.
+
+**Alternatives rejected**:
+
+- Declarative pieces only: renders, but OpenCost cannot allocate cost live, which FR-033 requires.
+- `CLUSTER_ID` patched at activation in `clusters/`: that registration is another lane's (T091).
+- Deriving the profile from the cluster: correct only while every full cluster runs only the full profile, and no query could name the profile.
+
 ## Resolved Unknowns
 
 All product and architectural choices are resolved. The remaining Azure account values and stage cost ceilings are deliberately runtime facts requiring authenticated discovery or explicit human acceptance. Their absence does not authorize defaults; the stage contracts make them fail-closed implementation gates.

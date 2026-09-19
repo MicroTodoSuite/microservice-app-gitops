@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Dashboards that only one profile loads (spec 009 T144 and T147, research.md
+# Decision 24). The economical Grafana root lists the dashboards it loads file
+# by file in ../kustomization.yaml and never reaches this one, so the cost
+# dashboard can sit beside its siblings without appearing in a profile whose
+# OpenCost inputs do not run.
+#
+# This is not a deployable root: infrastructure/profiles/full/grafana/components/cost
+# is the only thing that includes it.
+resources:
+  - full-profile-cost.yaml

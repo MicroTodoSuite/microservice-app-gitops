@@ -1,0 +1,28 @@
+# Prometheus scrapes OpenCost's own exporter, which is where the allocation
+# series live (spec 009 T144 and T147, research.md Decision 24). The chart's
+# Service publishes the exporter on the port it names http, 9003, the same port
+# its probes read; the ui and mcp-server ports carry no metrics.
+#
+# honorLabels: OpenCost labels each series with the namespace, pod, and
+# container the cost belongs to. Without it Prometheus would rename all three
+# to exported_* and set namespace to opencost, so every cost in the dashboard
+# would be attributed to OpenCost itself instead of the workload it priced.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: opencost
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: microtodosuite
+spec:
+  namespaceSelector:
+    matchNames:
+      - opencost
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opencost
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 60s
+      honorLabels: true

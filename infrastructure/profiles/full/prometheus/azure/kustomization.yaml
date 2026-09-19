@@ -18,6 +18,7 @@ components:
   - ../components/alerts
   - ../components/notifications
   - ../components/keda-access
+  - ../components/cost-sources
 
 patches:
   - target:

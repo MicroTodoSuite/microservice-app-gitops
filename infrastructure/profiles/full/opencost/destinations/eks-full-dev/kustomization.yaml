@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# OpenCost for the eks-full-dev destination (spec 009 T144 and T147,
+# research.md Decision 24). The shared root is the base and keeps the chart's
+# CLUSTER_ID, because it runs in every cluster; only a destination knows which
+# cluster it is, so only a destination names it. The value is the
+# physicalCluster that clusters/eks-full-dev/registration.yaml declares, and
+# every cost series OpenCost exports carries it, which is what lets one
+# Prometheus and one dashboard allocate cost per cluster.
+resources:
+  - ../../../../../opencost
+
+patches:
+  # The test operation fails the render if the chart ever reorders its
+  # environment, rather than silently renaming a different variable.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: opencost
+    patch: |-
+      - op: test
+        path: /spec/template/spec/containers/0/env/7/name
+        value: CLUSTER_ID
+      - op: replace
+        path: /spec/template/spec/containers/0/env/7/value
+        value: lex-mts-fdev-eks-main
