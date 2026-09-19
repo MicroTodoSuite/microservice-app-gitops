@@ -150,8 +150,14 @@ for service in "${SERVICES[@]}"; do
     grep -qE "^  namespace: microtodo-$environment$" <<<"$deployment" \
       || fail "$overlay: Deployment $service must run in microtodo-$environment"
   done
-  if grep -qF 'microtodosuite.io/profile' <<<"$(render "apps/$service/profiles/economical/overlays/dev")"; then
-    fail "apps/$service/profiles/economical/overlays/dev must not carry the full profile label"
+  # A negative check has to distinguish "the label is absent" from "nothing
+  # rendered": inside a command substitution, set -e does not stop the script,
+  # so a broken overlay would otherwise read as a clean pass.
+  economical="apps/$service/profiles/economical/overlays/dev"
+  if ! economical_out="$(render "$economical")"; then
+    fail "$economical must render for its profile label to be checked"
+  elif grep -qF 'microtodosuite.io/profile' <<<"$economical_out"; then
+    fail "$economical must not carry the full profile label"
   fi
 done
 
@@ -179,10 +185,32 @@ def walk(node):
 walk(dashboard)
 PY
 )" || fail "$DASHBOARD must hold valid dashboard JSON under full-profile-cost.json"
-  for needle in kubecost_cluster_info node_total_hourly_cost container_cpu_allocation container_memory_allocation_bytes \
-                'by (namespace)' label_app_kubernetes_io_name label_microtodosuite_io_profile kube_pod_labels; do
-    grep -qF -- "$needle" <<<"$expressions" || fail "$DASHBOARD: some panel query must use $needle"
-  done
+  # One panel query has to carry a whole dimension, not just mention its parts
+  # somewhere in the dashboard. A pod label is only readable when the query
+  # joins kube_pod_labels, so asserting the two names separately would pass on
+  # a dashboard whose service panel had lost its join.
+  queries() {
+    local description="$1" expression needle matched
+    shift
+    while IFS= read -r expression; do
+      matched=1
+      for needle in "$@"; do
+        [[ "$expression" == *"$needle"* ]] || { matched=0; break; }
+      done
+      [[ "$matched" == 1 ]] && return 0
+    done <<<"$expressions"
+    fail "$DASHBOARD: no single panel query $description (needs: $*)"
+  }
+  queries "names the cluster the cost belongs to" kubecost_cluster_info
+  queries "prices the nodes" 'sum(node_total_hourly_cost)'
+  queries "allocates compute cost by namespace" \
+    'by (namespace)' container_cpu_allocation container_memory_allocation_bytes
+  queries "allocates compute cost by service" \
+    container_cpu_allocation kube_pod_labels label_app_kubernetes_io_name
+  queries "allocates compute cost by profile" \
+    container_cpu_allocation kube_pod_labels label_microtodosuite_io_profile
+  queries "allocates volume cost by namespace" \
+    'by (namespace)' pod_pvc_allocation pv_hourly_cost
 fi
 for cloud in aws azure; do
   root="infrastructure/profiles/full/grafana/$cloud"
@@ -192,7 +220,9 @@ for cloud in aws azure; do
   grep -qE '^ +name: grafana-dashboards-full-profile-cost$' <<<"$(document Deployment grafana <<<"$out")" \
     || fail "$root: Grafana must project grafana-dashboards-full-profile-cost into its dashboards volume"
 done
-if grep -qF 'grafana-dashboards-full-profile-cost' <<<"$(render infrastructure/grafana)"; then
+if ! economical_grafana="$(render infrastructure/grafana)"; then
+  fail "economical infrastructure/grafana must render for its dashboards to be checked"
+elif grep -qF 'grafana-dashboards-full-profile-cost' <<<"$economical_grafana"; then
   fail "economical infrastructure/grafana must not render the full-profile cost dashboard"
 fi
 
