@@ -16,11 +16,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 require_text() {
   local path="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
+  grep -Eq -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
 }
 reject_text() {
   local path="$1" pattern="$2" description="$3"
-  [[ ! -f "$ROOT/$path" ]] || rg -q -- "$pattern" "$ROOT/$path" &&
+  [[ ! -f "$ROOT/$path" ]] || grep -Eq -- "$pattern" "$ROOT/$path" &&
     fail "$description ($path)"
   return 0
 }
