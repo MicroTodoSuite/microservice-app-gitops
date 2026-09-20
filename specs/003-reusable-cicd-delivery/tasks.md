@@ -91,8 +91,11 @@ not new test suites.
 - [X] T019 [US2] Wire each service caller to run `release.yml` then `promote.yml` (env=dev) on merge to main, passing `ci.yml`'s `image-digest`, in each `[svc:*]/.github/workflows/` (extends T011–T015)
 - [ ] T020 [US2] [gitops] Add branch protection / ruleset so changes to `apps/*/overlays/prod/**` require approval before merge (FR-008); document in `docs/`
 
-  > **Partial delivery.** `CODEOWNERS` designates `@Juanmadiaz45`/`@EstebanGZam`/`@Tiago0507`
-  > as owners of `apps/*/overlays/prod/**`, `tests/contract/prod-overlay-approval.sh`
+  > **Partial delivery.** The task's stated path is stale (reconciliation note
+  > above, 2026-08-30): prod overlays now live under
+  > `apps/*/profiles/*/overlays/prod/**`, not `apps/*/overlays/prod/**`.
+  > `CODEOWNERS` designates `@Juanmadiaz45`/`@EstebanGZam`/`@Tiago0507`
+  > as owners of that corrected path, `tests/contract/prod-overlay-approval.sh`
   > verifies it (wired into `validate-gitops.yml`), and `docs/service-delivery.md`
   > records the design. **Still open**: enabling `require_code_owner_reviews` on
   > `main`'s live branch protection -- a repository-settings change outside this

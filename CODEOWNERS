@@ -3,4 +3,4 @@
 # branch protection rule already covers every path, but this designates
 # specific approvers for production changes rather than leaving it to
 # whichever reviewer happens to be available. See docs/service-delivery.md.
-apps/*/overlays/prod/** @Juanmadiaz45 @EstebanGZam @Tiago0507
+apps/*/profiles/*/overlays/prod/** @Juanmadiaz45 @EstebanGZam @Tiago0507

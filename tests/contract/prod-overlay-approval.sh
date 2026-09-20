@@ -2,7 +2,7 @@
 # Production promotion must require explicit human approval before it can
 # merge (FR-008). Branch protection alone only proves "some approver"; this
 # contract proves a *designated* approver is required specifically for
-# `apps/*/overlays/prod/**`, via CODEOWNERS plus "require review from code
+# `apps/*/profiles/*/overlays/prod/**`, via CODEOWNERS plus "require review from code
 # owners" -- not just the repo-wide one-approval rule that already applies to
 # every path.
 #
@@ -23,7 +23,7 @@ fail() { printf 'FAIL: %s\n' "$*" >&2; failures=$((failures + 1)); }
   exit 1
 }
 
-pattern='apps/*/overlays/prod/**'
+pattern='apps/*/profiles/*/overlays/prod/**'
 line="$(grep -F "$pattern" "$CODEOWNERS" || true)"
 
 [[ -n "$line" ]] || fail "CODEOWNERS has no entry for '$pattern'"
@@ -41,4 +41,4 @@ if [[ "$failures" -gt 0 ]]; then
   exit 1
 fi
 
-echo "PASS: CODEOWNERS requires a designated approver for apps/*/overlays/prod/**."
+echo "PASS: CODEOWNERS requires a designated approver for apps/*/profiles/*/overlays/prod/**."

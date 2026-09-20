@@ -25,12 +25,12 @@ approval; rollback is `git revert`. No CI step mutates a cluster. See
 
 The repo-wide branch protection rule (`required_approving_review_count: 1`)
 already requires an approval on every pull request, including one that only
-touches `apps/*/overlays/prod/**`. That rule alone lets any collaborator
+touches `apps/*/profiles/*/overlays/prod/**`. That rule alone lets any collaborator
 approve a production change, which is not the same as an *explicit* human
 approval for production specifically. `CODEOWNERS` designates
 `@Juanmadiaz45`, `@EstebanGZam`, and `@Tiago0507` -- the same three humans
 already required to approve production deploys on every service repo's `prod`
-GitHub Environment -- as owners of `apps/*/overlays/prod/**`, and branch
+GitHub Environment -- as owners of `apps/*/profiles/*/overlays/prod/**`, and branch
 protection on `main` has `require_code_owner_reviews` enabled. A production
 overlay pull request cannot merge without one of those three approving it,
 regardless of who else approves. `tests/contract/prod-overlay-approval.sh`
