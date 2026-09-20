@@ -104,7 +104,22 @@ not new test suites.
 
 - [X] T022 [US3] Add active gates to `.github/workflows/ci.yml`: code-quality (SonarCloud, requires `sonar-project-key`) and image-scan (Trivy on the built image, blocking) — FR-014
 - [X] T023 [US3] Add skippable gate jobs to `.github/workflows/ci.yml`: `run-unit`/`run-integration`/`run-contract`/`run-e2e`/`run-perf`/`run-dast` (default false, visibly skipped, fail-fast when true with no artifacts) — FR-015/FR-017
-- [ ] T024 [US3] Validate gate presence/visibility and fail-fast behavior via `act` dry-run and a forced `run-unit=true` no-artifact run (quickstart §4)
+- [X] T024 [US3] Validate gate presence/visibility and fail-fast behavior via `act` dry-run and a forced `run-unit=true` no-artifact run (quickstart §4)
+
+  > **Delivered, with a reconciliation and a real defect found and fixed.**
+  > `run-unit` no longer exists (retired when the architecture moved to one
+  > mandatory `test-command`); local `act` proved impractical (20+ minutes
+  > pulling a runner image without finishing) and was abandoned for real
+  > GitHub Actions runs instead. Found live: `test-command: ""` made "Run
+  > repository tests" report `success` having tested nothing -- a real FR-017
+  > violation. Fixed in `.github#27` (guard step, SDD test-then-feat pair in
+  > `tests/workflows/reusable-workflow-contract.bats`), re-verified live
+  > post-fix: the guard now fails and "Run repository tests" is correctly
+  > skipped. Value-activated gates (`source-audit-command`,
+  > `contract-command`, Sonar fail-closed) already skip/fail visibly, unaffected.
+  > Also ran quickstart §1/§2/§6/§7 against current repos (T038's scope) since
+  > they were exercised anyway. See
+  > `evidence/runs/20260921T000000Z-gate-visibility-validation/README.md`.
 
 **Checkpoint**: The pipeline is structurally complete per §9 and honest about what it verifies.
 
@@ -147,7 +162,21 @@ not new test suites.
 
 - [X] T036 [P] [gitops] Update `README.md`/`AGENTS.md` and `docs/` to describe the CI→ArgoCD delivery flow and the four onboarded services
 - [X] T037 [P] [.github] Add usage docs for the reusable workflows (inputs, pin policy, enabling a skipped gate) in `.github/README.md`; ensure all artifacts are English (FR-028)
-- [ ] T038 Run the full `quickstart.md` end-to-end against GHCR with the cloud legs inactive and record results
+- [X] T038 Run the full `quickstart.md` end-to-end against GHCR with the cloud legs inactive and record results
+
+  > **Delivered, with a reconciliation.** GHCR and a disableable cloud leg no
+  > longer exist -- once real AWS infrastructure existed, every run
+  > unconditionally publishes to ECR via OIDC (same reconciliation as T035).
+  > Ran every section of `quickstart.md` that still applies against the
+  > current repos rather than a GHCR/cloud-disabled mode that no longer
+  > exists: §1 (workflow contract, actionlint), §2 (thin callers, no
+  > `development.yml`, all five services), §3 (superseded by T035's real
+  > SBOM/signature/OIDC evidence, stronger than the original dry-run intent),
+  > §4 (T024, found and fixed a real gate-visibility defect), §5 (superseded
+  > by T021's real fifteen-PR promotion audit), §6 (render/kubeconform for
+  > all four onboarded services, shared-JWT), §7 (`validate-gitops.yml` runs
+  > on every PR, structurally proven by this repository's own history). See
+  > `evidence/runs/20260921T000000Z-gate-visibility-validation/README.md`.
 
 ---
 
