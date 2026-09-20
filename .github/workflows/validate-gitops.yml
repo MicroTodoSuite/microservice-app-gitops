@@ -219,6 +219,9 @@ jobs:
       - name: Validate full-profile cost allocation (spec 009 T144)
         run: tests/platform/opencost-allocation.bats
 
+      - name: Validate the full-profile cost evidence collector (spec 009 T147)
+        run: tests/platform/verify-full-profile-cost.bats
+
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats
 
