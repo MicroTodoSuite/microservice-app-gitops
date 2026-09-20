@@ -120,7 +120,25 @@ not new test suites.
 - [X] T026 [P] [US4] [gitops] Onboard `apps/users-api/` (port 8083, health `/actuator/health`, JWT, no runtime dep)
 - [X] T027 [P] [US4] [gitops] Onboard `apps/frontend/` (port 8080, health `/`, `AUTH_API_ADDRESS`/`TODOS_API_ADDRESS` overlay values, no secret)
 - [X] T028 [P] [US4] [gitops] Onboard `apps/log-message-processor/` (worker; Prometheus `/metrics` on `PORT` as intrinsic health, Redis dep, no inbound API) — FR-026
-- [ ] T029 [US4] [gitops] Wire shared-JWT ESO in the `local` overlays of auth-api/todos-api/users-api so all three consume the same generated value (research D13) — depends on T025, T026
+- [X] T029 [US4] [gitops] Wire shared-JWT ESO in the `local` overlays of auth-api/todos-api/users-api so all three consume the same generated value (research D13) — depends on T025, T026
+
+  > **Already implemented at the base-manifest layer; this closes the missing
+  > overlay-level test and doc coverage the 2026-08-30 reconciliation flagged.**
+  > `auth-api`'s `overlays/local` is the only one with an ESO `Password`
+  > generator + `ExternalSecret` (`auth-api-secrets`/`JWT_SECRET`); `todos-api`
+  > and `users-api`'s base `Deployment` already read that exact Secret by name
+  > (a same-namespace reference needs no `ExternalSecret` of its own), and
+  > `scripts/pilot/publish-services.sh` already publishes `auth-api` first so
+  > the Secret exists before its consumers start. New:
+  > `tests/contract/shared-jwt-local.sh` (wired into `validate-gitops.yml`)
+  > guards both halves -- the shared source exists, and neither consumer
+  > silently provisions its own -- and `docs/service-delivery.md`'s "Shared
+  > JWT secret" section is rewritten from "tracked follow-up" to the resolved
+  > design. **Flagged, not fixed (out of scope here)**: `tests/contract/service-onboarding.sh`
+  > is broken on `main` (`apps/todos-api/topology/kustomization.yaml` no
+  > longer exists; the tree moved to `profiles/economical|full/`) and is wired
+  > into no CI workflow, so nothing catches it. It predates this task and
+  > needs its own owner.
 - [X] T030 [US4] [gitops] Document the shared local Redis dependency handling (kept out of `apps/<svc>`, environment/platform-owned) in `docs/` (research D14)
 - [X] T031 [US4] [gitops] Validate: `kustomize build | kubeconform` for every new overlay, confirm managed overlays inactive and digest-only active overlays (quickstart §6)
 
