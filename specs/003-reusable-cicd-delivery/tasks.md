@@ -137,7 +137,20 @@ not new test suites.
 - [X] T032 [US5] Wire the `sbom` and `sign` composite actions into `.github/workflows/ci.yml`'s active path (subject = image digest) — FR-019
 - [X] T033 [US5] Add gated cloud legs to `.github/workflows/ci.yml`: OIDC-to-AWS (`aws-actions/configure-aws-credentials`, `id-token: write`) + ECR push, behind `cloud-enabled` (default false) — research D4/FR-020/FR-021
 - [X] T034 [US5] [gitops] Confirm the GHCR→ECR switch is value-only: `newName` in overlays + `registry`/`cloud-enabled` workflow inputs, no structural edits (SC-009)
-- [ ] T035 [US5] Validate: SBOM + signature produced for the digest, zero static credentials, cloud leg skipped when `cloud-enabled=false` (quickstart §3)
+- [X] T035 [US5] Validate: SBOM + signature produced for the digest, zero static credentials, cloud leg skipped when `cloud-enabled=false` (quickstart §3)
+
+  > **Delivered, with a reconciliation.** `cloud-enabled` no longer exists as
+  > an input on `.github/workflows/ci.yml` -- once real AWS infrastructure
+  > existed, the optional-cloud-leg design was retired and every run
+  > unconditionally publishes to ECR via OIDC, so there is no disabled leg
+  > left to prove is skipped. Audited a real push-to-main run
+  > (`microservice-app-auth-api` run 34875097673, job 104080217231,
+  > 2026-09-14): Syft SBOM produced and uploaded, two Sigstore transparency-log
+  > entries confirm a keyless Cosign signature and SBOM attestation, signature
+  > pushed to the real ECR, and the only AWS credential is an
+  > OIDC `role-to-assume` (short-lived STS, GitHub-masked, never a stored
+  > key -- `ci.yml` references no `secrets.AWS_*` anywhere). See
+  > `evidence/runs/20260920T233500Z-sbom-signature-validation/README.md`.
 
 **Checkpoint**: Supply-chain evidence is emitted and cloud-ready; activation awaits tasks 1/2 by value change only.
 

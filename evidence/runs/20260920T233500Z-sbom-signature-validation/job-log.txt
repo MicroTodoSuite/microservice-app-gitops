@@ -1,0 +1,2066 @@
+﻿2026-09-14T17:29:54.8429988Z Current runner version: '2.337.0'
+2026-09-14T17:29:54.8456480Z ##[group]Runner Image Provisioner
+2026-09-14T17:29:54.8457370Z Hosted Compute Agent
+2026-09-14T17:29:54.8458096Z Version: 20260828.587
+2026-09-14T17:29:54.8458791Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-14T17:29:54.8459621Z Build Date: 2026-08-28T16:44:25Z
+2026-09-14T17:29:54.8460310Z Worker ID: {c7d6dff7-454e-4543-b22b-4aeea0bcee5c}
+2026-09-14T17:29:54.8461025Z Azure Region: westus2
+2026-09-14T17:29:54.8461670Z ##[endgroup]
+2026-09-14T17:29:54.8463124Z ##[group]Operating System
+2026-09-14T17:29:54.8463862Z Ubuntu
+2026-09-14T17:29:54.8464637Z 24.04.5
+2026-09-14T17:29:54.8465159Z LTS
+2026-09-14T17:29:54.8465748Z ##[endgroup]
+2026-09-14T17:29:54.8466352Z ##[group]Runner Image
+2026-09-14T17:29:54.8467026Z Image: ubuntu-24.04
+2026-09-14T17:29:54.8467656Z Version: 20260907.300.1
+2026-09-14T17:29:54.8468964Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-14T17:29:54.8470528Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-14T17:29:54.8471564Z ##[endgroup]
+2026-09-14T17:29:54.8472661Z ##[group]GITHUB_TOKEN Permissions
+2026-09-14T17:29:54.8474935Z Contents: read
+2026-09-14T17:29:54.8475619Z Metadata: read
+2026-09-14T17:29:54.8476222Z ##[endgroup]
+2026-09-14T17:29:54.8478399Z Secret source: Actions
+2026-09-14T17:29:54.8479368Z Cache mode: write
+2026-09-14T17:29:54.8480148Z Prepare workflow directory
+2026-09-14T17:29:54.9095476Z Prepare all required actions
+2026-09-14T17:29:54.9146464Z Getting action download info
+2026-09-14T17:29:55.3665545Z Download action repository 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-14T17:29:55.4707235Z Download action repository 'actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff' (SHA:40f1582b2485089dde7abd97c1529aa768e1baff)
+2026-09-14T17:29:55.7154955Z Download action repository 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-09-14T17:29:55.8110859Z Download action repository 'actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3' (SHA:cf277c60eb25467037889841efdb72551f06f6c3)
+2026-09-14T17:29:56.1155403Z Download action repository 'actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-09-14T17:29:56.1960839Z Download action repository 'SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402' (SHA:689fb39b34b9aa95ebc5f8f119343ddd51542402)
+2026-09-14T17:29:56.3485501Z Download action repository 'docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f' (SHA:8d2750c68a42422c14e847fe6c8ac0403b4cbd6f)
+2026-09-14T17:29:56.6355916Z Download action repository 'docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8' (SHA:10e90e3645eae34f1e60eeb005ba3a3d33f178e8)
+2026-09-14T17:29:56.8910024Z Download action repository 'aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1' (SHA:57a97c7e7821a5776cebc9bb87c984fa69cba8f1)
+2026-09-14T17:29:57.2539879Z Download action repository 'anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610' (SHA:e22c389904149dbc22b58101806040fa8d37a610)
+2026-09-14T17:29:57.4586024Z Download action repository 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-09-14T17:29:57.5790580Z Download action repository 'aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708' (SHA:61815dcd50bd041e203e49132bacad1fd04d2708)
+2026-09-14T17:29:57.8140501Z Download action repository 'aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64' (SHA:d539f0932e70871a027e9d5a9d8fc38589180a64)
+2026-09-14T17:29:57.9999675Z Download action repository 'sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac' (SHA:398d4b0eeef1380460a10c8013a76f728fb906ac)
+2026-09-14T17:29:58.2705593Z Getting action download info
+2026-09-14T17:29:58.4198400Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+2026-09-14T17:29:58.6272155Z Getting action download info
+2026-09-14T17:29:58.8020676Z Download action repository 'aquasecurity/setup-trivy@e6c2c5e321ed9123bda567646e2f96565e34abe1' (SHA:e6c2c5e321ed9123bda567646e2f96565e34abe1)
+2026-09-14T17:29:58.9526026Z Download action repository 'actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809' (SHA:0400d5f644dc74513175e3cd8d07132dd4860809)
+2026-09-14T17:29:59.1456945Z Getting action download info
+2026-09-14T17:29:59.2988954Z Download action repository 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' (SHA:08c6903cd8c0fde910a37f88322edcfb5dd907a8)
+2026-09-14T17:29:59.4359593Z Uses: MicroTodoSuite/.github/.github/workflows/ci.yml@d0da1aefcc8affcd07087d6e0c2c6391b270001d
+2026-09-14T17:29:59.4363898Z ##[group] Inputs
+2026-09-14T17:29:59.4364396Z   service-name: auth-api
+2026-09-14T17:29:59.4364647Z   language: go
+2026-09-14T17:29:59.4364886Z   dockerfile: Dockerfile
+2026-09-14T17:29:59.4365154Z   test-command: go test ./...
+2026-09-14T17:29:59.4365457Z   source-audit-command: go mod verify && go vet ./...
+2026-09-14T17:29:59.4366031Z   contract-command: npx --yes @stoplight/spectral-cli@6 lint contracts/openapi.yaml --ruleset .spectral.yaml
+2026-09-14T17:29:59.4366707Z   ecr-repository: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+2026-09-14T17:29:59.4367298Z   publisher-role-arn: arn:aws:iam::575172595729:role/microtodosuite-github-ecr-publisher
+2026-09-14T17:29:59.4367741Z   aws-region: us-east-1
+2026-09-14T17:29:59.4367997Z   sonar-project-key: MicroTodoSuite_auth-api
+2026-09-14T17:29:59.4368313Z   sonar-host-url: 
+2026-09-14T17:29:59.4368972Z   sonar-required: false
+2026-09-14T17:29:59.4369215Z ##[endgroup]
+2026-09-14T17:29:59.4369430Z Complete job name: ci / supply-chain
+2026-09-14T17:29:59.4983913Z ##[group]Run set -euo pipefail
+2026-09-14T17:29:59.4984732Z set -euo pipefail
+2026-09-14T17:29:59.4985026Z [[ "$AWS_ACCOUNT_ID" =~ ^[0-9]{12}$ ]] || {
+2026-09-14T17:29:59.4985545Z   echo "::error::organization variable AWS_ACCOUNT_ID must be the 12-digit AWS account"
+2026-09-14T17:29:59.4985997Z   exit 1
+2026-09-14T17:29:59.4986194Z }
+2026-09-14T17:29:59.4986392Z case "$SERVICE_NAME" in
+2026-09-14T17:29:59.4986757Z   auth-api|todos-api|users-api|frontend|log-message-processor) ;;
+2026-09-14T17:29:59.4987257Z   *) echo "::error::unsupported service-name: $SERVICE_NAME"; exit 1 ;;
+2026-09-14T17:29:59.4987622Z esac
+2026-09-14T17:29:59.4988039Z expected="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION_INPUT}.amazonaws.com/microtodosuite/${SERVICE_NAME}"
+2026-09-14T17:29:59.4988568Z [[ "$ECR_REPOSITORY" == "$expected" ]] || {
+2026-09-14T17:29:59.4989065Z   echo "::error::ecr-repository must be the exact neutral repository $expected"
+2026-09-14T17:29:59.4989489Z   exit 1
+2026-09-14T17:29:59.4989691Z }
+2026-09-14T17:29:59.5028670Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:29:59.5029275Z env:
+2026-09-14T17:29:59.5029784Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:29:59.5030361Z   SERVICE_NAME: auth-api
+2026-09-14T17:29:59.5030760Z   ECR_REPOSITORY: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+2026-09-14T17:29:59.5031194Z   AWS_REGION_INPUT: us-east-1
+2026-09-14T17:29:59.5031445Z   AWS_ACCOUNT_ID: 575172595729
+2026-09-14T17:29:59.5031737Z ##[endgroup]
+2026-09-14T17:29:59.5616214Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:29:59.5622796Z ##[group]Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+2026-09-14T17:29:59.5623405Z with:
+2026-09-14T17:29:59.5623681Z   repository: MicroTodoSuite/microservice-app-auth-api
+2026-09-14T17:29:59.5626856Z   token: ***
+2026-09-14T17:29:59.5627082Z   ssh-strict: true
+2026-09-14T17:29:59.5627294Z   ssh-user: git
+2026-09-14T17:29:59.5627638Z   persist-credentials: true
+2026-09-14T17:29:59.5627876Z   clean: true
+2026-09-14T17:29:59.5628092Z   sparse-checkout-cone-mode: true
+2026-09-14T17:29:59.5628478Z   fetch-depth: 1
+2026-09-14T17:29:59.5628690Z   fetch-tags: false
+2026-09-14T17:29:59.5628908Z   show-progress: true
+2026-09-14T17:29:59.5629155Z   lfs: false
+2026-09-14T17:29:59.5629346Z   submodules: false
+2026-09-14T17:29:59.5629555Z   set-safe-directory: true
+2026-09-14T17:29:59.5629801Z   allow-unsafe-pr-checkout: false
+2026-09-14T17:29:59.5630044Z env:
+2026-09-14T17:29:59.5630527Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:29:59.5631083Z ##[endgroup]
+2026-09-14T17:29:59.6642547Z Syncing repository: MicroTodoSuite/microservice-app-auth-api
+2026-09-14T17:29:59.6644345Z ##[group]Getting Git version info
+2026-09-14T17:29:59.6644938Z Working directory is '/home/runner/work/microservice-app-auth-api/microservice-app-auth-api'
+2026-09-14T17:29:59.6645648Z [command]/usr/bin/git version
+2026-09-14T17:29:59.6752898Z git version 2.55.0
+2026-09-14T17:29:59.6781668Z ##[endgroup]
+2026-09-14T17:29:59.6802588Z Temporarily overriding HOME='/home/runner/work/_temp/f09854b5-6d5b-4442-9793-8465ad49f2ef' before making global git config changes
+2026-09-14T17:29:59.6803831Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T17:29:59.6809968Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/microservice-app-auth-api/microservice-app-auth-api
+2026-09-14T17:29:59.6864680Z Deleting the contents of '/home/runner/work/microservice-app-auth-api/microservice-app-auth-api'
+2026-09-14T17:29:59.6869394Z ##[group]Initializing the repository
+2026-09-14T17:29:59.6875529Z [command]/usr/bin/git init /home/runner/work/microservice-app-auth-api/microservice-app-auth-api
+2026-09-14T17:29:59.6993666Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-14T17:29:59.6996836Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-14T17:29:59.6997838Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-14T17:29:59.6998366Z hint: call:
+2026-09-14T17:29:59.6998628Z hint:
+2026-09-14T17:29:59.6999151Z hint: 	git config --global init.defaultBranch <name>
+2026-09-14T17:29:59.6999729Z hint:
+2026-09-14T17:29:59.7000073Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-14T17:29:59.7000829Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-14T17:29:59.7001605Z hint:
+2026-09-14T17:29:59.7001946Z hint: 	git branch -m <name>
+2026-09-14T17:29:59.7002195Z hint:
+2026-09-14T17:29:59.7002559Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-14T17:29:59.7003855Z Initialized empty Git repository in /home/runner/work/microservice-app-auth-api/microservice-app-auth-api/.git/
+2026-09-14T17:29:59.7035261Z [command]/usr/bin/git remote add origin https://github.com/MicroTodoSuite/microservice-app-auth-api
+2026-09-14T17:29:59.7065174Z ##[endgroup]
+2026-09-14T17:29:59.7065880Z ##[group]Disabling automatic garbage collection
+2026-09-14T17:29:59.7084806Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-14T17:29:59.7126555Z ##[endgroup]
+2026-09-14T17:29:59.7127531Z ##[group]Setting up auth
+2026-09-14T17:29:59.7134658Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T17:29:59.7172179Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T17:29:59.7561413Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T17:29:59.7601492Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T17:29:59.7832675Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T17:29:59.7869933Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T17:29:59.8115939Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-14T17:29:59.8157186Z ##[endgroup]
+2026-09-14T17:29:59.8157715Z ##[group]Fetching the repository
+2026-09-14T17:29:59.8172597Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0:refs/remotes/origin/main
+2026-09-14T17:30:00.1940268Z From https://github.com/MicroTodoSuite/microservice-app-auth-api
+2026-09-14T17:30:00.1941443Z  * [new ref]         52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0 -> origin/main
+2026-09-14T17:30:00.1945749Z ##[endgroup]
+2026-09-14T17:30:00.1946534Z ##[group]Determining the checkout info
+2026-09-14T17:30:00.1949286Z ##[endgroup]
+2026-09-14T17:30:00.1955943Z [command]/usr/bin/git sparse-checkout disable
+2026-09-14T17:30:00.2012252Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-14T17:30:00.2057277Z ##[group]Checking out the ref
+2026-09-14T17:30:00.2061693Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-14T17:30:00.2196355Z Switched to a new branch 'main'
+2026-09-14T17:30:00.2201034Z branch 'main' set up to track 'origin/main'.
+2026-09-14T17:30:00.2207597Z ##[endgroup]
+2026-09-14T17:30:00.2258294Z [command]/usr/bin/git log -1 --format=%H
+2026-09-14T17:30:00.2289382Z 52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:00.2489339Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:30:00.2491385Z ##[group]Run actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+2026-09-14T17:30:00.2491760Z with:
+2026-09-14T17:30:00.2491953Z   go-version: 1.26.6
+2026-09-14T17:30:00.2492172Z   check-latest: false
+2026-09-14T17:30:00.2495106Z   token: ***
+2026-09-14T17:30:00.2495322Z   cache: true
+2026-09-14T17:30:00.2495519Z env:
+2026-09-14T17:30:00.2496009Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:00.2496574Z ##[endgroup]
+2026-09-14T17:30:00.4010377Z Setup go version spec 1.26.6
+2026-09-14T17:30:00.4022109Z Attempting to download 1.26.6...
+2026-09-14T17:30:00.4139411Z (node:2263) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:30:00.4140633Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:30:01.1557799Z matching 1.26.6...
+2026-09-14T17:30:01.1595091Z Acquiring 1.26.6 from https://github.com/actions/go-versions/releases/download/1.26.6-31764261251/go-1.26.6-linux-x64.tar.gz
+2026-09-14T17:30:01.7022492Z Extracting Go...
+2026-09-14T17:30:01.7165172Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/db4c5edd-e6dc-4b3a-a537-7b8328d69128 -f /home/runner/work/_temp/41087fd4-0e0d-4ca0-966d-42185adb0145
+2026-09-14T17:30:03.3635585Z Successfully extracted go to /home/runner/work/_temp/db4c5edd-e6dc-4b3a-a537-7b8328d69128
+2026-09-14T17:30:03.3636598Z Adding to the cache ...
+2026-09-14T17:30:10.3589683Z Successfully cached go to /opt/hostedtoolcache/go/1.26.6/x64
+2026-09-14T17:30:10.3591524Z Added go to the path
+2026-09-14T17:30:10.3592286Z Successfully set up Go version 1.26.6
+2026-09-14T17:30:10.3846085Z [command]/opt/hostedtoolcache/go/1.26.6/x64/bin/go env GOMODCACHE
+2026-09-14T17:30:10.3915753Z [command]/opt/hostedtoolcache/go/1.26.6/x64/bin/go env GOCACHE
+2026-09-14T17:30:10.3952626Z /home/runner/go/pkg/mod
+2026-09-14T17:30:10.3968651Z /home/runner/.cache/go-build
+2026-09-14T17:30:10.6698529Z Cache hit for: setup-go-Linux-x64-ubuntu24-go-1.26.6-b59f35301c8aa2be18df0853da83948c3a764079bbb0dd876804373a3088b518
+2026-09-14T17:30:10.6803162Z (node:2263) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T17:30:11.9676300Z Received 0 of 102503312 (0.0%), 0.0 MBs/sec
+2026-09-14T17:30:12.9682572Z Received 98309008 of 102503312 (95.9%), 46.8 MBs/sec
+2026-09-14T17:30:13.0088916Z Received 102503312 of 102503312 (100.0%), 47.9 MBs/sec
+2026-09-14T17:30:13.0089887Z Cache Size: ~98 MB (102503312 B)
+2026-09-14T17:30:13.0129766Z [command]/usr/bin/tar -xf /home/runner/work/_temp/092f19f4-9100-4c28-9a1e-2c07ba4849ef/cache.tzst -P -C /home/runner/work/microservice-app-auth-api/microservice-app-auth-api --use-compress-program unzstd
+2026-09-14T17:30:14.0757384Z Cache restored successfully
+2026-09-14T17:30:14.0813813Z Cache restored from key: setup-go-Linux-x64-ubuntu24-go-1.26.6-b59f35301c8aa2be18df0853da83948c3a764079bbb0dd876804373a3088b518
+2026-09-14T17:30:14.0835879Z go version go1.26.6 linux/amd64
+2026-09-14T17:30:14.0836225Z 
+2026-09-14T17:30:14.0836675Z ##[group]go env
+2026-09-14T17:30:14.0998820Z AR='ar'
+2026-09-14T17:30:14.0999490Z CC='gcc'
+2026-09-14T17:30:14.1000022Z CGO_CFLAGS='-O2 -g'
+2026-09-14T17:30:14.1000566Z CGO_CPPFLAGS=''
+2026-09-14T17:30:14.1001132Z CGO_CXXFLAGS='-O2 -g'
+2026-09-14T17:30:14.1001703Z CGO_ENABLED='1'
+2026-09-14T17:30:14.1002259Z CGO_FFLAGS='-O2 -g'
+2026-09-14T17:30:14.1002774Z CGO_LDFLAGS='-O2 -g'
+2026-09-14T17:30:14.1003631Z CXX='g++'
+2026-09-14T17:30:14.1004392Z GCCGO='gccgo'
+2026-09-14T17:30:14.1004906Z GO111MODULE=''
+2026-09-14T17:30:14.1005400Z GOAMD64='v1'
+2026-09-14T17:30:14.1005898Z GOARCH='amd64'
+2026-09-14T17:30:14.1006386Z GOAUTH='netrc'
+2026-09-14T17:30:14.1006863Z GOBIN=''
+2026-09-14T17:30:14.1007389Z GOCACHE='/home/runner/.cache/go-build'
+2026-09-14T17:30:14.1008012Z GOCACHEPROG=''
+2026-09-14T17:30:14.1008514Z GODEBUG=''
+2026-09-14T17:30:14.1009068Z GOENV='/home/runner/.config/go/env'
+2026-09-14T17:30:14.1009661Z GOEXE=''
+2026-09-14T17:30:14.1010153Z GOEXPERIMENT=''
+2026-09-14T17:30:14.1010661Z GOFIPS140='off'
+2026-09-14T17:30:14.1011144Z GOFLAGS=''
+2026-09-14T17:30:14.1012425Z GOGCCFLAGS='-fPIC -m64 -pthread -Wl,--no-gc-sections -fmessage-length=0 -ffile-prefix-map=/tmp/go-build550926715=/tmp/go-build -gno-record-gcc-switches'
+2026-09-14T17:30:14.1013839Z GOHOSTARCH='amd64'
+2026-09-14T17:30:14.1014623Z GOHOSTOS='linux'
+2026-09-14T17:30:14.1015162Z GOINSECURE=''
+2026-09-14T17:30:14.1016036Z GOMOD='/home/runner/work/microservice-app-auth-api/microservice-app-auth-api/go.mod'
+2026-09-14T17:30:14.1017014Z GOMODCACHE='/home/runner/go/pkg/mod'
+2026-09-14T17:30:14.1017620Z GONOPROXY=''
+2026-09-14T17:30:14.1018111Z GONOSUMDB=''
+2026-09-14T17:30:14.1018590Z GOOS='linux'
+2026-09-14T17:30:14.1019123Z GOPATH='/home/runner/go'
+2026-09-14T17:30:14.1019694Z GOPRIVATE=''
+2026-09-14T17:30:14.1020351Z GOPROXY='https://proxy.golang.org,direct'
+2026-09-14T17:30:14.1021093Z GOROOT='/opt/hostedtoolcache/go/1.26.6/x64'
+2026-09-14T17:30:14.1021763Z GOSUMDB='sum.golang.org'
+2026-09-14T17:30:14.1022308Z GOTELEMETRY='local'
+2026-09-14T17:30:14.1022954Z GOTELEMETRYDIR='/home/runner/.config/go/telemetry'
+2026-09-14T17:30:14.1023689Z GOTMPDIR=''
+2026-09-14T17:30:14.1024488Z GOTOOLCHAIN='auto'
+2026-09-14T17:30:14.1025289Z GOTOOLDIR='/opt/hostedtoolcache/go/1.26.6/x64/pkg/tool/linux_amd64'
+2026-09-14T17:30:14.1026212Z GOVCS=''
+2026-09-14T17:30:14.1026774Z GOVERSION='go1.26.6'
+2026-09-14T17:30:14.1027369Z GOWORK=''
+2026-09-14T17:30:14.1028245Z PKG_CONFIG='pkg-config'
+2026-09-14T17:30:14.1028735Z 
+2026-09-14T17:30:14.1029450Z ##[endgroup]
+2026-09-14T17:30:14.1291941Z ##[group]Run go mod verify && go vet ./...
+2026-09-14T17:30:14.1292329Z go mod verify && go vet ./...
+2026-09-14T17:30:14.1330535Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:30:14.1330902Z env:
+2026-09-14T17:30:14.1331416Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:14.1331995Z ##[endgroup]
+2026-09-14T17:30:14.7385205Z all modules verified
+2026-09-14T17:30:15.0452911Z ##[group]Run go test ./...
+2026-09-14T17:30:15.0453263Z go test ./...
+2026-09-14T17:30:15.0537141Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:30:15.0537716Z env:
+2026-09-14T17:30:15.0538664Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:15.0539856Z ##[endgroup]
+2026-09-14T17:30:16.0992241Z ok  	github.com/MicroTodoSuite/microservice-app-auth-api	0.394s
+2026-09-14T17:30:16.1216863Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:30:16.1218260Z ##[group]Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+2026-09-14T17:30:16.1218651Z with:
+2026-09-14T17:30:16.1218857Z   node-version: 24
+2026-09-14T17:30:16.1219075Z   always-auth: false
+2026-09-14T17:30:16.1219295Z   check-latest: false
+2026-09-14T17:30:16.1221816Z   token: ***
+2026-09-14T17:30:16.1222011Z env:
+2026-09-14T17:30:16.1222519Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:16.1223076Z ##[endgroup]
+2026-09-14T17:30:16.2730042Z Found in cache @ /opt/hostedtoolcache/node/24.20.0/x64
+2026-09-14T17:30:16.2732779Z (node:2448) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:30:16.2734316Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:30:16.2735853Z ##[group]Environment details
+2026-09-14T17:30:18.6821135Z node: v24.20.0
+2026-09-14T17:30:18.6821609Z npm: 11.19.0
+2026-09-14T17:30:18.6822006Z yarn: 1.22.22
+2026-09-14T17:30:18.6822655Z ##[endgroup]
+2026-09-14T17:30:18.6935809Z ##[group]Run npx --yes @stoplight/spectral-cli@6 lint contracts/openapi.yaml --ruleset .spectral.yaml
+2026-09-14T17:30:18.6936573Z npx --yes @stoplight/spectral-cli@6 lint contracts/openapi.yaml --ruleset .spectral.yaml
+2026-09-14T17:30:18.7022752Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:30:18.7023111Z env:
+2026-09-14T17:30:18.7023637Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:18.7024532Z ##[endgroup]
+2026-09-14T17:30:24.9683481Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-09-14T17:30:25.1316222Z npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+2026-09-14T17:30:25.2925764Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-09-14T17:30:28.1024521Z No results with a severity of 'error' found!
+2026-09-14T17:30:28.2025469Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:30:28.2027081Z ##[group]Run docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+2026-09-14T17:30:28.2027499Z with:
+2026-09-14T17:30:28.2027705Z   driver: docker-container
+2026-09-14T17:30:28.2027936Z   use: true
+2026-09-14T17:30:28.2028128Z   keep-state: false
+2026-09-14T17:30:28.2028340Z   cache-binary: true
+2026-09-14T17:30:28.2028550Z   cleanup: true
+2026-09-14T17:30:28.2028748Z   install: false
+2026-09-14T17:30:28.2028939Z env:
+2026-09-14T17:30:28.2029466Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:28.2030043Z ##[endgroup]
+2026-09-14T17:30:28.4668390Z (node:2548) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:30:28.4670306Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:30:28.4729674Z ##[group]Docker info
+2026-09-14T17:30:28.4770983Z [command]/usr/bin/docker version
+2026-09-14T17:30:28.5718769Z Client: Docker Engine - Community
+2026-09-14T17:30:28.5725257Z  Version:           28.0.4
+2026-09-14T17:30:28.5726003Z  API version:       1.48
+2026-09-14T17:30:28.5726766Z  Go version:        go1.23.7
+2026-09-14T17:30:28.5727694Z  Git commit:        b8034c0
+2026-09-14T17:30:28.5728540Z  Built:             Tue Mar 25 15:07:16 2025
+2026-09-14T17:30:28.5729306Z  OS/Arch:           linux/amd64
+2026-09-14T17:30:28.5729863Z  Context:           default
+2026-09-14T17:30:28.5730286Z 
+2026-09-14T17:30:28.5730645Z Server: Docker Engine - Community
+2026-09-14T17:30:28.5731217Z  Engine:
+2026-09-14T17:30:28.5731813Z   Version:          28.0.4
+2026-09-14T17:30:28.5732548Z   API version:      1.48 (minimum version 1.24)
+2026-09-14T17:30:28.5733418Z   Go version:       go1.23.7
+2026-09-14T17:30:28.5734638Z   Git commit:       6430e49
+2026-09-14T17:30:28.5735357Z   Built:            Tue Mar 25 15:07:16 2025
+2026-09-14T17:30:28.5736236Z   OS/Arch:          linux/amd64
+2026-09-14T17:30:28.5736929Z   Experimental:     false
+2026-09-14T17:30:28.5737647Z  containerd:
+2026-09-14T17:30:28.5828199Z   Version:          v2.3.4
+2026-09-14T17:30:28.5829111Z   GitCommit:        db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T17:30:28.5829725Z  runc:
+2026-09-14T17:30:28.5830131Z   Version:          1.5.1
+2026-09-14T17:30:28.5830688Z   GitCommit:        v1.5.1-0-g8f2685a4
+2026-09-14T17:30:28.5831197Z  docker-init:
+2026-09-14T17:30:28.5831719Z   Version:          0.19.0
+2026-09-14T17:30:28.5832200Z   GitCommit:        de40ad0
+2026-09-14T17:30:28.5833069Z [command]/usr/bin/docker info
+2026-09-14T17:30:28.9283183Z Client: Docker Engine - Community
+2026-09-14T17:30:28.9284329Z  Version:    28.0.4
+2026-09-14T17:30:28.9284839Z  Context:    default
+2026-09-14T17:30:28.9285217Z  Debug Mode: false
+2026-09-14T17:30:28.9285483Z  Plugins:
+2026-09-14T17:30:28.9285772Z   buildx: Docker Buildx (Docker Inc.)
+2026-09-14T17:30:28.9286282Z     Version:  v0.37.0
+2026-09-14T17:30:28.9286720Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-09-14T17:30:28.9287164Z   compose: Docker Compose (Docker Inc.)
+2026-09-14T17:30:28.9287632Z     Version:  v2.38.2
+2026-09-14T17:30:28.9288043Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-09-14T17:30:28.9288296Z 
+2026-09-14T17:30:28.9288467Z Server:
+2026-09-14T17:30:28.9288764Z  Containers: 0
+2026-09-14T17:30:28.9288993Z   Running: 0
+2026-09-14T17:30:28.9289212Z   Paused: 0
+2026-09-14T17:30:28.9289421Z   Stopped: 0
+2026-09-14T17:30:28.9289734Z  Images: 6
+2026-09-14T17:30:28.9290015Z  Server Version: 28.0.4
+2026-09-14T17:30:28.9290276Z  Storage Driver: overlay2
+2026-09-14T17:30:28.9290546Z   Backing Filesystem: extfs
+2026-09-14T17:30:28.9291296Z   Supports d_type: true
+2026-09-14T17:30:28.9291610Z   Using metacopy: false
+2026-09-14T17:30:28.9292144Z   Native Overlay Diff: false
+2026-09-14T17:30:28.9292495Z   userxattr: false
+2026-09-14T17:30:28.9292749Z  Logging Driver: json-file
+2026-09-14T17:30:28.9293016Z  Cgroup Driver: systemd
+2026-09-14T17:30:28.9293388Z  Cgroup Version: 2
+2026-09-14T17:30:28.9293650Z  Plugins:
+2026-09-14T17:30:28.9293872Z   Volume: local
+2026-09-14T17:30:28.9294674Z   Network: bridge host ipvlan macvlan null overlay
+2026-09-14T17:30:28.9295288Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-09-14T17:30:28.9295712Z  Swarm: inactive
+2026-09-14T17:30:28.9296081Z  Runtimes: io.containerd.runc.v2 runc
+2026-09-14T17:30:28.9296479Z  Default Runtime: runc
+2026-09-14T17:30:28.9296740Z  Init Binary: docker-init
+2026-09-14T17:30:28.9297123Z  containerd version: db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T17:30:28.9297542Z  runc version: v1.5.1-0-g8f2685a4
+2026-09-14T17:30:28.9297848Z  init version: de40ad0
+2026-09-14T17:30:28.9298095Z  Security Options:
+2026-09-14T17:30:28.9298442Z   apparmor
+2026-09-14T17:30:28.9298714Z   seccomp
+2026-09-14T17:30:28.9298941Z    Profile: builtin
+2026-09-14T17:30:28.9299168Z   cgroupns
+2026-09-14T17:30:28.9299431Z  Kernel Version: 6.17.0-1022-azure
+2026-09-14T17:30:28.9299757Z  Operating System: Ubuntu 24.04.5 LTS
+2026-09-14T17:30:28.9300043Z  OSType: linux
+2026-09-14T17:30:28.9300274Z  Architecture: x86_64
+2026-09-14T17:30:28.9300501Z  CPUs: 4
+2026-09-14T17:30:28.9300717Z  Total Memory: 15.61GiB
+2026-09-14T17:30:28.9300970Z  Name: runnervmlun5p
+2026-09-14T17:30:28.9301256Z  ID: a4efb8b6-20f9-46f4-b827-91ac0547be3a
+2026-09-14T17:30:28.9301596Z  Docker Root Dir: /var/lib/docker
+2026-09-14T17:30:28.9301865Z  Debug Mode: false
+2026-09-14T17:30:28.9302107Z  Username: githubactions
+2026-09-14T17:30:28.9302529Z  Experimental: false
+2026-09-14T17:30:28.9302782Z  Insecure Registries:
+2026-09-14T17:30:28.9303041Z   ::1/128
+2026-09-14T17:30:28.9303258Z   127.0.0.0/8
+2026-09-14T17:30:28.9303493Z  Live Restore Enabled: false
+2026-09-14T17:30:28.9303664Z 
+2026-09-14T17:30:28.9321103Z ##[endgroup]
+2026-09-14T17:30:29.0681664Z ##[group]Buildx version
+2026-09-14T17:30:29.0715230Z [command]/usr/bin/docker buildx version
+2026-09-14T17:30:29.1299612Z github.com/docker/buildx v0.37.0 ac30b249211430b85fb8f37b6e7154b5c47ba0b6
+2026-09-14T17:30:29.1334615Z ##[endgroup]
+2026-09-14T17:30:29.1502658Z ##[group]Inspecting default docker context
+2026-09-14T17:30:29.1647463Z [
+2026-09-14T17:30:29.1647735Z   {
+2026-09-14T17:30:29.1648000Z     "Name": "default",
+2026-09-14T17:30:29.1648318Z     "Metadata": {},
+2026-09-14T17:30:29.1648576Z     "Endpoints": {
+2026-09-14T17:30:29.1648848Z       "docker": {
+2026-09-14T17:30:29.1649243Z         "Host": "unix:///var/run/docker.sock",
+2026-09-14T17:30:29.1649684Z         "SkipTLSVerify": false
+2026-09-14T17:30:29.1650054Z       }
+2026-09-14T17:30:29.1650386Z     },
+2026-09-14T17:30:29.1650636Z     "TLSMaterial": {},
+2026-09-14T17:30:29.1650947Z     "Storage": {
+2026-09-14T17:30:29.1651260Z       "MetadataPath": "<IN MEMORY>",
+2026-09-14T17:30:29.1651824Z       "TLSPath": "<IN MEMORY>"
+2026-09-14T17:30:29.1652083Z     }
+2026-09-14T17:30:29.1652294Z   }
+2026-09-14T17:30:29.1652529Z ]
+2026-09-14T17:30:29.1653061Z ##[endgroup]
+2026-09-14T17:30:29.1653449Z ##[group]Creating a new builder instance
+2026-09-14T17:30:29.3040363Z [command]/usr/bin/docker buildx create --name builder-b34f2e04-7a14-432a-a861-b15aa5be2598 --driver docker-container --buildkitd-flags --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host --use
+2026-09-14T17:30:29.4574867Z builder-b34f2e04-7a14-432a-a861-b15aa5be2598
+2026-09-14T17:30:29.4610911Z ##[endgroup]
+2026-09-14T17:30:29.4611541Z ##[group]Booting builder
+2026-09-14T17:30:29.4644365Z [command]/usr/bin/docker buildx inspect --bootstrap --builder builder-b34f2e04-7a14-432a-a861-b15aa5be2598
+2026-09-14T17:30:29.5170483Z #1 [internal] booting buildkit
+2026-09-14T17:30:29.6676446Z #1 pulling image moby/buildkit:buildx-stable-1
+2026-09-14T17:30:34.5236757Z #1 pulling image moby/buildkit:buildx-stable-1 5.0s done
+2026-09-14T17:30:34.6755842Z #1 creating container buildx_buildkit_builder-b34f2e04-7a14-432a-a861-b15aa5be25980
+2026-09-14T17:30:34.8020574Z #1 creating container buildx_buildkit_builder-b34f2e04-7a14-432a-a861-b15aa5be25980 0.3s done
+2026-09-14T17:30:34.8401903Z #1 DONE 5.3s
+2026-09-14T17:30:34.8772112Z Name:          builder-b34f2e04-7a14-432a-a861-b15aa5be2598
+2026-09-14T17:30:34.8773242Z Driver:        docker-container
+2026-09-14T17:30:34.8777818Z Last Activity: 2026-09-14 17:30:29 +0000 UTC
+2026-09-14T17:30:34.8778255Z 
+2026-09-14T17:30:34.8778546Z Nodes:
+2026-09-14T17:30:34.8779398Z Name:                  builder-b34f2e04-7a14-432a-a861-b15aa5be25980
+2026-09-14T17:30:34.8780226Z Endpoint:              unix:///var/run/docker.sock
+2026-09-14T17:30:34.8780844Z Status:                running
+2026-09-14T17:30:34.8782064Z BuildKit daemon flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
+2026-09-14T17:30:34.8783111Z BuildKit version:      v0.32.2
+2026-09-14T17:30:34.8783898Z Platforms:             linux/amd64, linux/amd64/v2, linux/amd64/v3, linux/386
+2026-09-14T17:30:34.8784789Z Labels:
+2026-09-14T17:30:34.8785361Z  org.mobyproject.buildkit.worker.executor:         oci
+2026-09-14T17:30:34.8786228Z  org.mobyproject.buildkit.worker.hostname:         fe0ceafa7afc
+2026-09-14T17:30:34.8787062Z  org.mobyproject.buildkit.worker.network:          host
+2026-09-14T17:30:34.8787889Z  org.mobyproject.buildkit.worker.oci.process-mode: sandbox
+2026-09-14T17:30:34.8788748Z  org.mobyproject.buildkit.worker.selinux.enabled:  false
+2026-09-14T17:30:34.8789582Z  org.mobyproject.buildkit.worker.snapshotter:      overlayfs
+2026-09-14T17:30:34.8790221Z GC Policy rule#0:
+2026-09-14T17:30:34.8790604Z  All:            false
+2026-09-14T17:30:34.8791374Z  Filters:        type==source.local type==exec.cachemount type==source.git.checkout
+2026-09-14T17:30:34.8792107Z  Keep Duration:  48h0m0s
+2026-09-14T17:30:34.8792523Z  Max Used Space: 488.3MiB
+2026-09-14T17:30:34.8792981Z GC Policy rule#1:
+2026-09-14T17:30:34.8793365Z  All:            false
+2026-09-14T17:30:34.8793754Z  Keep Duration:  1440h0m0s
+2026-09-14T17:30:34.8794373Z  Reserved Space: 9.313GiB
+2026-09-14T17:30:34.8794785Z  Max Used Space: 93.13GiB
+2026-09-14T17:30:34.8795192Z  Min Free Space: 27.01GiB
+2026-09-14T17:30:34.8795619Z GC Policy rule#2:
+2026-09-14T17:30:34.8795995Z  All:            false
+2026-09-14T17:30:34.8796407Z  Reserved Space: 9.313GiB
+2026-09-14T17:30:34.8796821Z  Max Used Space: 93.13GiB
+2026-09-14T17:30:34.8797232Z  Min Free Space: 27.01GiB
+2026-09-14T17:30:34.8797641Z GC Policy rule#3:
+2026-09-14T17:30:34.8798064Z  All:            true
+2026-09-14T17:30:34.8798454Z  Reserved Space: 9.313GiB
+2026-09-14T17:30:34.8798907Z  Max Used Space: 93.13GiB
+2026-09-14T17:30:34.8799312Z  Min Free Space: 27.01GiB
+2026-09-14T17:30:34.8822922Z ##[endgroup]
+2026-09-14T17:30:34.9849817Z ##[group]Inspect builder
+2026-09-14T17:30:34.9852020Z {
+2026-09-14T17:30:34.9853098Z   "nodes": [
+2026-09-14T17:30:34.9853685Z     {
+2026-09-14T17:30:34.9854944Z       "name": "builder-b34f2e04-7a14-432a-a861-b15aa5be25980",
+2026-09-14T17:30:34.9856709Z       "endpoint": "unix:///var/run/docker.sock",
+2026-09-14T17:30:34.9858148Z       "status": "running",
+2026-09-14T17:30:34.9859558Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-09-14T17:30:34.9860333Z       "buildkit": "v0.32.2",
+2026-09-14T17:30:34.9860852Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-09-14T17:30:34.9861266Z       "features": {
+2026-09-14T17:30:34.9861786Z         "Automatically load images to the Docker Engine image store": true,
+2026-09-14T17:30:34.9862258Z         "Cache export": true,
+2026-09-14T17:30:34.9862578Z         "Direct push": true,
+2026-09-14T17:30:34.9862944Z         "Docker exporter": true,
+2026-09-14T17:30:34.9863579Z         "Multi-platform build": true,
+2026-09-14T17:30:34.9864269Z         "OCI exporter": true
+2026-09-14T17:30:34.9864713Z       },
+2026-09-14T17:30:34.9865191Z       "labels": {
+2026-09-14T17:30:34.9865641Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-09-14T17:30:34.9866324Z         "org.mobyproject.buildkit.worker.hostname": "fe0ceafa7afc",
+2026-09-14T17:30:34.9866958Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-09-14T17:30:34.9867585Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-09-14T17:30:34.9868219Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-09-14T17:30:34.9869075Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-09-14T17:30:34.9869502Z       },
+2026-09-14T17:30:34.9869767Z       "gcPolicy": [
+2026-09-14T17:30:34.9870025Z         {
+2026-09-14T17:30:34.9870288Z           "all": false,
+2026-09-14T17:30:34.9870575Z           "filter": [
+2026-09-14T17:30:34.9871212Z             "type==source.local type==exec.cachemount type==source.git.checkout"
+2026-09-14T17:30:34.9871665Z           ],
+2026-09-14T17:30:34.9872002Z           "keepDuration": "48h0m0s",
+2026-09-14T17:30:34.9872420Z           "maxUsedSpace": "488.3MiB"
+2026-09-14T17:30:34.9872733Z         },
+2026-09-14T17:30:34.9872954Z         {
+2026-09-14T17:30:34.9873193Z           "all": false,
+2026-09-14T17:30:34.9873528Z           "keepDuration": "1440h0m0s",
+2026-09-14T17:30:34.9873922Z           "reservedSpace": "9.313GiB",
+2026-09-14T17:30:34.9875030Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T17:30:34.9875830Z           "minFreeSpace": "27.01GiB"
+2026-09-14T17:30:34.9876350Z         },
+2026-09-14T17:30:34.9876717Z         {
+2026-09-14T17:30:34.9877189Z           "all": false,
+2026-09-14T17:30:34.9877884Z           "reservedSpace": "9.313GiB",
+2026-09-14T17:30:34.9878610Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T17:30:34.9879030Z           "minFreeSpace": "27.01GiB"
+2026-09-14T17:30:34.9879359Z         },
+2026-09-14T17:30:34.9879593Z         {
+2026-09-14T17:30:34.9879856Z           "all": true,
+2026-09-14T17:30:34.9880226Z           "reservedSpace": "9.313GiB",
+2026-09-14T17:30:34.9880655Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T17:30:34.9881058Z           "minFreeSpace": "27.01GiB"
+2026-09-14T17:30:34.9881347Z         }
+2026-09-14T17:30:34.9881559Z       ]
+2026-09-14T17:30:34.9881757Z     }
+2026-09-14T17:30:34.9881938Z   ],
+2026-09-14T17:30:34.9882304Z   "name": "builder-b34f2e04-7a14-432a-a861-b15aa5be2598",
+2026-09-14T17:30:34.9882763Z   "driver": "docker-container",
+2026-09-14T17:30:34.9883153Z   "lastActivity": "2026-09-14T17:30:29.000Z"
+2026-09-14T17:30:34.9883486Z }
+2026-09-14T17:30:34.9884331Z ##[endgroup]
+2026-09-14T17:30:34.9884848Z ##[group]BuildKit version
+2026-09-14T17:30:34.9885283Z builder-b34f2e04-7a14-432a-a861-b15aa5be25980: v0.32.2
+2026-09-14T17:30:34.9885776Z ##[endgroup]
+2026-09-14T17:30:35.0036570Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:30:35.0038023Z ##[group]Run docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+2026-09-14T17:30:35.0038426Z with:
+2026-09-14T17:30:35.0038618Z   context: .
+2026-09-14T17:30:35.0038819Z   file: Dockerfile
+2026-09-14T17:30:35.0039019Z   load: true
+2026-09-14T17:30:35.0039485Z   tags: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:35.0040024Z   provenance: false
+2026-09-14T17:30:35.0040250Z   no-cache: false
+2026-09-14T17:30:35.0040452Z   pull: false
+2026-09-14T17:30:35.0040640Z   push: false
+2026-09-14T17:30:35.0043157Z   github-token: ***
+2026-09-14T17:30:35.0043398Z env:
+2026-09-14T17:30:35.0043873Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:30:35.0044778Z ##[endgroup]
+2026-09-14T17:30:35.2482264Z (node:3030) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:30:35.2483435Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:30:35.2502048Z ##[group]GitHub Actions runtime token ACs
+2026-09-14T17:30:35.2512171Z refs/heads/main: read/write
+2026-09-14T17:30:35.2513247Z ##[endgroup]
+2026-09-14T17:30:35.2513643Z ##[group]Docker info
+2026-09-14T17:30:35.2562020Z [command]/usr/bin/docker version
+2026-09-14T17:30:35.2782092Z Client: Docker Engine - Community
+2026-09-14T17:30:35.2800605Z  Version:           28.0.4
+2026-09-14T17:30:35.2801857Z  API version:       1.48
+2026-09-14T17:30:35.2803188Z  Go version:        go1.23.7
+2026-09-14T17:30:35.2805016Z  Git commit:        b8034c0
+2026-09-14T17:30:35.2806648Z  Built:             Tue Mar 25 15:07:16 2025
+2026-09-14T17:30:35.2808044Z  OS/Arch:           linux/amd64
+2026-09-14T17:30:35.2808683Z  Context:           default
+2026-09-14T17:30:35.2809077Z 
+2026-09-14T17:30:35.2809490Z Server: Docker Engine - Community
+2026-09-14T17:30:35.2810244Z  Engine:
+2026-09-14T17:30:35.2810749Z   Version:          28.0.4
+2026-09-14T17:30:35.2811446Z   API version:      1.48 (minimum version 1.24)
+2026-09-14T17:30:35.2812542Z   Go version:       go1.23.7
+2026-09-14T17:30:35.2813162Z   Git commit:       6430e49
+2026-09-14T17:30:35.2813846Z   Built:            Tue Mar 25 15:07:16 2025
+2026-09-14T17:30:35.2814749Z   OS/Arch:          linux/amd64
+2026-09-14T17:30:35.2815349Z   Experimental:     false
+2026-09-14T17:30:35.2815899Z  containerd:
+2026-09-14T17:30:35.2816440Z   Version:          v2.3.4
+2026-09-14T17:30:35.2817210Z   GitCommit:        db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T17:30:35.2817902Z  runc:
+2026-09-14T17:30:35.2818415Z   Version:          1.5.1
+2026-09-14T17:30:35.2819057Z   GitCommit:        v1.5.1-0-g8f2685a4
+2026-09-14T17:30:35.2819656Z  docker-init:
+2026-09-14T17:30:35.2820183Z   Version:          0.19.0
+2026-09-14T17:30:35.2820759Z   GitCommit:        de40ad0
+2026-09-14T17:30:35.2845805Z [command]/usr/bin/docker info
+2026-09-14T17:30:35.3557844Z Client: Docker Engine - Community
+2026-09-14T17:30:35.3571521Z  Version:    28.0.4
+2026-09-14T17:30:35.3572152Z  Context:    default
+2026-09-14T17:30:35.3572766Z  Debug Mode: false
+2026-09-14T17:30:35.3573318Z  Plugins:
+2026-09-14T17:30:35.3574328Z   buildx: Docker Buildx (Docker Inc.)
+2026-09-14T17:30:35.3575380Z     Version:  v0.37.0
+2026-09-14T17:30:35.3576369Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-09-14T17:30:35.3577121Z   compose: Docker Compose (Docker Inc.)
+2026-09-14T17:30:35.3577675Z     Version:  v2.38.2
+2026-09-14T17:30:35.3578376Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-09-14T17:30:35.3578826Z 
+2026-09-14T17:30:35.3579452Z Server:
+2026-09-14T17:30:35.3579907Z  Containers: 1
+2026-09-14T17:30:35.3580263Z   Running: 1
+2026-09-14T17:30:35.3580598Z   Paused: 0
+2026-09-14T17:30:35.3580987Z   Stopped: 0
+2026-09-14T17:30:35.3581383Z  Images: 7
+2026-09-14T17:30:35.3581766Z  Server Version: 28.0.4
+2026-09-14T17:30:35.3582236Z  Storage Driver: overlay2
+2026-09-14T17:30:35.3582757Z   Backing Filesystem: extfs
+2026-09-14T17:30:35.3583232Z   Supports d_type: true
+2026-09-14T17:30:35.3583673Z   Using metacopy: false
+2026-09-14T17:30:35.3584531Z   Native Overlay Diff: false
+2026-09-14T17:30:35.3584996Z   userxattr: false
+2026-09-14T17:30:35.3585408Z  Logging Driver: json-file
+2026-09-14T17:30:35.3585876Z  Cgroup Driver: systemd
+2026-09-14T17:30:35.3596206Z  Cgroup Version: 2
+2026-09-14T17:30:35.3601253Z  Plugins:
+2026-09-14T17:30:35.3601928Z   Volume: local
+2026-09-14T17:30:35.3602962Z   Network: bridge host ipvlan macvlan null overlay
+2026-09-14T17:30:35.3604365Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-09-14T17:30:35.3605248Z  Swarm: inactive
+2026-09-14T17:30:35.3605823Z  Runtimes: io.containerd.runc.v2 runc
+2026-09-14T17:30:35.3606453Z  Default Runtime: runc
+2026-09-14T17:30:35.3606915Z  Init Binary: docker-init
+2026-09-14T17:30:35.3607666Z  containerd version: db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T17:30:35.3608850Z  runc version: v1.5.1-0-g8f2685a4
+2026-09-14T17:30:35.3609361Z  init version: de40ad0
+2026-09-14T17:30:35.3609774Z  Security Options:
+2026-09-14T17:30:35.3610150Z   apparmor
+2026-09-14T17:30:35.3610482Z   seccomp
+2026-09-14T17:30:35.3610886Z    Profile: builtin
+2026-09-14T17:30:35.3611456Z   cgroupns
+2026-09-14T17:30:35.3612133Z  Kernel Version: 6.17.0-1022-azure
+2026-09-14T17:30:35.3612934Z  Operating System: Ubuntu 24.04.5 LTS
+2026-09-14T17:30:35.3613656Z  OSType: linux
+2026-09-14T17:30:35.3614640Z  Architecture: x86_64
+2026-09-14T17:30:35.3615222Z  CPUs: 4
+2026-09-14T17:30:35.3615855Z  Total Memory: 15.61GiB
+2026-09-14T17:30:35.3616486Z  Name: runnervmlun5p
+2026-09-14T17:30:35.3617262Z  ID: a4efb8b6-20f9-46f4-b827-91ac0547be3a
+2026-09-14T17:30:35.3618112Z  Docker Root Dir: /var/lib/docker
+2026-09-14T17:30:35.3618837Z  Debug Mode: false
+2026-09-14T17:30:35.3619501Z  Username: githubactions
+2026-09-14T17:30:35.3620197Z  Experimental: false
+2026-09-14T17:30:35.3620880Z  Insecure Registries:
+2026-09-14T17:30:35.3621598Z   ::1/128
+2026-09-14T17:30:35.3622188Z   127.0.0.0/8
+2026-09-14T17:30:35.3622581Z  Live Restore Enabled: false
+2026-09-14T17:30:35.3622851Z 
+2026-09-14T17:30:35.3623314Z ##[endgroup]
+2026-09-14T17:30:35.3623891Z ##[group]Proxy configuration
+2026-09-14T17:30:35.3624970Z No proxy configuration found
+2026-09-14T17:30:35.3625601Z ##[endgroup]
+2026-09-14T17:30:35.4196706Z ##[group]Buildx version
+2026-09-14T17:30:35.4229419Z [command]/usr/bin/docker buildx version
+2026-09-14T17:30:35.4744834Z github.com/docker/buildx v0.37.0 ac30b249211430b85fb8f37b6e7154b5c47ba0b6
+2026-09-14T17:30:35.4776914Z ##[endgroup]
+2026-09-14T17:30:35.4777518Z ##[group]Builder info
+2026-09-14T17:30:35.5706025Z {
+2026-09-14T17:30:35.5706600Z   "nodes": [
+2026-09-14T17:30:35.5706990Z     {
+2026-09-14T17:30:35.5707805Z       "name": "builder-b34f2e04-7a14-432a-a861-b15aa5be25980",
+2026-09-14T17:30:35.5708755Z       "endpoint": "unix:///var/run/docker.sock",
+2026-09-14T17:30:35.5709446Z       "status": "running",
+2026-09-14T17:30:35.5710926Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-09-14T17:30:35.5712097Z       "buildkit": "v0.32.2",
+2026-09-14T17:30:35.5713093Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-09-14T17:30:35.5713851Z       "features": {
+2026-09-14T17:30:35.5715372Z         "Automatically load images to the Docker Engine image store": true,
+2026-09-14T17:30:35.5716295Z         "Cache export": true,
+2026-09-14T17:30:35.5716895Z         "Direct push": true,
+2026-09-14T17:30:35.5717523Z         "Docker exporter": true,
+2026-09-14T17:30:35.5718585Z         "Multi-platform build": true,
+2026-09-14T17:30:35.5719254Z         "OCI exporter": true
+2026-09-14T17:30:35.5719694Z       },
+2026-09-14T17:30:35.5720093Z       "labels": {
+2026-09-14T17:30:35.5720886Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-09-14T17:30:35.5722096Z         "org.mobyproject.buildkit.worker.hostname": "fe0ceafa7afc",
+2026-09-14T17:30:35.5723292Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-09-14T17:30:35.5724859Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-09-14T17:30:35.5726177Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-09-14T17:30:35.5727396Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-09-14T17:30:35.5728086Z       },
+2026-09-14T17:30:35.5728587Z       "gcPolicy": [
+2026-09-14T17:30:35.5729042Z         {
+2026-09-14T17:30:35.5729515Z           "all": false,
+2026-09-14T17:30:35.5730080Z           "filter": [
+2026-09-14T17:30:35.5731215Z             "type==source.local type==exec.cachemount type==source.git.checkout"
+2026-09-14T17:30:35.5731984Z           ],
+2026-09-14T17:30:35.5732635Z           "keepDuration": "48h0m0s",
+2026-09-14T17:30:35.5733384Z           "maxUsedSpace": "488.3MiB"
+2026-09-14T17:30:35.5733930Z         },
+2026-09-14T17:30:35.5734902Z         {
+2026-09-14T17:30:35.5735368Z           "all": false,
+2026-09-14T17:30:35.5736185Z           "keepDuration": "1440h0m0s",
+2026-09-14T17:30:35.5736947Z           "reservedSpace": "9.313GiB",
+2026-09-14T17:30:35.5737775Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T17:30:35.5738495Z           "minFreeSpace": "27.01GiB"
+2026-09-14T17:30:35.5739013Z         },
+2026-09-14T17:30:35.5739386Z         {
+2026-09-14T17:30:35.5739900Z           "all": false,
+2026-09-14T17:30:35.5740596Z           "reservedSpace": "9.313GiB",
+2026-09-14T17:30:35.5741380Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T17:30:35.5742215Z           "minFreeSpace": "27.01GiB"
+2026-09-14T17:30:35.5742745Z         },
+2026-09-14T17:30:35.5743119Z         {
+2026-09-14T17:30:35.5743570Z           "all": true,
+2026-09-14T17:30:35.5744561Z           "reservedSpace": "9.313GiB",
+2026-09-14T17:30:35.5745342Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T17:30:35.5746128Z           "minFreeSpace": "27.01GiB"
+2026-09-14T17:30:35.5746666Z         }
+2026-09-14T17:30:35.5747020Z       ]
+2026-09-14T17:30:35.5747363Z     }
+2026-09-14T17:30:35.5747709Z   ],
+2026-09-14T17:30:35.5748388Z   "name": "builder-b34f2e04-7a14-432a-a861-b15aa5be2598",
+2026-09-14T17:30:35.5749122Z   "driver": "docker-container",
+2026-09-14T17:30:35.5767701Z   "lastActivity": "2026-09-14T17:30:29.000Z"
+2026-09-14T17:30:35.5768371Z }
+2026-09-14T17:30:35.5769158Z ##[endgroup]
+2026-09-14T17:30:35.6420839Z [command]/usr/bin/docker buildx build --file Dockerfile --iidfile /home/runner/work/_temp/docker-actions-toolkit-pVLLzM/build-iidfile-74184ad8b7.txt --attest type=provenance,disabled=true --tag 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0 --load --metadata-file /home/runner/work/_temp/docker-actions-toolkit-pVLLzM/build-metadata-0025b20bd6.json .
+2026-09-14T17:30:35.9658438Z #0 building with "builder-b34f2e04-7a14-432a-a861-b15aa5be2598" instance using docker-container driver
+2026-09-14T17:30:35.9659018Z 
+2026-09-14T17:30:35.9659319Z #1 [internal] load build definition from Dockerfile
+2026-09-14T17:30:35.9659821Z #1 transferring dockerfile: 915B 0.0s done
+2026-09-14T17:30:35.9660177Z #1 DONE 0.0s
+2026-09-14T17:30:35.9660330Z 
+2026-09-14T17:30:35.9661148Z #2 [internal] load metadata for docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:36.2158339Z #2 ...
+2026-09-14T17:30:36.2158635Z 
+2026-09-14T17:30:36.2158973Z #3 [auth] library/golang:pull token for registry-1.docker.io
+2026-09-14T17:30:36.2159388Z #3 DONE 0.0s
+2026-09-14T17:30:36.3655182Z 
+2026-09-14T17:30:36.3656885Z #4 [internal] load metadata for gcr.io/distroless/static-debian13:nonroot@sha256:f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6
+2026-09-14T17:30:36.6337144Z #4 DONE 0.8s
+2026-09-14T17:30:36.6337352Z 
+2026-09-14T17:30:36.6338055Z #2 [internal] load metadata for docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:36.7845204Z #2 DONE 1.0s
+2026-09-14T17:30:36.9475154Z 
+2026-09-14T17:30:36.9476191Z #5 [internal] load .dockerignore
+2026-09-14T17:30:36.9476910Z #5 transferring context: 109B done
+2026-09-14T17:30:36.9477328Z #5 DONE 0.0s
+2026-09-14T17:30:36.9477695Z 
+2026-09-14T17:30:36.9478198Z #6 [internal] load build context
+2026-09-14T17:30:36.9478749Z #6 transferring context: 74.39kB done
+2026-09-14T17:30:36.9479047Z #6 DONE 0.0s
+2026-09-14T17:30:36.9479171Z 
+2026-09-14T17:30:36.9480104Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:36.9481745Z #7 resolve docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36 done
+2026-09-14T17:30:36.9483027Z #7 sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B 0.1s done
+2026-09-14T17:30:37.0797050Z #7 sha256:5bf265a321f31d8032e3b21ea032da3829f60e895453d911645033edcec66ca4 127B / 127B 0.2s done
+2026-09-14T17:30:37.0799102Z #7 sha256:fa55d8c7975bdc26e118c1a6e8ee122aea1e654a365c1d6f7b48658c58be2e18 0B / 67.31MB 0.2s
+2026-09-14T17:30:37.0800312Z #7 sha256:eda79b460c8309c49ad90e19787497da55b5795bd84f92f5f4a4a4fd9dbb6bf4 0B / 92.55MB 0.2s
+2026-09-14T17:30:37.2306090Z #7 sha256:c5a4625b533197abb25ea2a32be06c59c984d97c3c2dc9952e0b76f2e81ee0d2 0B / 64.41MB 0.2s
+2026-09-14T17:30:37.2307617Z #7 sha256:6b02178232c403d8a6d5b460ad955daba177c38e178ed7dd417e5c4d748e948d 0B / 24.04MB 0.2s
+2026-09-14T17:30:37.3950325Z #7 sha256:fa55d8c7975bdc26e118c1a6e8ee122aea1e654a365c1d6f7b48658c58be2e18 12.58MB / 67.31MB 0.5s
+2026-09-14T17:30:37.3954372Z #7 sha256:eda79b460c8309c49ad90e19787497da55b5795bd84f92f5f4a4a4fd9dbb6bf4 6.29MB / 92.55MB 0.5s
+2026-09-14T17:30:37.3956665Z #7 sha256:c5a4625b533197abb25ea2a32be06c59c984d97c3c2dc9952e0b76f2e81ee0d2 10.49MB / 64.41MB 0.3s
+2026-09-14T17:30:37.3959566Z #7 sha256:6b02178232c403d8a6d5b460ad955daba177c38e178ed7dd417e5c4d748e948d 24.04MB / 24.04MB 0.3s done
+2026-09-14T17:30:37.5429297Z #7 sha256:fa55d8c7975bdc26e118c1a6e8ee122aea1e654a365c1d6f7b48658c58be2e18 67.31MB / 67.31MB 0.7s done
+2026-09-14T17:30:37.5437287Z #7 sha256:eda79b460c8309c49ad90e19787497da55b5795bd84f92f5f4a4a4fd9dbb6bf4 47.19MB / 92.55MB 0.6s
+2026-09-14T17:30:37.5438916Z #7 sha256:c5a4625b533197abb25ea2a32be06c59c984d97c3c2dc9952e0b76f2e81ee0d2 64.41MB / 64.41MB 0.5s done
+2026-09-14T17:30:37.5440474Z #7 sha256:3af9207d37990175f61d5ce9faa0c7373ffcd2d6da1b6ba0a9ca9d61f8f47cc9 18.87MB / 48.50MB 0.2s
+2026-09-14T17:30:37.6943128Z #7 sha256:eda79b460c8309c49ad90e19787497da55b5795bd84f92f5f4a4a4fd9dbb6bf4 92.55MB / 92.55MB 0.8s
+2026-09-14T17:30:37.6946866Z #7 sha256:3af9207d37990175f61d5ce9faa0c7373ffcd2d6da1b6ba0a9ca9d61f8f47cc9 48.50MB / 48.50MB 0.3s done
+2026-09-14T17:30:37.6948226Z #7 extracting sha256:3af9207d37990175f61d5ce9faa0c7373ffcd2d6da1b6ba0a9ca9d61f8f47cc9
+2026-09-14T17:30:37.8253196Z #7 sha256:eda79b460c8309c49ad90e19787497da55b5795bd84f92f5f4a4a4fd9dbb6bf4 92.55MB / 92.55MB 0.9s done
+2026-09-14T17:30:37.9325044Z #7 ...
+2026-09-14T17:30:37.9325360Z 
+2026-09-14T17:30:37.9326712Z #8 [stage-1 1/3] FROM gcr.io/distroless/static-debian13:nonroot@sha256:f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6
+2026-09-14T17:30:37.9329287Z #8 resolve gcr.io/distroless/static-debian13:nonroot@sha256:f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6 done
+2026-09-14T17:30:37.9331212Z #8 sha256:bdfd7f7e5bf6fc27e70b59101db21c3d8284d283884419dd5fe7020583bb79ca 136.99kB / 136.99kB 0.4s done
+2026-09-14T17:30:37.9332801Z #8 sha256:ebddc55facdc6b1f7e0f30816a5fc7cc62f38abdf76c0a8b0a0ce52085754795 311B / 311B 0.2s done
+2026-09-14T17:30:37.9334796Z #8 sha256:b839dfae01f66e15c6a8b63520557ed315bdfe036342fa7a0c537259f10d7a9a 351B / 351B 0.2s done
+2026-09-14T17:30:37.9336261Z #8 sha256:dd64bf2dd177757451a98fcdc999a339c35dee5d9872d8f4dc69c8f3c4dd0112 80B / 80B 0.2s done
+2026-09-14T17:30:37.9337717Z #8 sha256:52630fc75a18675c530ed9eba5f55eca09b03e91bd5bc15307918bbc1a7e7296 162B / 162B 0.2s done
+2026-09-14T17:30:37.9339179Z #8 sha256:3214acf345c0cc6bbdb56b698a41ccdefc624a09d6beb0d38b5de0b2303ecaf4 123B / 123B 0.2s done
+2026-09-14T17:30:37.9340635Z #8 sha256:7c12895b777bcaa8ccae0605b4de635b68fc32d60fa08f421dc3818bf55ee212 188B / 188B 0.2s done
+2026-09-14T17:30:37.9342051Z #8 sha256:2780920e5dbfbe103d03a583ed75345306e572ec5a48cb10361f046767d9f29a 67B / 67B 0.2s done
+2026-09-14T17:30:37.9343531Z #8 sha256:99ba982a9142213c751a1709dcf088e63d8601f03b3f211bae037be698fef270 254.45kB / 254.45kB 0.3s done
+2026-09-14T17:30:37.9345286Z #8 sha256:d6b1b89eccacc15c2420b2776d72c1dae334a00805ed9af54bf2f71e4d536f28 32.09kB / 32.09kB 0.3s done
+2026-09-14T17:30:37.9346676Z #8 sha256:99515e7b4d35e0652d3b0fde571b6ec269222ecacc506f026e1758d6261e9109 288.54kB / 288.54kB 0.5s done
+2026-09-14T17:30:37.9347554Z #8 sha256:c172f21841dff4c8cf45cde46589c1c2616cefe7e819965e92e6d3475c428aa0 12.68kB / 12.68kB 0.4s done
+2026-09-14T17:30:37.9348929Z #8 sha256:1eed391ea893e6015bf4ce4ed366909975d2acdbe907670919236a8d18ea6b07 85.86kB / 85.86kB 0.3s done
+2026-09-14T17:30:37.9350662Z #8 extracting sha256:1eed391ea893e6015bf4ce4ed366909975d2acdbe907670919236a8d18ea6b07 0.0s done
+2026-09-14T17:30:37.9352079Z #8 extracting sha256:c172f21841dff4c8cf45cde46589c1c2616cefe7e819965e92e6d3475c428aa0 done
+2026-09-14T17:30:37.9353464Z #8 extracting sha256:99515e7b4d35e0652d3b0fde571b6ec269222ecacc506f026e1758d6261e9109 0.1s done
+2026-09-14T17:30:37.9354606Z #8 DONE 1.1s
+2026-09-14T17:30:38.0366120Z 
+2026-09-14T17:30:38.0371435Z #8 [stage-1 1/3] FROM gcr.io/distroless/static-debian13:nonroot@sha256:f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6
+2026-09-14T17:30:38.0373076Z #8 extracting sha256:99ba982a9142213c751a1709dcf088e63d8601f03b3f211bae037be698fef270 0.1s done
+2026-09-14T17:30:38.0373764Z #8 DONE 1.2s
+2026-09-14T17:30:38.0373908Z 
+2026-09-14T17:30:38.0375152Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:38.1589354Z #7 ...
+2026-09-14T17:30:38.1589924Z 
+2026-09-14T17:30:38.1590963Z #8 [stage-1 1/3] FROM gcr.io/distroless/static-debian13:nonroot@sha256:f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6
+2026-09-14T17:30:38.1592126Z #8 extracting sha256:d6b1b89eccacc15c2420b2776d72c1dae334a00805ed9af54bf2f71e4d536f28 done
+2026-09-14T17:30:38.1593046Z #8 extracting sha256:2780920e5dbfbe103d03a583ed75345306e572ec5a48cb10361f046767d9f29a done
+2026-09-14T17:30:38.1593906Z #8 extracting sha256:7c12895b777bcaa8ccae0605b4de635b68fc32d60fa08f421dc3818bf55ee212 done
+2026-09-14T17:30:38.1595055Z #8 extracting sha256:3214acf345c0cc6bbdb56b698a41ccdefc624a09d6beb0d38b5de0b2303ecaf4 done
+2026-09-14T17:30:38.1595851Z #8 extracting sha256:52630fc75a18675c530ed9eba5f55eca09b03e91bd5bc15307918bbc1a7e7296 done
+2026-09-14T17:30:38.1596880Z #8 extracting sha256:dd64bf2dd177757451a98fcdc999a339c35dee5d9872d8f4dc69c8f3c4dd0112 done
+2026-09-14T17:30:38.1597808Z #8 extracting sha256:b839dfae01f66e15c6a8b63520557ed315bdfe036342fa7a0c537259f10d7a9a done
+2026-09-14T17:30:38.1598708Z #8 extracting sha256:ebddc55facdc6b1f7e0f30816a5fc7cc62f38abdf76c0a8b0a0ce52085754795 done
+2026-09-14T17:30:38.1599495Z #8 extracting sha256:bdfd7f7e5bf6fc27e70b59101db21c3d8284d283884419dd5fe7020583bb79ca 0.0s done
+2026-09-14T17:30:38.1600141Z #8 DONE 1.3s
+2026-09-14T17:30:38.1600273Z 
+2026-09-14T17:30:38.1600407Z #9 [stage-1 2/3] WORKDIR /app
+2026-09-14T17:30:38.1601183Z #9 DONE 0.1s
+2026-09-14T17:30:38.3095450Z 
+2026-09-14T17:30:38.3096843Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:38.8079789Z #7 extracting sha256:3af9207d37990175f61d5ce9faa0c7373ffcd2d6da1b6ba0a9ca9d61f8f47cc9 1.2s done
+2026-09-14T17:30:38.8081333Z #7 DONE 2.0s
+2026-09-14T17:30:38.9594808Z 
+2026-09-14T17:30:38.9596326Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:38.9599861Z #7 extracting sha256:6b02178232c403d8a6d5b460ad955daba177c38e178ed7dd417e5c4d748e948d
+2026-09-14T17:30:39.1921956Z #7 extracting sha256:6b02178232c403d8a6d5b460ad955daba177c38e178ed7dd417e5c4d748e948d 0.4s done
+2026-09-14T17:30:39.1923030Z #7 DONE 2.4s
+2026-09-14T17:30:39.3428439Z 
+2026-09-14T17:30:39.3429875Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:39.3431065Z #7 extracting sha256:c5a4625b533197abb25ea2a32be06c59c984d97c3c2dc9952e0b76f2e81ee0d2
+2026-09-14T17:30:40.6221942Z #7 extracting sha256:c5a4625b533197abb25ea2a32be06c59c984d97c3c2dc9952e0b76f2e81ee0d2 1.4s done
+2026-09-14T17:30:40.6222950Z #7 DONE 3.8s
+2026-09-14T17:30:40.7728640Z 
+2026-09-14T17:30:40.7730055Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:40.7731623Z #7 extracting sha256:eda79b460c8309c49ad90e19787497da55b5795bd84f92f5f4a4a4fd9dbb6bf4
+2026-09-14T17:30:42.0791181Z #7 extracting sha256:eda79b460c8309c49ad90e19787497da55b5795bd84f92f5f4a4a4fd9dbb6bf4 1.5s done
+2026-09-14T17:30:42.0791909Z #7 DONE 5.3s
+2026-09-14T17:30:42.2296150Z 
+2026-09-14T17:30:42.2298111Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:42.2299524Z #7 extracting sha256:fa55d8c7975bdc26e118c1a6e8ee122aea1e654a365c1d6f7b48658c58be2e18
+2026-09-14T17:30:45.1959639Z #7 extracting sha256:fa55d8c7975bdc26e118c1a6e8ee122aea1e654a365c1d6f7b48658c58be2e18 3.1s done
+2026-09-14T17:30:45.1984768Z #7 DONE 8.4s
+2026-09-14T17:30:45.3577177Z 
+2026-09-14T17:30:45.3578316Z #7 [build 1/6] FROM docker.io/library/golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36
+2026-09-14T17:30:45.3580665Z #7 extracting sha256:5bf265a321f31d8032e3b21ea032da3829f60e895453d911645033edcec66ca4 done
+2026-09-14T17:30:45.3581451Z #7 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 done
+2026-09-14T17:30:45.3581948Z #7 DONE 8.4s
+2026-09-14T17:30:45.3582075Z 
+2026-09-14T17:30:45.3582211Z #10 [build 2/6] WORKDIR /src
+2026-09-14T17:30:47.0846428Z #10 DONE 1.9s
+2026-09-14T17:30:47.2479110Z 
+2026-09-14T17:30:47.2479834Z #11 [build 3/6] COPY go.mod go.sum ./
+2026-09-14T17:30:47.2480285Z #11 DONE 0.0s
+2026-09-14T17:30:47.2480649Z 
+2026-09-14T17:30:47.2481409Z #12 [build 4/6] RUN go mod download && go mod verify
+2026-09-14T17:30:49.2814715Z #12 2.184 all modules verified
+2026-09-14T17:30:49.4947343Z #12 DONE 2.4s
+2026-09-14T17:30:49.7222812Z 
+2026-09-14T17:30:49.7223431Z #13 [build 5/6] COPY *.go ./
+2026-09-14T17:30:49.7223765Z #13 DONE 0.1s
+2026-09-14T17:30:49.7223907Z 
+2026-09-14T17:30:49.7225406Z #14 [build 6/6] RUN go test ./...     && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w -buildid=" -o /out/auth-api .
+2026-09-14T17:31:18.5513052Z #14 28.98 ok  	github.com/MicroTodoSuite/microservice-app-auth-api	0.395s
+2026-09-14T17:31:41.8920487Z #14 DONE 52.3s
+2026-09-14T17:31:42.0860372Z 
+2026-09-14T17:31:42.0861576Z #15 [stage-1 3/3] COPY --from=build --chown=65532:65532 /out/auth-api /app/auth-api
+2026-09-14T17:31:42.0862618Z #15 DONE 0.0s
+2026-09-14T17:31:42.0862978Z 
+2026-09-14T17:31:42.0863411Z #16 exporting to docker image format
+2026-09-14T17:31:42.0863844Z #16 exporting layers
+2026-09-14T17:31:42.5772381Z #16 exporting layers 0.6s done
+2026-09-14T17:31:42.8115711Z #16 exporting manifest sha256:7381a02b4fc8b6a0ba777a0d87ffdaf53ce302482b41eeadf373fc14f5215aaa done
+2026-09-14T17:31:42.8116977Z #16 exporting config sha256:b29c7d2b366d5fa156afb187bf3a377eed55c476c41e1b56e6d6fa59fef672dc done
+2026-09-14T17:31:42.8117528Z #16 sending tarball
+2026-09-14T17:31:43.2055167Z #16 sending tarball 0.6s done
+2026-09-14T17:31:43.2055744Z #16 DONE 1.2s
+2026-09-14T17:31:43.2056056Z 
+2026-09-14T17:31:43.2056262Z #17 importing to docker
+2026-09-14T17:31:43.2056852Z #17 loading layer 50abe06dfc09 85.86kB / 85.86kB 0.5s done
+2026-09-14T17:31:43.2057607Z #17 loading layer 621c35e751a5 12.68kB / 12.68kB 0.5s done
+2026-09-14T17:31:43.2058601Z #17 loading layer c8b007d0206e 288.54kB / 288.54kB 0.5s done
+2026-09-14T17:31:43.2059507Z #17 loading layer bec7e6bb35e0 254.45kB / 254.45kB 0.4s done
+2026-09-14T17:31:43.2060578Z #17 loading layer 275a30dd8ce9 32.09kB / 32.09kB 0.2s done
+2026-09-14T17:31:43.2061418Z #17 loading layer 4d049f83d9cf 67B / 67B 0.2s done
+2026-09-14T17:31:43.2062143Z #17 loading layer af5aa97ebe6c 188B / 188B 0.2s done
+2026-09-14T17:31:43.2062660Z #17 loading layer 6f1cdceb6a31 123B / 123B 0.2s done
+2026-09-14T17:31:43.2063150Z #17 loading layer bd3cdfae1d3f 162B / 162B 0.1s done
+2026-09-14T17:31:43.2063648Z #17 loading layer 4cde6b0bb6f5 80B / 80B 0.1s done
+2026-09-14T17:31:43.2064335Z #17 loading layer ad51d0769d16 351B / 351B 0.1s done
+2026-09-14T17:31:43.2064865Z #17 loading layer 187cfc6d1e3e 311B / 311B 0.1s done
+2026-09-14T17:31:43.2065502Z #17 loading layer 5fd2536c39c0 136.99kB / 136.99kB 0.1s done
+2026-09-14T17:31:43.2066191Z #17 loading layer d2ce0d836713 97B / 97B 0.1s done
+2026-09-14T17:31:43.2067204Z #17 loading layer b20219592248 6.68MB / 6.68MB 0.1s done
+2026-09-14T17:31:43.2067591Z #17 DONE 0.5s
+2026-09-14T17:31:43.2067881Z 
+2026-09-14T17:31:43.2068244Z #18 resolving provenance for metadata file
+2026-09-14T17:31:43.2068807Z #18 DONE 0.0s
+2026-09-14T17:31:43.2145050Z ##[group]ImageID
+2026-09-14T17:31:43.2146193Z sha256:b29c7d2b366d5fa156afb187bf3a377eed55c476c41e1b56e6d6fa59fef672dc
+2026-09-14T17:31:43.2147356Z ##[endgroup]
+2026-09-14T17:31:43.2148052Z ##[group]Digest
+2026-09-14T17:31:43.2148927Z sha256:7381a02b4fc8b6a0ba777a0d87ffdaf53ce302482b41eeadf373fc14f5215aaa
+2026-09-14T17:31:43.2150105Z ##[endgroup]
+2026-09-14T17:31:43.2150886Z ##[group]Metadata
+2026-09-14T17:31:43.2151464Z {
+2026-09-14T17:31:43.2151965Z   "buildx.build.provenance": {
+2026-09-14T17:31:43.2152502Z     "builder": {
+2026-09-14T17:31:43.2152945Z       "id": ""
+2026-09-14T17:31:43.2153393Z     },
+2026-09-14T17:31:43.2154323Z     "buildType": "https://mobyproject.org/buildkit@v1",
+2026-09-14T17:31:43.2155059Z     "materials": [
+2026-09-14T17:31:43.2155498Z       {
+2026-09-14T17:31:43.2157502Z         "uri": "pkg:docker/golang@1.26.6-bookworm?digest=sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36&platform=linux%2Famd64",
+2026-09-14T17:31:43.2158920Z         "digest": {
+2026-09-14T17:31:43.2160093Z           "sha256": "116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36"
+2026-09-14T17:31:43.2160926Z         }
+2026-09-14T17:31:43.2161311Z       },
+2026-09-14T17:31:43.2161656Z       {
+2026-09-14T17:31:43.2163894Z         "uri": "pkg:docker/gcr.io/distroless/static-debian13@nonroot?digest=sha256:f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6&platform=linux%2Famd64",
+2026-09-14T17:31:43.2165948Z         "digest": {
+2026-09-14T17:31:43.2166971Z           "sha256": "f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6"
+2026-09-14T17:31:43.2167710Z         }
+2026-09-14T17:31:43.2168031Z       }
+2026-09-14T17:31:43.2168396Z     ],
+2026-09-14T17:31:43.2168779Z     "invocation": {
+2026-09-14T17:31:43.2169253Z       "configSource": {
+2026-09-14T17:31:43.2169823Z         "entryPoint": "Dockerfile"
+2026-09-14T17:31:43.2170284Z       },
+2026-09-14T17:31:43.2170706Z       "parameters": {
+2026-09-14T17:31:43.2171245Z         "frontend": "dockerfile.v0",
+2026-09-14T17:31:43.2171742Z         "locals": [
+2026-09-14T17:31:43.2172109Z           {
+2026-09-14T17:31:43.2172539Z             "name": "context"
+2026-09-14T17:31:43.2172950Z           },
+2026-09-14T17:31:43.2173299Z           {
+2026-09-14T17:31:43.2173883Z             "name": "dockerfile"
+2026-09-14T17:31:43.2174639Z           }
+2026-09-14T17:31:43.2175028Z         ],
+2026-09-14T17:31:43.2175684Z         "root": {
+2026-09-14T17:31:43.2176163Z           "configSource": {
+2026-09-14T17:31:43.2176737Z             "path": "Dockerfile"
+2026-09-14T17:31:43.2177301Z           },
+2026-09-14T17:31:43.2177791Z           "request": {
+2026-09-14T17:31:43.2178320Z             "args": {
+2026-09-14T17:31:43.2179084Z               "vcs:localdir:context": ".",
+2026-09-14T17:31:43.2179896Z               "vcs:localdir:dockerfile": ".",
+2026-09-14T17:31:43.2181048Z               "vcs:revision": "52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0",
+2026-09-14T17:31:43.2182581Z               "vcs:source": "https://github.com/MicroTodoSuite/microservice-app-auth-api"
+2026-09-14T17:31:43.2183398Z             }
+2026-09-14T17:31:43.2183807Z           }
+2026-09-14T17:31:43.2184428Z         },
+2026-09-14T17:31:43.2184947Z         "compatibilityVersion": 30
+2026-09-14T17:31:43.2185461Z       },
+2026-09-14T17:31:43.2185911Z       "environment": {
+2026-09-14T17:31:43.2186507Z         "dockerfileVersion": "1.26.0",
+2026-09-14T17:31:43.2187224Z         "github_actor": "Juanmadiaz45",
+2026-09-14T17:31:43.2187892Z         "github_actor_id": "116129273",
+2026-09-14T17:31:43.2188487Z         "github_event_name": "push",
+2026-09-14T17:31:43.2189057Z         "github_event_payload": {
+2026-09-14T17:31:43.2189851Z           "after": "52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0",
+2026-09-14T17:31:43.2190971Z           "base_ref": null,
+2026-09-14T17:31:43.2192054Z           "before": "c28471e1ad7c71f397701e340e4f9816aa09b6e1",
+2026-09-14T17:31:43.2192821Z           "commits": [
+2026-09-14T17:31:43.2193323Z             {
+2026-09-14T17:31:43.2193841Z               "author": {
+2026-09-14T17:31:43.2195451Z                 "email": "116129273+Juanmadiaz45@users.noreply.github.com",
+2026-09-14T17:31:43.2196891Z                 "name": "Juan Manuel Díaz",
+2026-09-14T17:31:43.2197777Z                 "username": "Juanmadiaz45"
+2026-09-14T17:31:43.2198445Z               },
+2026-09-14T17:31:43.2199083Z               "committer": {
+2026-09-14T17:31:43.2200005Z                 "email": "noreply@github.com",
+2026-09-14T17:31:43.2200807Z                 "name": "GitHub",
+2026-09-14T17:31:43.2201598Z                 "username": "web-flow"
+2026-09-14T17:31:43.2202184Z               },
+2026-09-14T17:31:43.2202784Z               "distinct": true,
+2026-09-14T17:31:43.2203837Z               "id": "52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0",
+2026-09-14T17:31:43.2227635Z               "message": "fix(ci): repoint to the latest .github reusable workflow refs (#30)\n\n## What changes\nBumps the pinned `MicroTodoSuite/.github` reusable-workflow SHAs\n(`ci.yml`, `release.yml`, `promote.yml`) to the current `main` HEAD, and\nrenames the `promote.yml` caller secret keys from\n`gitops-app-id`/`gitops-app-key` to\n`gitops-promote-app-id`/`gitops-promote-app-key` to match the reusable\nworkflow's renamed `secrets:` interface (`.github` PR #142/#19).\n\n## Why\n`.github`'s `promote.yml` renamed its secret inputs (spec 009 T099);\nthis repo's disabled-by-default legacy promote jobs\n(`promote-dev/staging/prod`) still passed the old names, which would\nfail GitHub's reusable-workflow validation the moment\n`ENABLE_LEGACY_DEV_PROMOTION` is ever turned on. Also brings the pinned\nrefs current with `.github` main.\n\n## Tasks\n- gitops spec 009 T105\n\n## How it is verified\n- Ran `microservice-app-gitops/tests/promotion/service-workflows.bats`\n(T101 contract) against this checkout: PASS.\n- Ran `.github/tests/workflows/reusable-workflow-contract.bats`: PASS\n(unaffected, confirms `.github` side is unchanged by this PR).\n- `grep -c '<<<<<<<'` clean; no functional gate logic changed, only ref\npins and secret key names.\n\n## Risk and rollback\nLow risk: no runtime gates behave differently (the legacy promote jobs\nstay disabled by default). Rollback is `git revert` this commit.\n\n## What this PR does not do\nDoes not enable the legacy per-environment promotion path, does not\ntouch `sonar-required` (stays `false`, pending T111's live Sonar\nbootstrap), does not change required test/contract commands.",
+2026-09-14T17:31:43.2238633Z               "timestamp": "2026-09-14T12:29:46-05:00",
+2026-09-14T17:31:43.2239942Z               "tree_id": "869336ca34abccce6848795e94614bfe139e4de7",
+2026-09-14T17:31:43.2241839Z               "url": "https://github.com/MicroTodoSuite/microservice-app-auth-api/commit/52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0"
+2026-09-14T17:31:43.2242835Z             }
+2026-09-14T17:31:43.2243194Z           ],
+2026-09-14T17:31:43.2244815Z           "compare": "https://github.com/MicroTodoSuite/microservice-app-auth-api/compare/c28471e1ad7c...52f4fdff5ed4",
+2026-09-14T17:31:43.2245814Z           "created": false,
+2026-09-14T17:31:43.2246308Z           "deleted": false,
+2026-09-14T17:31:43.2246783Z           "forced": false,
+2026-09-14T17:31:43.2247253Z           "head_commit": {
+2026-09-14T17:31:43.2247727Z             "author": {
+2026-09-14T17:31:43.2248687Z               "email": "116129273+Juanmadiaz45@users.noreply.github.com",
+2026-09-14T17:31:43.2249783Z               "name": "Juan Manuel Díaz",
+2026-09-14T17:31:43.2250565Z               "username": "Juanmadiaz45"
+2026-09-14T17:31:43.2251035Z             },
+2026-09-14T17:31:43.2251464Z             "committer": {
+2026-09-14T17:31:43.2252121Z               "email": "noreply@github.com",
+2026-09-14T17:31:43.2253113Z               "name": "GitHub",
+2026-09-14T17:31:43.2253727Z               "username": "web-flow"
+2026-09-14T17:31:43.2254578Z             },
+2026-09-14T17:31:43.2255084Z             "distinct": true,
+2026-09-14T17:31:43.2255888Z             "id": "52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0",
+2026-09-14T17:31:43.2269638Z             "message": "fix(ci): repoint to the latest .github reusable workflow refs (#30)\n\n## What changes\nBumps the pinned `MicroTodoSuite/.github` reusable-workflow SHAs\n(`ci.yml`, `release.yml`, `promote.yml`) to the current `main` HEAD, and\nrenames the `promote.yml` caller secret keys from\n`gitops-app-id`/`gitops-app-key` to\n`gitops-promote-app-id`/`gitops-promote-app-key` to match the reusable\nworkflow's renamed `secrets:` interface (`.github` PR #142/#19).\n\n## Why\n`.github`'s `promote.yml` renamed its secret inputs (spec 009 T099);\nthis repo's disabled-by-default legacy promote jobs\n(`promote-dev/staging/prod`) still passed the old names, which would\nfail GitHub's reusable-workflow validation the moment\n`ENABLE_LEGACY_DEV_PROMOTION` is ever turned on. Also brings the pinned\nrefs current with `.github` main.\n\n## Tasks\n- gitops spec 009 T105\n\n## How it is verified\n- Ran `microservice-app-gitops/tests/promotion/service-workflows.bats`\n(T101 contract) against this checkout: PASS.\n- Ran `.github/tests/workflows/reusable-workflow-contract.bats`: PASS\n(unaffected, confirms `.github` side is unchanged by this PR).\n- `grep -c '<<<<<<<'` clean; no functional gate logic changed, only ref\npins and secret key names.\n\n## Risk and rollback\nLow risk: no runtime gates behave differently (the legacy promote jobs\nstay disabled by default). Rollback is `git revert` this commit.\n\n## What this PR does not do\nDoes not enable the legacy per-environment promotion path, does not\ntouch `sonar-required` (stays `false`, pending T111's live Sonar\nbootstrap), does not change required test/contract commands.",
+2026-09-14T17:31:43.2275884Z             "timestamp": "2026-09-14T12:29:46-05:00",
+2026-09-14T17:31:43.2276477Z             "tree_id": "869336ca34abccce6848795e94614bfe139e4de7",
+2026-09-14T17:31:43.2277543Z             "url": "https://github.com/MicroTodoSuite/microservice-app-auth-api/commit/52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0"
+2026-09-14T17:31:43.2278140Z           },
+2026-09-14T17:31:43.2278432Z           "organization": {
+2026-09-14T17:31:43.2279109Z             "avatar_url": "https://avatars.githubusercontent.com/u/208328281?v=4",
+2026-09-14T17:31:43.2279616Z             "description": null,
+2026-09-14T17:31:43.2280224Z             "events_url": "https://api.github.com/orgs/MicroTodoSuite/events",
+2026-09-14T17:31:43.2280945Z             "hooks_url": "https://api.github.com/orgs/MicroTodoSuite/hooks",
+2026-09-14T17:31:43.2281590Z             "id": 208328281,
+2026-09-14T17:31:43.2282248Z             "issues_url": "https://api.github.com/orgs/MicroTodoSuite/issues",
+2026-09-14T17:31:43.2282777Z             "login": "MicroTodoSuite",
+2026-09-14T17:31:43.2283466Z             "members_url": "https://api.github.com/orgs/MicroTodoSuite/members{/member}",
+2026-09-14T17:31:43.2284338Z             "node_id": "O_kgDODGrWWQ",
+2026-09-14T17:31:43.2285330Z             "public_members_url": "https://api.github.com/orgs/MicroTodoSuite/public_members{/member}",
+2026-09-14T17:31:43.2286154Z             "repos_url": "https://api.github.com/orgs/MicroTodoSuite/repos",
+2026-09-14T17:31:43.2286788Z             "url": "https://api.github.com/orgs/MicroTodoSuite"
+2026-09-14T17:31:43.2287141Z           },
+2026-09-14T17:31:43.2287385Z           "pusher": {
+2026-09-14T17:31:43.2287912Z             "email": "116129273+Juanmadiaz45@users.noreply.github.com",
+2026-09-14T17:31:43.2288425Z             "name": "Juanmadiaz45"
+2026-09-14T17:31:43.2288709Z           },
+2026-09-14T17:31:43.2289018Z           "ref": "refs/heads/main",
+2026-09-14T17:31:43.2289349Z           "repository": {
+2026-09-14T17:31:43.2290144Z             "allow_forking": true,
+2026-09-14T17:31:43.2291283Z             "archive_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/{archive_format}{/ref}",
+2026-09-14T17:31:43.2292819Z             "archived": false,
+2026-09-14T17:31:43.2294705Z             "assignees_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/assignees{/user}",
+2026-09-14T17:31:43.2296670Z             "blobs_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/git/blobs{/sha}",
+2026-09-14T17:31:43.2297982Z             "branches_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/branches{/branch}",
+2026-09-14T17:31:43.2298968Z             "clone_url": "https://github.com/MicroTodoSuite/microservice-app-auth-api.git",
+2026-09-14T17:31:43.2300183Z             "collaborators_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/collaborators{/collaborator}",
+2026-09-14T17:31:43.2301420Z             "comments_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/comments{/number}",
+2026-09-14T17:31:43.2302535Z             "commits_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/commits{/sha}",
+2026-09-14T17:31:43.2303698Z             "compare_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/compare/{base}...{head}",
+2026-09-14T17:31:43.2305125Z             "contents_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/contents/{+path}",
+2026-09-14T17:31:43.2306273Z             "contributors_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/contributors",
+2026-09-14T17:31:43.2306921Z             "created_at": 1745394734,
+2026-09-14T17:31:43.2307310Z             "custom_properties": {},
+2026-09-14T17:31:43.2307696Z             "default_branch": "main",
+2026-09-14T17:31:43.2308571Z             "deployments_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/deployments",
+2026-09-14T17:31:43.2309555Z             "description": "MicroTodoSuite authentication API: login and JWT issuance, in Go.",
+2026-09-14T17:31:43.2310107Z             "disabled": false,
+2026-09-14T17:31:43.2310946Z             "downloads_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/downloads",
+2026-09-14T17:31:43.2311992Z             "events_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/events",
+2026-09-14T17:31:43.2312534Z             "fork": false,
+2026-09-14T17:31:43.2312819Z             "forks": 0,
+2026-09-14T17:31:43.2313114Z             "forks_count": 0,
+2026-09-14T17:31:43.2313889Z             "forks_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/forks",
+2026-09-14T17:31:43.2315087Z             "full_name": "MicroTodoSuite/microservice-app-auth-api",
+2026-09-14T17:31:43.2316116Z             "git_commits_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/git/commits{/sha}",
+2026-09-14T17:31:43.2317254Z             "git_refs_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/git/refs{/sha}",
+2026-09-14T17:31:43.2318356Z             "git_tags_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/git/tags{/sha}",
+2026-09-14T17:31:43.2319268Z             "git_url": "git://github.com/MicroTodoSuite/microservice-app-auth-api.git",
+2026-09-14T17:31:43.2319804Z             "has_discussions": false,
+2026-09-14T17:31:43.2320181Z             "has_downloads": true,
+2026-09-14T17:31:43.2320528Z             "has_issues": true,
+2026-09-14T17:31:43.2320870Z             "has_pages": false,
+2026-09-14T17:31:43.2321222Z             "has_projects": true,
+2026-09-14T17:31:43.2321599Z             "has_pull_requests": true,
+2026-09-14T17:31:43.2321938Z             "has_wiki": true,
+2026-09-14T17:31:43.2322256Z             "homepage": null,
+2026-09-14T17:31:43.2323032Z             "hooks_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/hooks",
+2026-09-14T17:31:43.2323906Z             "html_url": "https://github.com/MicroTodoSuite/microservice-app-auth-api",
+2026-09-14T17:31:43.2324967Z             "id": 971228996,
+2026-09-14T17:31:43.2325331Z             "is_template": false,
+2026-09-14T17:31:43.2326339Z             "issue_comment_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/issues/comments{/number}",
+2026-09-14T17:31:43.2327607Z             "issue_events_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/issues/events{/number}",
+2026-09-14T17:31:43.2328775Z             "issues_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/issues{/number}",
+2026-09-14T17:31:43.2329859Z             "keys_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/keys{/key_id}",
+2026-09-14T17:31:43.2330941Z             "labels_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/labels{/name}",
+2026-09-14T17:31:43.2331524Z             "language": "Go",
+2026-09-14T17:31:43.2332351Z             "languages_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/languages",
+2026-09-14T17:31:43.2332927Z             "license": null,
+2026-09-14T17:31:43.2333294Z             "master_branch": "main",
+2026-09-14T17:31:43.2334398Z             "merges_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/merges",
+2026-09-14T17:31:43.2335569Z             "milestones_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/milestones{/number}",
+2026-09-14T17:31:43.2336215Z             "mirror_url": null,
+2026-09-14T17:31:43.2336646Z             "name": "microservice-app-auth-api",
+2026-09-14T17:31:43.2337073Z             "node_id": "R_kgDOOePHRA",
+2026-09-14T17:31:43.2338184Z             "notifications_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/notifications{?since,all,participating}",
+2026-09-14T17:31:43.2338907Z             "open_issues": 0,
+2026-09-14T17:31:43.2339282Z             "open_issues_count": 0,
+2026-09-14T17:31:43.2339725Z             "organization": "MicroTodoSuite",
+2026-09-14T17:31:43.2340065Z             "owner": {
+2026-09-14T17:31:43.2340706Z               "avatar_url": "https://avatars.githubusercontent.com/u/208328281?v=4",
+2026-09-14T17:31:43.2341191Z               "email": null,
+2026-09-14T17:31:43.2341899Z               "events_url": "https://api.github.com/users/MicroTodoSuite/events{/privacy}",
+2026-09-14T17:31:43.2342758Z               "followers_url": "https://api.github.com/users/MicroTodoSuite/followers",
+2026-09-14T17:31:43.2343702Z               "following_url": "https://api.github.com/users/MicroTodoSuite/following{/other_user}",
+2026-09-14T17:31:43.2344852Z               "gists_url": "https://api.github.com/users/MicroTodoSuite/gists{/gist_id}",
+2026-09-14T17:31:43.2345570Z               "gravatar_id": "",
+2026-09-14T17:31:43.2346119Z               "html_url": "https://github.com/MicroTodoSuite",
+2026-09-14T17:31:43.2346537Z               "id": 208328281,
+2026-09-14T17:31:43.2346938Z               "login": "MicroTodoSuite",
+2026-09-14T17:31:43.2347356Z               "name": "MicroTodoSuite",
+2026-09-14T17:31:43.2347769Z               "node_id": "O_kgDODGrWWQ",
+2026-09-14T17:31:43.2348476Z               "organizations_url": "https://api.github.com/users/MicroTodoSuite/orgs",
+2026-09-14T17:31:43.2349402Z               "received_events_url": "https://api.github.com/users/MicroTodoSuite/received_events",
+2026-09-14T17:31:43.2350228Z               "repos_url": "https://api.github.com/users/MicroTodoSuite/repos",
+2026-09-14T17:31:43.2350735Z               "site_admin": false,
+2026-09-14T17:31:43.2351504Z               "starred_url": "https://api.github.com/users/MicroTodoSuite/starred{/owner}{/repo}",
+2026-09-14T17:31:43.2352441Z               "subscriptions_url": "https://api.github.com/users/MicroTodoSuite/subscriptions",
+2026-09-14T17:31:43.2353016Z               "type": "Organization",
+2026-09-14T17:31:43.2353582Z               "url": "https://api.github.com/users/MicroTodoSuite",
+2026-09-14T17:31:43.2354307Z               "user_view_type": "public"
+2026-09-14T17:31:43.2354771Z             },
+2026-09-14T17:31:43.2355054Z             "private": false,
+2026-09-14T17:31:43.2355503Z             "pull_request_creation_policy": "all",
+2026-09-14T17:31:43.2356406Z             "pulls_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/pulls{/number}",
+2026-09-14T17:31:43.2357026Z             "pushed_at": 1789406986,
+2026-09-14T17:31:43.2357882Z             "releases_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/releases{/id}",
+2026-09-14T17:31:43.2358456Z             "size": 307,
+2026-09-14T17:31:43.2359095Z             "ssh_url": "git@github.com:MicroTodoSuite/microservice-app-auth-api.git",
+2026-09-14T17:31:43.2359569Z             "stargazers": 0,
+2026-09-14T17:31:43.2359924Z             "stargazers_count": 0,
+2026-09-14T17:31:43.2360774Z             "stargazers_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/stargazers",
+2026-09-14T17:31:43.2361885Z             "statuses_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/statuses/{sha}",
+2026-09-14T17:31:43.2363044Z             "subscribers_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/subscribers",
+2026-09-14T17:31:43.2364485Z             "subscription_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/subscription",
+2026-09-14T17:31:43.2365469Z             "svn_url": "https://github.com/MicroTodoSuite/microservice-app-auth-api",
+2026-09-14T17:31:43.2366398Z             "tags_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/tags",
+2026-09-14T17:31:43.2367408Z             "teams_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/teams",
+2026-09-14T17:31:43.2367946Z             "topics": [],
+2026-09-14T17:31:43.2368785Z             "trees_url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api/git/trees{/sha}",
+2026-09-14T17:31:43.2369468Z             "updated_at": "2026-09-14T04:29:25Z",
+2026-09-14T17:31:43.2370224Z             "url": "https://api.github.com/repos/MicroTodoSuite/microservice-app-auth-api",
+2026-09-14T17:31:43.2370771Z             "visibility": "public",
+2026-09-14T17:31:43.2371096Z             "watchers": 0,
+2026-09-14T17:31:43.2371439Z             "watchers_count": 0,
+2026-09-14T17:31:43.2371865Z             "web_commit_signoff_required": false
+2026-09-14T17:31:43.2372172Z           },
+2026-09-14T17:31:43.2372418Z           "sender": {
+2026-09-14T17:31:43.2373023Z             "avatar_url": "https://avatars.githubusercontent.com/u/116129273?v=4",
+2026-09-14T17:31:43.2373818Z             "events_url": "https://api.github.com/users/Juanmadiaz45/events{/privacy}",
+2026-09-14T17:31:43.2375223Z             "followers_url": "https://api.github.com/users/Juanmadiaz45/followers",
+2026-09-14T17:31:43.2376146Z             "following_url": "https://api.github.com/users/Juanmadiaz45/following{/other_user}",
+2026-09-14T17:31:43.2376972Z             "gists_url": "https://api.github.com/users/Juanmadiaz45/gists{/gist_id}",
+2026-09-14T17:31:43.2377475Z             "gravatar_id": "",
+2026-09-14T17:31:43.2377953Z             "html_url": "https://github.com/Juanmadiaz45",
+2026-09-14T17:31:43.2378338Z             "id": 116129273,
+2026-09-14T17:31:43.2378716Z             "login": "Juanmadiaz45",
+2026-09-14T17:31:43.2379108Z             "node_id": "U_kgDOBuv9-Q",
+2026-09-14T17:31:43.2379787Z             "organizations_url": "https://api.github.com/users/Juanmadiaz45/orgs",
+2026-09-14T17:31:43.2380654Z             "received_events_url": "https://api.github.com/users/Juanmadiaz45/received_events",
+2026-09-14T17:31:43.2381429Z             "repos_url": "https://api.github.com/users/Juanmadiaz45/repos",
+2026-09-14T17:31:43.2381900Z             "site_admin": false,
+2026-09-14T17:31:43.2382614Z             "starred_url": "https://api.github.com/users/Juanmadiaz45/starred{/owner}{/repo}",
+2026-09-14T17:31:43.2383478Z             "subscriptions_url": "https://api.github.com/users/Juanmadiaz45/subscriptions",
+2026-09-14T17:31:43.2384375Z             "type": "User",
+2026-09-14T17:31:43.2384904Z             "url": "https://api.github.com/users/Juanmadiaz45",
+2026-09-14T17:31:43.2385381Z             "user_view_type": "public"
+2026-09-14T17:31:43.2385670Z           }
+2026-09-14T17:31:43.2385885Z         },
+2026-09-14T17:31:43.2386192Z         "github_job": "supply-chain",
+2026-09-14T17:31:43.2386571Z         "github_ref": "refs/heads/main",
+2026-09-14T17:31:43.2386935Z         "github_ref_name": "main",
+2026-09-14T17:31:43.2387295Z         "github_ref_protected": "false",
+2026-09-14T17:31:43.2387653Z         "github_ref_type": "branch",
+2026-09-14T17:31:43.2388202Z         "github_repository": "MicroTodoSuite/microservice-app-auth-api",
+2026-09-14T17:31:43.2388703Z         "github_repository_id": "971228996",
+2026-09-14T17:31:43.2389155Z         "github_repository_owner": "MicroTodoSuite",
+2026-09-14T17:31:43.2389608Z         "github_repository_owner_id": "208328281",
+2026-09-14T17:31:43.2389996Z         "github_run_attempt": "1",
+2026-09-14T17:31:43.2390348Z         "github_run_id": "34875097673",
+2026-09-14T17:31:43.2390700Z         "github_run_number": "57",
+2026-09-14T17:31:43.2391044Z         "github_runner_arch": "X64",
+2026-09-14T17:31:43.2391481Z         "github_runner_environment": "github-hosted",
+2026-09-14T17:31:43.2391924Z         "github_runner_image_os": "ubuntu24",
+2026-09-14T17:31:43.2392382Z         "github_runner_image_version": "20260907.300.1",
+2026-09-14T17:31:43.2392871Z         "github_runner_name": "GitHub Actions 1000003551",
+2026-09-14T17:31:43.2393280Z         "github_runner_os": "Linux",
+2026-09-14T17:31:43.2393866Z         "github_runner_tracking_id": "github_4851a030-1bd8-4b68-9bdc-c2073e111b66",
+2026-09-14T17:31:43.2394714Z         "github_server_url": "https://github.com",
+2026-09-14T17:31:43.2395180Z         "github_triggering_actor": "Juanmadiaz45",
+2026-09-14T17:31:43.2395571Z         "github_workflow": "ci",
+2026-09-14T17:31:43.2396365Z         "github_workflow_ref": "MicroTodoSuite/microservice-app-auth-api/.github/workflows/ci.yml@refs/heads/main",
+2026-09-14T17:31:43.2397180Z         "github_workflow_sha": "52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0",
+2026-09-14T17:31:43.2397643Z         "platform": "linux/amd64"
+2026-09-14T17:31:43.2397906Z       }
+2026-09-14T17:31:43.2398094Z     }
+2026-09-14T17:31:43.2398278Z   },
+2026-09-14T17:31:43.2399010Z   "buildx.build.ref": "builder-b34f2e04-7a14-432a-a861-b15aa5be2598/builder-b34f2e04-7a14-432a-a861-b15aa5be25980/178phq8066lpxfne1xziph95x",
+2026-09-14T17:31:43.2400037Z   "containerimage.config.digest": "sha256:b29c7d2b366d5fa156afb187bf3a377eed55c476c41e1b56e6d6fa59fef672dc",
+2026-09-14T17:31:43.2400780Z   "containerimage.descriptor": {
+2026-09-14T17:31:43.2401248Z     "mediaType": "application/vnd.oci.image.manifest.v1+json",
+2026-09-14T17:31:43.2401909Z     "digest": "sha256:7381a02b4fc8b6a0ba777a0d87ffdaf53ce302482b41eeadf373fc14f5215aaa",
+2026-09-14T17:31:43.2402362Z     "size": 3125,
+2026-09-14T17:31:43.2402611Z     "annotations": {
+2026-09-14T17:31:43.2403057Z       "org.opencontainers.image.created": "2026-09-14T17:31:42Z"
+2026-09-14T17:31:43.2403404Z     },
+2026-09-14T17:31:43.2403616Z     "platform": {
+2026-09-14T17:31:43.2403897Z       "architecture": "amd64",
+2026-09-14T17:31:43.2404427Z       "os": "linux"
+2026-09-14T17:31:43.2404626Z     }
+2026-09-14T17:31:43.2404802Z   },
+2026-09-14T17:31:43.2405331Z   "containerimage.digest": "sha256:7381a02b4fc8b6a0ba777a0d87ffdaf53ce302482b41eeadf373fc14f5215aaa",
+2026-09-14T17:31:43.2406274Z   "image.name": "575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0"
+2026-09-14T17:31:43.2406836Z }
+2026-09-14T17:31:43.2407359Z ##[endgroup]
+2026-09-14T17:31:43.2407710Z ##[group]Reference
+2026-09-14T17:31:43.2408361Z builder-b34f2e04-7a14-432a-a861-b15aa5be2598/builder-b34f2e04-7a14-432a-a861-b15aa5be25980/178phq8066lpxfne1xziph95x
+2026-09-14T17:31:43.2409049Z ##[endgroup]
+2026-09-14T17:31:43.2409389Z ##[group]Check build summary support
+2026-09-14T17:31:43.2410052Z Build summary supported!
+2026-09-14T17:31:43.2410404Z ##[endgroup]
+2026-09-14T17:31:43.2615164Z ##[group]Run aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+2026-09-14T17:31:43.2615637Z with:
+2026-09-14T17:31:43.2616151Z   image-ref: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:43.2616723Z   format: table
+2026-09-14T17:31:43.2616925Z   exit-code: 1
+2026-09-14T17:31:43.2617138Z   severity: HIGH,CRITICAL
+2026-09-14T17:31:43.2617392Z   ignore-unfixed: true
+2026-09-14T17:31:43.2617616Z   version: v0.72.0
+2026-09-14T17:31:43.2617830Z   scan-type: image
+2026-09-14T17:31:43.2618029Z   scan-ref: .
+2026-09-14T17:31:43.2618235Z   vuln-type: os,library
+2026-09-14T17:31:43.2618678Z   cache-dir: /home/runner/work/microservice-app-auth-api/microservice-app-auth-api/.cache/trivy
+2026-09-14T17:31:43.2619161Z   list-all-pkgs: false
+2026-09-14T17:31:43.2619376Z   cache: true
+2026-09-14T17:31:43.2619604Z   skip-setup-trivy: false
+2026-09-14T17:31:43.2622207Z   token-setup-trivy: ***
+2026-09-14T17:31:43.2622484Z env:
+2026-09-14T17:31:43.2622972Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:43.2623527Z ##[endgroup]
+2026-09-14T17:31:43.2695681Z ##[start-action display=Install Trivy;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy]
+2026-09-14T17:31:43.2780228Z ##[group]Run aquasecurity/setup-trivy@e6c2c5e321ed9123bda567646e2f96565e34abe1
+2026-09-14T17:31:43.2780655Z with:
+2026-09-14T17:31:43.2780851Z   version: v0.72.0
+2026-09-14T17:31:43.2781060Z   cache: true
+2026-09-14T17:31:43.2783694Z   token: ***
+2026-09-14T17:31:43.2783909Z   path: $HOME/.local/bin
+2026-09-14T17:31:43.2784361Z   github-server-url: https://github.com
+2026-09-14T17:31:43.2784645Z env:
+2026-09-14T17:31:43.2785146Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:43.2785728Z ##[endgroup]
+2026-09-14T17:31:43.2791310Z ##[start-action display=Binary dir;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.binary-dir]
+2026-09-14T17:31:43.2806238Z ##[group]Run echo "dir=$HOME/.local/bin/trivy-bin" >> $GITHUB_OUTPUT
+2026-09-14T17:31:43.2806707Z echo "dir=$HOME/.local/bin/trivy-bin" >> $GITHUB_OUTPUT
+2026-09-14T17:31:43.2843279Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:43.2843628Z env:
+2026-09-14T17:31:43.2844265Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:43.2844845Z ##[endgroup]
+2026-09-14T17:31:43.2937492Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.binary-dir;outcome=success;conclusion=success;duration_ms=14]
+2026-09-14T17:31:43.2942406Z ##[start-action display=Check the version for caching;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run]
+2026-09-14T17:31:43.2948718Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-09-14T17:31:43.2950975Z ##[start-action display=Restore Trivy binary from cache;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.cache]
+2026-09-14T17:31:43.2989841Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:31:43.2991176Z ##[group]Run actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+2026-09-14T17:31:43.2991522Z with:
+2026-09-14T17:31:43.2991739Z   path: /home/runner/.local/bin/trivy-bin
+2026-09-14T17:31:43.2992044Z   key: trivy-binary-v0.72.0-Linux-X64
+2026-09-14T17:31:43.2992334Z   enableCrossOsArchive: false
+2026-09-14T17:31:43.2992768Z   fail-on-cache-miss: false
+2026-09-14T17:31:43.2993008Z   lookup-only: false
+2026-09-14T17:31:43.2993232Z   save-always: false
+2026-09-14T17:31:43.2993626Z env:
+2026-09-14T17:31:43.2994418Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:43.2995002Z ##[endgroup]
+2026-09-14T17:31:43.4138111Z (node:11629) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:31:43.4139228Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:31:43.6862099Z Cache hit for: trivy-binary-v0.72.0-Linux-X64
+2026-09-14T17:31:43.6968534Z (node:11629) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T17:31:44.9965316Z Received 0 of 46176615 (0.0%), 0.0 MBs/sec
+2026-09-14T17:31:45.4382502Z Received 46176615 of 46176615 (100.0%), 30.6 MBs/sec
+2026-09-14T17:31:45.4383322Z Cache Size: ~44 MB (46176615 B)
+2026-09-14T17:31:45.4460049Z [command]/usr/bin/tar -xf /home/runner/work/_temp/39643e99-31f6-4ad0-a26e-3fe384379c3a/cache.tzst -P -C /home/runner/work/microservice-app-auth-api/microservice-app-auth-api --use-compress-program unzstd
+2026-09-14T17:31:45.7117709Z Cache restored successfully
+2026-09-14T17:31:45.7225398Z Cache restored from key: trivy-binary-v0.72.0-Linux-X64
+2026-09-14T17:31:45.7321092Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.cache;outcome=success;conclusion=success;duration_ms=2436]
+2026-09-14T17:31:45.7326449Z ##[start-action display=Checkout install script;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__actions_checkout]
+2026-09-14T17:31:45.7334881Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__actions_checkout;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-09-14T17:31:45.7338587Z ##[start-action display=Install Trivy;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_2]
+2026-09-14T17:31:45.7343420Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_2;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-09-14T17:31:45.7346005Z ##[start-action display=Add Trivy binary to $GITHUB_PATH;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_3]
+2026-09-14T17:31:45.7361455Z ##[group]Run echo /home/runner/.local/bin/trivy-bin >> $GITHUB_PATH
+2026-09-14T17:31:45.7361937Z echo /home/runner/.local/bin/trivy-bin >> $GITHUB_PATH
+2026-09-14T17:31:45.7398971Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:45.7399335Z env:
+2026-09-14T17:31:45.7399833Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:45.7400399Z ##[endgroup]
+2026-09-14T17:31:45.7467054Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_3;outcome=success;conclusion=success;duration_ms=12]
+2026-09-14T17:31:45.7480626Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy;outcome=success;conclusion=success;duration_ms=2478]
+2026-09-14T17:31:45.7482941Z ##[start-action display=Get current date;id=__aquasecurity_trivy-action.date]
+2026-09-14T17:31:45.7498087Z ##[group]Run echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+2026-09-14T17:31:45.7498525Z echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+2026-09-14T17:31:45.7534544Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:45.7534895Z env:
+2026-09-14T17:31:45.7535405Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:45.7535978Z ##[endgroup]
+2026-09-14T17:31:45.7629164Z ##[end-action id=__aquasecurity_trivy-action.date;outcome=success;conclusion=success;duration_ms=14]
+2026-09-14T17:31:45.7631437Z ##[start-action display=Restore DB from cache;id=__aquasecurity_trivy-action.__actions_cache]
+2026-09-14T17:31:45.7669488Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:31:45.7670870Z ##[group]Run actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+2026-09-14T17:31:45.7671219Z with:
+2026-09-14T17:31:45.7671608Z   path: /home/runner/work/microservice-app-auth-api/microservice-app-auth-api/.cache/trivy
+2026-09-14T17:31:45.7672094Z   key: cache-trivy-2026-09-14
+2026-09-14T17:31:45.7672358Z   restore-keys: cache-trivy-
+2026-09-14T17:31:45.7672621Z   enableCrossOsArchive: false
+2026-09-14T17:31:45.7672877Z   fail-on-cache-miss: false
+2026-09-14T17:31:45.7673113Z   lookup-only: false
+2026-09-14T17:31:45.7673333Z   save-always: false
+2026-09-14T17:31:45.7673538Z env:
+2026-09-14T17:31:45.7674284Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:45.7674879Z ##[endgroup]
+2026-09-14T17:31:45.8832610Z (node:11649) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:31:45.8833639Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:31:46.1334442Z Cache hit for: cache-trivy-2026-09-14
+2026-09-14T17:31:46.1450819Z (node:11649) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T17:31:47.4321757Z Received 4194304 of 83709114 (5.0%), 4.0 MBs/sec
+2026-09-14T17:31:48.2564597Z Received 83709114 of 83709114 (100.0%), 43.7 MBs/sec
+2026-09-14T17:31:48.2566908Z Cache Size: ~80 MB (83709114 B)
+2026-09-14T17:31:48.2637592Z [command]/usr/bin/tar -xf /home/runner/work/_temp/d081aaa7-2bb6-46e5-a341-2259752c6ccd/cache.tzst -P -C /home/runner/work/microservice-app-auth-api/microservice-app-auth-api --use-compress-program unzstd
+2026-09-14T17:31:49.8928281Z Cache restored successfully
+2026-09-14T17:31:49.9050038Z Cache restored from key: cache-trivy-2026-09-14
+2026-09-14T17:31:49.9155299Z ##[end-action id=__aquasecurity_trivy-action.__actions_cache;outcome=success;conclusion=success;duration_ms=4152]
+2026-09-14T17:31:49.9160015Z ##[start-action display=Set GitHub Path;id=__aquasecurity_trivy-action.__run]
+2026-09-14T17:31:49.9179340Z ##[group]Run echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+2026-09-14T17:31:49.9179736Z echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+2026-09-14T17:31:49.9220634Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:49.9221259Z env:
+2026-09-14T17:31:49.9222246Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:49.9223837Z   GITHUB_ACTION_PATH: /home/runner/work/_actions/aquasecurity/trivy-action/57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+2026-09-14T17:31:49.9225188Z ##[endgroup]
+2026-09-14T17:31:49.9399576Z ##[end-action id=__aquasecurity_trivy-action.__run;outcome=success;conclusion=success;duration_ms=23]
+2026-09-14T17:31:49.9401878Z ##[start-action display=Clear Trivy Envs file;id=__aquasecurity_trivy-action.__run_2]
+2026-09-14T17:31:49.9417403Z ##[group]Run rm -f trivy_envs.txt
+2026-09-14T17:31:49.9417730Z rm -f trivy_envs.txt
+2026-09-14T17:31:49.9418009Z touch trivy_envs.txt
+2026-09-14T17:31:49.9454829Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:49.9455203Z env:
+2026-09-14T17:31:49.9455724Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:49.9456328Z ##[endgroup]
+2026-09-14T17:31:49.9879988Z ##[end-action id=__aquasecurity_trivy-action.__run_2;outcome=success;conclusion=success;duration_ms=47]
+2026-09-14T17:31:49.9885587Z ##[start-action display=Set Trivy environment variables;id=__aquasecurity_trivy-action.__run_3]
+2026-09-14T17:31:49.9901467Z ##[group]Run # Note: There is currently no way to distinguish between undefined variables and empty strings in GitHub Actions.
+2026-09-14T17:31:49.9902366Z # Note: There is currently no way to distinguish between undefined variables and empty strings in GitHub Actions.
+2026-09-14T17:31:49.9903066Z # This limitation affects how we handle default values and empty inputs.
+2026-09-14T17:31:49.9903652Z # For more information, see: https://github.com/actions/runner/issues/924
+2026-09-14T17:31:49.9904424Z 
+2026-09-14T17:31:49.9904821Z # The following logic implements the configuration priority described in the README:
+2026-09-14T17:31:49.9905280Z #
+2026-09-14T17:31:49.9905479Z # Inputs
+2026-09-14T17:31:49.9905712Z # Environment Variables
+2026-09-14T17:31:49.9905998Z # Config File
+2026-09-14T17:31:49.9906230Z # Defaults
+2026-09-14T17:31:49.9906454Z #
+2026-09-14T17:31:49.9906884Z # As noted above defaults are awkward to handle as GitHub Actions will inject those values as the input
+2026-09-14T17:31:49.9907603Z # if the caller doesn't provide them, thus if the input matches the default we don't set it as we
+2026-09-14T17:31:49.9908310Z # can't tell the difference.  Plus if we did set it when it was the default value then it could potentially
+2026-09-14T17:31:49.9909086Z # override an external environment variable, or something in the callers configuration file, which then wouldn't
+2026-09-14T17:31:49.9909708Z # match the configuration priority that is documented.
+2026-09-14T17:31:49.9910080Z set_env_var_if_provided() {
+2026-09-14T17:31:49.9910366Z   local var_name="$1"
+2026-09-14T17:31:49.9910628Z   local input_value="$2"
+2026-09-14T17:31:49.9910910Z   local default_value="$3"
+2026-09-14T17:31:49.9911171Z 
+2026-09-14T17:31:49.9911487Z   if [ -n "$input_value" ] && [ "$input_value" != "$default_value" ]; then
+2026-09-14T17:31:49.9911992Z     # If action was provided with explicit input by the caller set that
+2026-09-14T17:31:49.9912556Z     # Use printf %q to safely escape special characters and prevent command injection
+2026-09-14T17:31:49.9913140Z     printf 'export %s=%q\n' "$var_name" "$input_value" >> trivy_envs.txt
+2026-09-14T17:31:49.9913526Z   fi
+2026-09-14T17:31:49.9913727Z }
+2026-09-14T17:31:49.9913924Z 
+2026-09-14T17:31:49.9914555Z # Set environment variables, handling those with default values
+2026-09-14T17:31:49.9915182Z # cf. https://aquasecurity.github.io/trivy/latest/docs/configuration/#environment-variables
+2026-09-14T17:31:49.9915775Z set_env_var_if_provided "TRIVY_INPUT" "$INPUT_INPUT" ""
+2026-09-14T17:31:49.9916230Z set_env_var_if_provided "TRIVY_EXIT_CODE" "$INPUT_EXIT_CODE" ""
+2026-09-14T17:31:49.9916759Z set_env_var_if_provided "TRIVY_IGNORE_UNFIXED" "$INPUT_IGNORE_UNFIXED" "false"
+2026-09-14T17:31:49.9917319Z set_env_var_if_provided "TRIVY_PKG_TYPES" "$INPUT_VULN_TYPE" "os,library"
+2026-09-14T17:31:49.9917931Z set_env_var_if_provided "TRIVY_SEVERITY" "$INPUT_SEVERITY" "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+2026-09-14T17:31:49.9918512Z set_env_var_if_provided "TRIVY_FORMAT" "$INPUT_FORMAT" "table"
+2026-09-14T17:31:49.9918975Z set_env_var_if_provided "TRIVY_TEMPLATE" "$INPUT_TEMPLATE" ""
+2026-09-14T17:31:49.9919423Z set_env_var_if_provided "TRIVY_OUTPUT" "$INPUT_OUTPUT" ""
+2026-09-14T17:31:49.9919868Z set_env_var_if_provided "TRIVY_SKIP_DIRS" "$INPUT_SKIP_DIRS" ""
+2026-09-14T17:31:49.9920367Z set_env_var_if_provided "TRIVY_SKIP_FILES" "$INPUT_SKIP_FILES" ""
+2026-09-14T17:31:49.9921027Z set_env_var_if_provided "TRIVY_TIMEOUT" "$INPUT_TIMEOUT" ""
+2026-09-14T17:31:49.9921611Z set_env_var_if_provided "TRIVY_IGNORE_POLICY" "$INPUT_IGNORE_POLICY" ""
+2026-09-14T17:31:49.9922105Z set_env_var_if_provided "TRIVY_QUIET" "$INPUT_HIDE_PROGRESS" ""
+2026-09-14T17:31:49.9922609Z set_env_var_if_provided "TRIVY_LIST_ALL_PKGS" "$INPUT_LIST_ALL_PKGS" "false"
+2026-09-14T17:31:49.9923115Z set_env_var_if_provided "TRIVY_SCANNERS" "$INPUT_SCANNERS" ""
+2026-09-14T17:31:49.9923567Z set_env_var_if_provided "TRIVY_CONFIG" "$INPUT_TRIVY_CONFIG" ""
+2026-09-14T17:31:49.9924255Z set_env_var_if_provided "TRIVY_TF_VARS" "$INPUT_TF_VARS" ""
+2026-09-14T17:31:49.9924729Z set_env_var_if_provided "TRIVY_DOCKER_HOST" "$INPUT_DOCKER_HOST" ""
+2026-09-14T17:31:49.9961564Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:49.9961919Z env:
+2026-09-14T17:31:49.9962439Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:49.9963031Z   INPUT_INPUT: 
+2026-09-14T17:31:49.9963255Z   INPUT_EXIT_CODE: 1
+2026-09-14T17:31:49.9963488Z   INPUT_IGNORE_UNFIXED: true
+2026-09-14T17:31:49.9963756Z   INPUT_VULN_TYPE: os,library
+2026-09-14T17:31:49.9964740Z   INPUT_SEVERITY: HIGH,CRITICAL
+2026-09-14T17:31:49.9965027Z   INPUT_FORMAT: table
+2026-09-14T17:31:49.9965252Z   INPUT_TEMPLATE: 
+2026-09-14T17:31:49.9965470Z   INPUT_OUTPUT: 
+2026-09-14T17:31:49.9965684Z   INPUT_SKIP_DIRS: 
+2026-09-14T17:31:49.9965902Z   INPUT_SKIP_FILES: 
+2026-09-14T17:31:49.9966118Z   INPUT_TIMEOUT: 
+2026-09-14T17:31:49.9966359Z   INPUT_IGNORE_POLICY: 
+2026-09-14T17:31:49.9966586Z   INPUT_HIDE_PROGRESS: 
+2026-09-14T17:31:49.9966824Z   INPUT_LIST_ALL_PKGS: false
+2026-09-14T17:31:49.9967066Z   INPUT_SCANNERS: 
+2026-09-14T17:31:49.9967282Z   INPUT_TRIVY_CONFIG: 
+2026-09-14T17:31:49.9967502Z   INPUT_TF_VARS: 
+2026-09-14T17:31:49.9967716Z   INPUT_DOCKER_HOST: 
+2026-09-14T17:31:49.9967942Z ##[endgroup]
+2026-09-14T17:31:50.0141184Z ##[end-action id=__aquasecurity_trivy-action.__run_3;outcome=success;conclusion=success;duration_ms=25]
+2026-09-14T17:31:50.0145121Z ##[start-action display=Run Trivy;id=__aquasecurity_trivy-action.__run_4]
+2026-09-14T17:31:50.0160658Z ##[group]Run entrypoint.sh
+2026-09-14T17:31:50.0160935Z entrypoint.sh
+2026-09-14T17:31:50.0196818Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:50.0197172Z env:
+2026-09-14T17:31:50.0197688Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:50.0198286Z   INPUT_SCAN_TYPE: image
+2026-09-14T17:31:50.0198845Z   INPUT_IMAGE_REF: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:50.0199424Z   INPUT_SCAN_REF: .
+2026-09-14T17:31:50.0199660Z   INPUT_TRIVYIGNORES: 
+2026-09-14T17:31:50.0199891Z   INPUT_GITHUB_PAT: 
+2026-09-14T17:31:50.0200145Z   INPUT_LIMIT_SEVERITIES_FOR_SARIF: 
+2026-09-14T17:31:50.0200664Z   TRIVY_CACHE_DIR: /home/runner/work/microservice-app-auth-api/microservice-app-auth-api/.cache/trivy
+2026-09-14T17:31:50.0201171Z ##[endgroup]
+2026-09-14T17:31:50.0517970Z Running Trivy with options: trivy image 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:50.1716460Z 2026-09-14T17:31:50Z	INFO	[vuln] Vulnerability scanning is enabled
+2026-09-14T17:31:50.1717709Z 2026-09-14T17:31:50Z	INFO	[secret] Secret scanning is enabled
+2026-09-14T17:31:50.1718972Z 2026-09-14T17:31:50Z	INFO	[secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2026-09-14T17:31:50.1722706Z 2026-09-14T17:31:50Z	INFO	[secret] Please see https://trivy.dev/docs/v0.72/guide/scanner/secret#recommendation for faster secret detection
+2026-09-14T17:31:53.3275296Z 2026-09-14T17:31:53Z	INFO	Detected OS	family="debian" version="13.6"
+2026-09-14T17:31:53.3276953Z 2026-09-14T17:31:53Z	INFO	[debian] Detecting vulnerabilities...	os_version="13" pkg_num=5
+2026-09-14T17:31:53.3278335Z 2026-09-14T17:31:53Z	INFO	Number of language-specific files	num=1
+2026-09-14T17:31:53.3279340Z 2026-09-14T17:31:53Z	INFO	[gobinary] Detecting vulnerabilities...
+2026-09-14T17:31:53.3334760Z 2026-09-14T17:31:53Z	WARN	Using severities from other vendors for some vulnerabilities. Read https://trivy.dev/docs/v0.72/guide/scanner/vulnerability#severity-selection for details.
+2026-09-14T17:31:53.3361692Z 
+2026-09-14T17:31:53.3362207Z Report Summary
+2026-09-14T17:31:53.3362424Z 
+2026-09-14T17:31:53.3363854Z ┌──────────────────────────────────────────────────────────────────────────────────┬──────────┬─────────────────┬─────────┐
+2026-09-14T17:31:53.3365505Z │                                      Target                                      │   Type   │ Vulnerabilities │ Secrets │
+2026-09-14T17:31:53.3366592Z ├──────────────────────────────────────────────────────────────────────────────────┼──────────┼─────────────────┼─────────┤
+2026-09-14T17:31:53.3368217Z │ 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5e- │  debian  │        0        │    -    │
+2026-09-14T17:31:53.3369526Z │ d4601f09d8b8ae8f14be98f1c138f0 (debian 13.6)                                     │          │                 │         │
+2026-09-14T17:31:53.3370693Z ├──────────────────────────────────────────────────────────────────────────────────┼──────────┼─────────────────┼─────────┤
+2026-09-14T17:31:53.3371601Z │ app/auth-api                                                                     │ gobinary │        0        │    -    │
+2026-09-14T17:31:53.3372485Z └──────────────────────────────────────────────────────────────────────────────────┴──────────┴─────────────────┴─────────┘
+2026-09-14T17:31:53.3372920Z Legend:
+2026-09-14T17:31:53.3373163Z - '-': Not scanned
+2026-09-14T17:31:53.3373495Z - '0': Clean (no security findings detected)
+2026-09-14T17:31:53.3373721Z 
+2026-09-14T17:31:53.3373747Z 
+2026-09-14T17:31:53.3373925Z 📣 Notices:
+2026-09-14T17:31:53.3374635Z   - Version 0.74.0 of Trivy is now available, current version is 0.72.0
+2026-09-14T17:31:53.3374940Z 
+2026-09-14T17:31:53.3375285Z To suppress version checks, run Trivy scans with the --skip-version-check flag
+2026-09-14T17:31:53.3375631Z 
+2026-09-14T17:31:53.3427417Z ##[end-action id=__aquasecurity_trivy-action.__run_4;outcome=success;conclusion=success;duration_ms=3328]
+2026-09-14T17:31:53.3429902Z ##[start-action display=Remove Trivy Envs file;id=__aquasecurity_trivy-action.__run_5]
+2026-09-14T17:31:53.3448490Z ##[group]Run rm -f trivy_envs.txt
+2026-09-14T17:31:53.3448790Z rm -f trivy_envs.txt
+2026-09-14T17:31:53.3486658Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:53.3487030Z env:
+2026-09-14T17:31:53.3498107Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:53.3498713Z ##[endgroup]
+2026-09-14T17:31:53.3577107Z ##[end-action id=__aquasecurity_trivy-action.__run_5;outcome=success;conclusion=success;duration_ms=14]
+2026-09-14T17:31:53.3633487Z ##[group]Run anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610
+2026-09-14T17:31:53.3633911Z with:
+2026-09-14T17:31:53.3634806Z   image: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:53.3635374Z   format: spdx-json
+2026-09-14T17:31:53.3635609Z   output-file: sbom.spdx.json
+2026-09-14T17:31:53.3635862Z   path: .
+2026-09-14T17:31:53.3638386Z   github-token: ***
+2026-09-14T17:31:53.3638639Z   dependency-snapshot: false
+2026-09-14T17:31:53.3638901Z   upload-artifact: true
+2026-09-14T17:31:53.3639151Z   upload-artifact-retention: 0
+2026-09-14T17:31:53.3639428Z   upload-release-assets: true
+2026-09-14T17:31:53.3639674Z env:
+2026-09-14T17:31:53.3640172Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:53.3640750Z ##[endgroup]
+2026-09-14T17:31:53.5160697Z ------------------------------ Running SBOM Action -----------------------------
+2026-09-14T17:31:53.5670604Z [command]/usr/bin/sh /home/runner/work/_temp/d270aa6c-516f-4470-a83c-a14c627a8e06 -d -b /home/runner/work/_temp/d270aa6c-516f-4470-a83c-a14c627a8e06_syft v1.42.3
+2026-09-14T17:31:53.5731776Z [info] checking github for release tag='v1.42.3' 
+2026-09-14T17:31:53.5773560Z [debug] http_download(url=https://github.com/anchore/syft/releases/v1.42.3) 
+2026-09-14T17:31:53.8816568Z [info] fetching release script for tag='v1.42.3' 
+2026-09-14T17:31:53.8844825Z [debug] http_download(url=https://get.anchore.io/syft/v1.42.3/install.sh) 
+2026-09-14T17:31:54.0989089Z [info] checking github for release tag='v1.42.3' 
+2026-09-14T17:31:54.1027161Z [debug] http_download(url=https://github.com/anchore/syft/releases/v1.42.3) 
+2026-09-14T17:31:54.1582027Z [info] using release tag='v1.42.3' version='1.42.3' os='linux' arch='amd64' 
+2026-09-14T17:31:54.1602682Z [debug] downloading files into /tmp/tmp.UiqnRpyr2X 
+2026-09-14T17:31:54.1641748Z [debug] http_download(url=https://github.com/anchore/syft/releases/download/v1.42.3/syft_1.42.3_checksums.txt) 
+2026-09-14T17:31:54.3788512Z [debug] http_download(url=https://github.com/anchore/syft/releases/download/v1.42.3/syft_1.42.3_linux_amd64.tar.gz) 
+2026-09-14T17:31:55.3380021Z [info] installed /home/runner/work/_temp/d270aa6c-516f-4470-a83c-a14c627a8e06_syft/syft 
+2026-09-14T17:31:55.4020734Z [command]/opt/hostedtoolcache/syft/1.42.3/x64/syft scan 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0 -o spdx-json
+2026-09-14T17:31:55.4022696Z ##[group]Executing Syft...
+2026-09-14T17:31:56.6430912Z ##[endgroup]
+2026-09-14T17:31:56.6431587Z SBOM scan completed in: 3.127s
+2026-09-14T17:31:56.6460870Z ------------------------- Uploading workflow artifacts -------------------------
+2026-09-14T17:31:56.6462414Z /tmp/sbom-action-pfgdcb/microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:31:56.6463754Z ##[group]Artifact Upload
+2026-09-14T17:31:56.6467795Z Artifact name is valid!
+2026-09-14T17:31:56.6468507Z Root directory input is valid!
+2026-09-14T17:31:57.0125921Z Uploading artifact: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json.zip
+2026-09-14T17:31:57.0164698Z Beginning upload of artifact content to blob storage
+2026-09-14T17:31:57.5762204Z Uploaded bytes 110501
+2026-09-14T17:31:57.6582134Z Finished uploading artifact content to blob storage!
+2026-09-14T17:31:57.6583747Z SHA256 digest of uploaded artifact is b674b43484e7ff99ad5f51558c0a3dec4103de25629ccfd438693a3144854f53
+2026-09-14T17:31:57.6585177Z Finalizing artifact upload
+2026-09-14T17:31:58.0566618Z Artifact microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json successfully finalized. Artifact ID 10360397765
+2026-09-14T17:31:58.0567687Z ##[endgroup]
+2026-09-14T17:31:58.0717714Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:31:58.0719331Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-09-14T17:31:58.0719743Z with:
+2026-09-14T17:31:58.0720045Z   name: sbom-auth-api-52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:58.0720423Z   path: sbom.spdx.json
+2026-09-14T17:31:58.0720681Z   if-no-files-found: error
+2026-09-14T17:31:58.0720933Z   retention-days: 30
+2026-09-14T17:31:58.0721171Z   compression-level: 6
+2026-09-14T17:31:58.0721406Z   overwrite: false
+2026-09-14T17:31:58.0721636Z   include-hidden-files: false
+2026-09-14T17:31:58.0721891Z env:
+2026-09-14T17:31:58.0722431Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:58.0723276Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:31:58.0723826Z ##[endgroup]
+2026-09-14T17:31:58.2516247Z (node:11965) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:31:58.2517132Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:31:58.2566502Z With the provided path, there will be 1 file uploaded
+2026-09-14T17:31:58.2573322Z Artifact name is valid!
+2026-09-14T17:31:58.2574531Z Root directory input is valid!
+2026-09-14T17:31:58.6749468Z Beginning upload of artifact content to blob storage
+2026-09-14T17:31:58.7057278Z (node:11965) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T17:31:59.2245519Z Uploaded bytes 110381
+2026-09-14T17:31:59.3094723Z Finished uploading artifact content to blob storage!
+2026-09-14T17:31:59.3096257Z SHA256 digest of uploaded artifact zip is cdd2e8231e79e7b20385c751145d9dc5330bb3c57d3e7acaeb48a326c415a9a1
+2026-09-14T17:31:59.3097355Z Finalizing artifact upload
+2026-09-14T17:31:59.5616918Z Artifact sbom-auth-api-52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.zip successfully finalized. Artifact ID 10361161787
+2026-09-14T17:31:59.5618875Z Artifact sbom-auth-api-52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0 has been successfully uploaded! Final size is 110381 bytes. Artifact ID is 10361161787
+2026-09-14T17:31:59.5625991Z Artifact download URL: https://github.com/MicroTodoSuite/microservice-app-auth-api/actions/runs/34875097673/artifacts/10361161787
+2026-09-14T17:31:59.5752289Z ##[group]Run set -euo pipefail
+2026-09-14T17:31:59.5752665Z set -euo pipefail
+2026-09-14T17:31:59.5752977Z [[ "$AWS_ACCOUNT_ID" =~ ^[0-9]{12}$ ]] || {
+2026-09-14T17:31:59.5753487Z   echo "::error::organization variable AWS_ACCOUNT_ID must be the 12-digit AWS account"
+2026-09-14T17:31:59.5754319Z   exit 1
+2026-09-14T17:31:59.5754576Z }
+2026-09-14T17:31:59.5755045Z [[ "$PUBLISHER_ROLE_ARN" == "arn:aws:iam::${AWS_ACCOUNT_ID}:role/microtodosuite-github-ecr-publisher" ]] || {
+2026-09-14T17:31:59.5755730Z   echo "::error::publisher-role-arn is not the Terraform-owned publisher role"
+2026-09-14T17:31:59.5756170Z   exit 1
+2026-09-14T17:31:59.5756394Z }
+2026-09-14T17:31:59.5794276Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:31:59.5794657Z env:
+2026-09-14T17:31:59.5795227Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:59.5796082Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:31:59.5796792Z   PUBLISHER_ROLE_ARN: arn:aws:iam::575172595729:role/microtodosuite-github-ecr-publisher
+2026-09-14T17:31:59.5797433Z   AWS_ACCOUNT_ID: 575172595729
+2026-09-14T17:31:59.5797700Z ##[endgroup]
+2026-09-14T17:31:59.5957872Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:31:59.5959430Z ##[group]Run aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+2026-09-14T17:31:59.5959915Z with:
+2026-09-14T17:31:59.5960298Z   role-to-assume: arn:aws:iam::575172595729:role/microtodosuite-github-ecr-publisher
+2026-09-14T17:31:59.5960755Z   aws-region: us-east-1
+2026-09-14T17:31:59.5961020Z   audience: sts.amazonaws.com
+2026-09-14T17:31:59.5961305Z   output-env-credentials: true
+2026-09-14T17:31:59.5961576Z env:
+2026-09-14T17:31:59.5962089Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:31:59.5962989Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:31:59.5963539Z ##[endgroup]
+2026-09-14T17:31:59.9871620Z Assuming role with OIDC
+2026-09-14T17:32:00.2819214Z Authenticated as assumedRoleId AROAYL2XVKAISPBJTNGPX:GitHubActions
+2026-09-14T17:32:00.3759070Z ##[group]Run aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64
+2026-09-14T17:32:00.3759580Z with:
+2026-09-14T17:32:00.3759823Z   mask-password: true
+2026-09-14T17:32:00.3760096Z   registry-type: private
+2026-09-14T17:32:00.3760385Z   skip-logout: false
+2026-09-14T17:32:00.3760640Z env:
+2026-09-14T17:32:00.3761177Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:32:00.3762051Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:32:00.3762649Z   AWS_DEFAULT_REGION: us-east-1
+2026-09-14T17:32:00.3762945Z   AWS_REGION: us-east-1
+2026-09-14T17:32:00.3763279Z   AWS_ACCESS_KEY_ID: ***
+2026-09-14T17:32:00.3763668Z   AWS_SECRET_ACCESS_KEY: ***
+2026-09-14T17:32:00.3768658Z   AWS_SESSION_TOKEN: ***
+2026-09-14T17:32:00.3768947Z ##[endgroup]
+2026-09-14T17:32:00.4828077Z Using environment variable credentials.
+2026-09-14T17:32:00.7949084Z Logging into registry 575172595729.dkr.ecr.us-east-1.amazonaws.com
+2026-09-14T17:32:01.4717225Z ##[group]Run docker push "$LOCAL_IMAGE"
+2026-09-14T17:32:01.4717629Z docker push "$LOCAL_IMAGE"
+2026-09-14T17:32:01.4755143Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:32:01.4755551Z env:
+2026-09-14T17:32:01.4756099Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:32:01.4756993Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:32:01.4757600Z   AWS_DEFAULT_REGION: us-east-1
+2026-09-14T17:32:01.4757903Z   AWS_REGION: us-east-1
+2026-09-14T17:32:01.4758261Z   AWS_ACCESS_KEY_ID: ***
+2026-09-14T17:32:01.4758646Z   AWS_SECRET_ACCESS_KEY: ***
+2026-09-14T17:32:01.4763204Z   AWS_SESSION_TOKEN: ***
+2026-09-14T17:32:01.4763479Z ##[endgroup]
+2026-09-14T17:32:01.5751965Z The push refers to repository [575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api]
+2026-09-14T17:32:01.8557981Z b20219592248: Preparing
+2026-09-14T17:32:01.8558442Z d2ce0d836713: Preparing
+2026-09-14T17:32:01.8559019Z 5fd2536c39c0: Preparing
+2026-09-14T17:32:01.8562727Z 187cfc6d1e3e: Preparing
+2026-09-14T17:32:01.8563316Z ad51d0769d16: Preparing
+2026-09-14T17:32:01.8563878Z 4cde6b0bb6f5: Preparing
+2026-09-14T17:32:01.8564675Z bd3cdfae1d3f: Preparing
+2026-09-14T17:32:01.8565299Z 6f1cdceb6a31: Preparing
+2026-09-14T17:32:01.8566199Z af5aa97ebe6c: Preparing
+2026-09-14T17:32:01.8566768Z 4d049f83d9cf: Preparing
+2026-09-14T17:32:01.8567339Z 275a30dd8ce9: Preparing
+2026-09-14T17:32:01.8568320Z bec7e6bb35e0: Preparing
+2026-09-14T17:32:01.8568806Z c8b007d0206e: Preparing
+2026-09-14T17:32:01.8569225Z 621c35e751a5: Preparing
+2026-09-14T17:32:01.8569581Z 50abe06dfc09: Preparing
+2026-09-14T17:32:01.8569938Z 4cde6b0bb6f5: Waiting
+2026-09-14T17:32:01.8570269Z bd3cdfae1d3f: Waiting
+2026-09-14T17:32:01.8570601Z 6f1cdceb6a31: Waiting
+2026-09-14T17:32:01.8570943Z af5aa97ebe6c: Waiting
+2026-09-14T17:32:01.8571286Z 4d049f83d9cf: Waiting
+2026-09-14T17:32:01.8571608Z 275a30dd8ce9: Waiting
+2026-09-14T17:32:01.8571928Z bec7e6bb35e0: Waiting
+2026-09-14T17:32:01.8572250Z c8b007d0206e: Waiting
+2026-09-14T17:32:01.8572525Z 621c35e751a5: Waiting
+2026-09-14T17:32:01.8572784Z 50abe06dfc09: Waiting
+2026-09-14T17:32:03.3890216Z d2ce0d836713: Pushed
+2026-09-14T17:32:03.4873447Z 187cfc6d1e3e: Pushed
+2026-09-14T17:32:03.6363125Z 5fd2536c39c0: Pushed
+2026-09-14T17:32:03.6556594Z ad51d0769d16: Pushed
+2026-09-14T17:32:04.3742168Z b20219592248: Pushed
+2026-09-14T17:32:05.1545728Z 4cde6b0bb6f5: Pushed
+2026-09-14T17:32:05.2995468Z bd3cdfae1d3f: Pushed
+2026-09-14T17:32:05.4219241Z 6f1cdceb6a31: Pushed
+2026-09-14T17:32:05.4595673Z af5aa97ebe6c: Pushed
+2026-09-14T17:32:06.1138542Z 4d049f83d9cf: Pushed
+2026-09-14T17:32:06.6479711Z 275a30dd8ce9: Pushed
+2026-09-14T17:32:06.9977279Z 621c35e751a5: Pushed
+2026-09-14T17:32:07.1445592Z bec7e6bb35e0: Pushed
+2026-09-14T17:32:07.2917672Z c8b007d0206e: Pushed
+2026-09-14T17:32:07.6795310Z 50abe06dfc09: Pushed
+2026-09-14T17:32:09.9557881Z 52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0: digest: sha256:b8aba84e88ec6593cd99631977664ed5ec1900fe80e0b98aa02404ff680abf8b size: 3438
+2026-09-14T17:32:09.9629243Z ##[group]Run set -euo pipefail
+2026-09-14T17:32:09.9629633Z set -euo pipefail
+2026-09-14T17:32:09.9629971Z repository_name="${ECR_REPOSITORY#*/}"
+2026-09-14T17:32:09.9630363Z digest="$(aws ecr describe-images \
+2026-09-14T17:32:09.9630719Z   --region "$AWS_REGION_INPUT" \
+2026-09-14T17:32:09.9631090Z   --repository-name "$repository_name" \
+2026-09-14T17:32:09.9631489Z   --image-ids "imageTag=$GITHUB_SHA" \
+2026-09-14T17:32:09.9631860Z   --query 'imageDetails[0].imageDigest' \
+2026-09-14T17:32:09.9632209Z   --output text)"
+2026-09-14T17:32:09.9632527Z [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]] || {
+2026-09-14T17:32:09.9632965Z   echo "::error::ECR did not return an immutable sha256 digest"
+2026-09-14T17:32:09.9633356Z   exit 1
+2026-09-14T17:32:09.9633591Z }
+2026-09-14T17:32:09.9633857Z echo "digest=$digest" >> "$GITHUB_OUTPUT"
+2026-09-14T17:32:09.9634632Z echo "ref=${ECR_REPOSITORY}@${digest}" >> "$GITHUB_OUTPUT"
+2026-09-14T17:32:09.9682437Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:32:09.9682838Z env:
+2026-09-14T17:32:09.9683393Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:32:09.9684431Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:32:09.9685042Z   AWS_DEFAULT_REGION: us-east-1
+2026-09-14T17:32:09.9685337Z   AWS_REGION: us-east-1
+2026-09-14T17:32:09.9685707Z   AWS_ACCESS_KEY_ID: ***
+2026-09-14T17:32:09.9686091Z   AWS_SECRET_ACCESS_KEY: ***
+2026-09-14T17:32:09.9690594Z   AWS_SESSION_TOKEN: ***
+2026-09-14T17:32:09.9691021Z   ECR_REPOSITORY: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+2026-09-14T17:32:09.9691502Z   AWS_REGION_INPUT: us-east-1
+2026-09-14T17:32:09.9691786Z ##[endgroup]
+2026-09-14T17:32:13.8548271Z ##[group]Run sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac
+2026-09-14T17:32:13.8548744Z with:
+2026-09-14T17:32:13.8548988Z   cosign-release: v2.5.2
+2026-09-14T17:32:13.8549270Z   install-dir: $HOME/.cosign
+2026-09-14T17:32:13.8549549Z   use-sudo: false
+2026-09-14T17:32:13.8549787Z env:
+2026-09-14T17:32:13.8550319Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:32:13.8551371Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:32:13.8551948Z   AWS_DEFAULT_REGION: us-east-1
+2026-09-14T17:32:13.8552236Z   AWS_REGION: us-east-1
+2026-09-14T17:32:13.8552585Z   AWS_ACCESS_KEY_ID: ***
+2026-09-14T17:32:13.8552965Z   AWS_SECRET_ACCESS_KEY: ***
+2026-09-14T17:32:13.8557812Z   AWS_SESSION_TOKEN: ***
+2026-09-14T17:32:13.8558095Z ##[endgroup]
+2026-09-14T17:32:13.8576004Z ##[start-action display=Run #!/bin/bash;id=__sigstore_cosign-installer.__run]
+2026-09-14T17:32:13.8594199Z ##[group]Run #!/bin/bash
+2026-09-14T17:32:13.8594876Z #!/bin/bash
+2026-09-14T17:32:13.8595143Z # cosign install script
+2026-09-14T17:32:13.8595458Z shopt -s expand_aliases
+2026-09-14T17:32:13.8595759Z if [ -z "$NO_COLOR" ]; then
+2026-09-14T17:32:13.8596135Z   alias log_info="echo -e \"\033[1;32mINFO\033[0m:\""
+2026-09-14T17:32:13.8596602Z   alias log_error="echo -e \"\033[1;31mERROR\033[0m:\""
+2026-09-14T17:32:13.8596970Z else
+2026-09-14T17:32:13.8597231Z   alias log_info="echo \"INFO:\""
+2026-09-14T17:32:13.8597573Z   alias log_error="echo \"ERROR:\""
+2026-09-14T17:32:13.8597885Z fi
+2026-09-14T17:32:13.8598111Z set -e
+2026-09-14T17:32:13.8598351Z 
+2026-09-14T17:32:13.8598597Z mkdir -p $HOME/.cosign
+2026-09-14T17:32:13.8598903Z 
+2026-09-14T17:32:13.8599158Z if [[ v2.5.2 == "main" ]]; then
+2026-09-14T17:32:13.8599600Z   log_info "installing cosign via 'go install' from its main version"
+2026-09-14T17:32:13.8600046Z   GOBIN=$(go env GOPATH)/bin
+2026-09-14T17:32:13.8600438Z   go install github.com/sigstore/cosign/v2/cmd/cosign@main
+2026-09-14T17:32:13.8600876Z   ln -s $GOBIN/cosign $HOME/.cosign/cosign
+2026-09-14T17:32:13.8601217Z   exit 0
+2026-09-14T17:32:13.8601468Z fi
+2026-09-14T17:32:13.8601687Z 
+2026-09-14T17:32:13.8601909Z shaprog() {
+2026-09-14T17:32:13.8602166Z   case Linux in
+2026-09-14T17:32:13.8602431Z     Linux|linux)
+2026-09-14T17:32:13.8602720Z       sha256sum $1 | cut -d' ' -f1
+2026-09-14T17:32:13.8603030Z       ;;
+2026-09-14T17:32:13.8603269Z     macOS|macos)
+2026-09-14T17:32:13.8603567Z       shasum -a256 $1 | cut -d' ' -f1
+2026-09-14T17:32:13.8603879Z       ;;
+2026-09-14T17:32:13.8604269Z     Windows|windows)
+2026-09-14T17:32:13.8604838Z       powershell -command "(Get-FileHash $1 -Algorithm SHA256 | Select-Object -ExpandProperty Hash).ToLower()"
+2026-09-14T17:32:13.8605404Z       ;;
+2026-09-14T17:32:13.8605635Z     *)
+2026-09-14T17:32:13.8605906Z       log_error "unsupported OS Linux"
+2026-09-14T17:32:13.8606242Z       exit 1
+2026-09-14T17:32:13.8606492Z       ;;
+2026-09-14T17:32:13.8606718Z   esac
+2026-09-14T17:32:13.8606945Z }
+2026-09-14T17:32:13.8607168Z 
+2026-09-14T17:32:13.8607406Z bootstrap_version='v2.5.2'
+2026-09-14T17:32:13.8607934Z bootstrap_linux_amd64_sha='bcfeae05557a9f313ee4392d2f335d0ff69ebbfd232019e3736fb04999fe1734'
+2026-09-14T17:32:13.8608686Z bootstrap_linux_arm_sha='ecb5b9d8b6d7c8cec98363f0827456fa3207279e5f4690db6b4e6c77b10e45f9'
+2026-09-14T17:32:13.8609616Z bootstrap_linux_arm64_sha='2cbcea1873ad76274c3f241ef175d204654e3aac3e73e6ec4504e5227015cb0a'
+2026-09-14T17:32:13.8610360Z bootstrap_darwin_amd64_sha='0681abe20a482f4b9b3ed65b3debb8c6346591f2dc484b6bfa79609ff1318de4'
+2026-09-14T17:32:13.8611101Z bootstrap_darwin_arm64_sha='51fdc6d8da8310d72df10065a52247b6bebfe990d4c946dd9f71e17588256011'
+2026-09-14T17:32:13.8611851Z bootstrap_windows_amd64_sha='fef1c4731da9112d4cf2f6d93ae2a1551c73116a4f73fab7b0c15b38e95ff688'
+2026-09-14T17:32:13.8612547Z cosign_executable_name=cosign
+2026-09-14T17:32:13.8612852Z 
+2026-09-14T17:32:13.8613093Z trap "popd >/dev/null" EXIT
+2026-09-14T17:32:13.8613393Z 
+2026-09-14T17:32:13.8613635Z pushd $HOME/.cosign > /dev/null
+2026-09-14T17:32:13.8614057Z 
+2026-09-14T17:32:13.8614286Z case Linux in
+2026-09-14T17:32:13.8614551Z   Linux|linux)
+2026-09-14T17:32:13.8614811Z     case X64 in
+2026-09-14T17:32:13.8615075Z       X64|amd64)
+2026-09-14T17:32:13.8615401Z         bootstrap_filename='cosign-linux-amd64'
+2026-09-14T17:32:13.8615814Z         bootstrap_sha=${bootstrap_linux_amd64_sha}
+2026-09-14T17:32:13.8616233Z         desired_cosign_filename='cosign-linux-amd64'
+2026-09-14T17:32:13.8616714Z         # v0.6.0 had different filename structures from all other releases
+2026-09-14T17:32:13.8617162Z         if [[ v2.5.2 == 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8617607Z           desired_cosign_filename='cosign_linux_amd64_0.6.0_linux_amd64'
+2026-09-14T17:32:13.8618169Z           desired_cosign_v060_signature='cosign_linux_amd64_0.6.0_linux_amd64.sig'
+2026-09-14T17:32:13.8618616Z         fi
+2026-09-14T17:32:13.8618860Z         ;;
+2026-09-14T17:32:13.8619096Z 
+2026-09-14T17:32:13.8619319Z       ARM|arm)
+2026-09-14T17:32:13.8619629Z         bootstrap_filename='cosign-linux-arm'
+2026-09-14T17:32:13.8620036Z         bootstrap_sha=${bootstrap_linux_arm_sha}
+2026-09-14T17:32:13.8620450Z         desired_cosign_filename='cosign-linux-arm'
+2026-09-14T17:32:13.8620824Z         if [[ v2.5.2 == 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8621219Z           log_error "linux-arm build not available at v0.6.0"
+2026-09-14T17:32:13.8621601Z           exit 1
+2026-09-14T17:32:13.8621861Z         fi
+2026-09-14T17:32:13.8622099Z         ;;
+2026-09-14T17:32:13.8622347Z 
+2026-09-14T17:32:13.8622577Z       ARM64|arm64)
+2026-09-14T17:32:13.8622905Z         bootstrap_filename='cosign-linux-arm64'
+2026-09-14T17:32:13.8623307Z         bootstrap_sha=${bootstrap_linux_arm64_sha}
+2026-09-14T17:32:13.8623768Z         desired_cosign_filename='cosign-linux-arm64'
+2026-09-14T17:32:13.8624533Z         if [[ v2.5.2 == 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8624962Z           log_error "linux-arm64 build not available at v0.6.0"
+2026-09-14T17:32:13.8625361Z           exit 1
+2026-09-14T17:32:13.8625624Z         fi
+2026-09-14T17:32:13.8625859Z         ;;
+2026-09-14T17:32:13.8626090Z 
+2026-09-14T17:32:13.8626304Z       *)
+2026-09-14T17:32:13.8626591Z         log_error "unsupported architecture X64"
+2026-09-14T17:32:13.8626942Z         exit 1
+2026-09-14T17:32:13.8627196Z         ;;
+2026-09-14T17:32:13.8627445Z     esac
+2026-09-14T17:32:13.8627677Z     ;;
+2026-09-14T17:32:13.8627905Z 
+2026-09-14T17:32:13.8628131Z   macOS|macos)
+2026-09-14T17:32:13.8628392Z     case X64 in
+2026-09-14T17:32:13.8628657Z       X64|amd64)
+2026-09-14T17:32:13.8628970Z         bootstrap_filename='cosign-darwin-amd64'
+2026-09-14T17:32:13.8629383Z         bootstrap_sha=${bootstrap_darwin_amd64_sha}
+2026-09-14T17:32:13.8629812Z         desired_cosign_filename='cosign-darwin-amd64'
+2026-09-14T17:32:13.8630447Z         # v0.6.0 had different filename structures from all other releases
+2026-09-14T17:32:13.8630900Z         if [[ v2.5.2 == 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8631327Z           desired_cosign_filename='cosign_darwin_amd64_0.6.0_darwin_amd64'
+2026-09-14T17:32:13.8631904Z           desired_cosign_v060_signature='cosign_darwin_amd64_0.6.0_darwin_amd64.sig'
+2026-09-14T17:32:13.8632483Z         fi
+2026-09-14T17:32:13.8632737Z         ;;
+2026-09-14T17:32:13.8632971Z 
+2026-09-14T17:32:13.8633201Z       ARM64|arm64)
+2026-09-14T17:32:13.8633533Z         bootstrap_filename='cosign-darwin-arm64'
+2026-09-14T17:32:13.8634209Z         bootstrap_sha=${bootstrap_darwin_arm64_sha}
+2026-09-14T17:32:13.8634818Z         desired_cosign_filename='cosign-darwin-arm64'
+2026-09-14T17:32:13.8635304Z         # v0.6.0 had different filename structures from all other releases
+2026-09-14T17:32:13.8635769Z         if [[ v2.5.2 == 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8636195Z           desired_cosign_filename='cosign_darwin_arm64_0.6.0_darwin_arm64'
+2026-09-14T17:32:13.8636768Z           desired_cosign_v060_signature='cosign_darwin_arm64_0.6.0_darwin_arm64.sig'
+2026-09-14T17:32:13.8637228Z         fi
+2026-09-14T17:32:13.8637472Z         ;;
+2026-09-14T17:32:13.8637724Z 
+2026-09-14T17:32:13.8637945Z       *)
+2026-09-14T17:32:13.8638239Z         log_error "unsupported architecture X64"
+2026-09-14T17:32:13.8638590Z         exit 1
+2026-09-14T17:32:13.8638846Z         ;;
+2026-09-14T17:32:13.8639083Z     esac
+2026-09-14T17:32:13.8639309Z     ;;
+2026-09-14T17:32:13.8639538Z 
+2026-09-14T17:32:13.8639769Z   Windows|windows)
+2026-09-14T17:32:13.8640042Z     case X64 in
+2026-09-14T17:32:13.8640301Z       X64|amd64)
+2026-09-14T17:32:13.8640636Z         bootstrap_filename='cosign-windows-amd64.exe'
+2026-09-14T17:32:13.8641057Z         bootstrap_sha=${bootstrap_windows_amd64_sha}
+2026-09-14T17:32:13.8641490Z         desired_cosign_filename='cosign-windows-amd64.exe'
+2026-09-14T17:32:13.8641905Z         cosign_executable_name=cosign.exe
+2026-09-14T17:32:13.8642346Z         # v0.6.0 had different filename structures from all other releases
+2026-09-14T17:32:13.8642783Z         if [[ v2.5.2 == 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8643230Z           desired_cosign_filename='cosign_windows_amd64_0.6.0_windows_amd64.exe'
+2026-09-14T17:32:13.8643843Z           desired_cosign_v060_signature='cosign_windows_amd64_0.6.0_windows_amd64.exe.sig'
+2026-09-14T17:32:13.8644466Z         fi
+2026-09-14T17:32:13.8644706Z         ;;
+2026-09-14T17:32:13.8644949Z       *)
+2026-09-14T17:32:13.8645245Z         log_error "unsupported architecture X64"
+2026-09-14T17:32:13.8645598Z         exit 1
+2026-09-14T17:32:13.8645855Z         ;;
+2026-09-14T17:32:13.8646090Z     esac
+2026-09-14T17:32:13.8646319Z     ;;
+2026-09-14T17:32:13.8646546Z   *)
+2026-09-14T17:32:13.8646804Z     log_error "unsupported os Linux"
+2026-09-14T17:32:13.8647141Z     exit 1
+2026-09-14T17:32:13.8647381Z     ;;
+2026-09-14T17:32:13.8647617Z esac
+2026-09-14T17:32:13.8647843Z 
+2026-09-14T17:32:13.8648060Z SUDO=
+2026-09-14T17:32:13.8648386Z if [[ "false" == "true" ]] && command -v sudo >/dev/null; then
+2026-09-14T17:32:13.8648771Z   SUDO=sudo
+2026-09-14T17:32:13.8649014Z fi
+2026-09-14T17:32:13.8649235Z 
+2026-09-14T17:32:13.8649534Z expected_bootstrap_version_digest=${bootstrap_sha}
+2026-09-14T17:32:13.8650681Z log_info "Downloading bootstrap version '${bootstrap_version}' of cosign to verify version to be installed...\n      https://github.com/sigstore/cosign/releases/download/${bootstrap_version}/${bootstrap_filename}"
+2026-09-14T17:32:13.8652000Z $SUDO curl -fsL https://github.com/sigstore/cosign/releases/download/${bootstrap_version}/${bootstrap_filename} -o ${cosign_executable_name}
+2026-09-14T17:32:13.8652769Z shaBootstrap=$(shaprog ${cosign_executable_name});
+2026-09-14T17:32:13.8653262Z if [[ $shaBootstrap != ${expected_bootstrap_version_digest} ]]; then
+2026-09-14T17:32:13.8653884Z   log_error "Unable to validate cosign version: 'v2.5.2'"
+2026-09-14T17:32:13.8654410Z   exit 1
+2026-09-14T17:32:13.8654644Z fi
+2026-09-14T17:32:13.8654907Z $SUDO chmod +x ${cosign_executable_name}
+2026-09-14T17:32:13.8655238Z 
+2026-09-14T17:32:13.8655597Z # If the bootstrap and specified `cosign` releases are the same, we're done.
+2026-09-14T17:32:13.8656102Z if [[ v2.5.2 == ${bootstrap_version} ]]; then
+2026-09-14T17:32:13.8656697Z   log_info "bootstrap version successfully verified and matches requested version so nothing else to do"
+2026-09-14T17:32:13.8657246Z   exit 0
+2026-09-14T17:32:13.8657477Z fi
+2026-09-14T17:32:13.8657697Z 
+2026-09-14T17:32:13.8657986Z semver='^v([0-9]+\.){0,2}(\*|[0-9]+)(-?r?c?)(\.[0-9]+)$'
+2026-09-14T17:32:13.8658364Z if [[ v2.5.2 =~ $semver ]]; then
+2026-09-14T17:32:13.8658752Z   log_info "Custom cosign version 'v2.5.2' requested"
+2026-09-14T17:32:13.8659108Z else
+2026-09-14T17:32:13.8659453Z   log_error "Unable to validate requested cosign version: 'v2.5.2'"
+2026-09-14T17:32:13.8659864Z   exit 1
+2026-09-14T17:32:13.8660098Z fi
+2026-09-14T17:32:13.8660315Z 
+2026-09-14T17:32:13.8660548Z # Download custom cosign
+2026-09-14T17:32:13.8661313Z log_info "Downloading platform-specific version 'v2.5.2' of cosign...\n      https://github.com/sigstore/cosign/releases/download/v2.5.2/${desired_cosign_filename}"
+2026-09-14T17:32:13.8662378Z $SUDO curl -fsL https://github.com/sigstore/cosign/releases/download/v2.5.2/${desired_cosign_filename} -o cosign_v2.5.2
+2026-09-14T17:32:13.8663017Z shaCustom=$(shaprog cosign_v2.5.2);
+2026-09-14T17:32:13.8663343Z 
+2026-09-14T17:32:13.8663599Z # same hash means it is the same release
+2026-09-14T17:32:13.8664096Z if [[ $shaCustom != $shaBootstrap ]]; then
+2026-09-14T17:32:13.8664503Z   if [[ v2.5.2 == 'v0.6.0' && Linux == 'Linux' ]]; then
+2026-09-14T17:32:13.8664945Z     # v0.6.0's linux release has a dependency on `libpcsclite1`
+2026-09-14T17:32:13.8665447Z     log_info "Installing libpcsclite1 package if necessary..."
+2026-09-14T17:32:13.8665845Z     set +e
+2026-09-14T17:32:13.8666111Z     sudo dpkg -s libpcsclite1
+2026-09-14T17:32:13.8666428Z     if [ $? -eq 0 ]; then
+2026-09-14T17:32:13.8666805Z         log_info "libpcsclite1 package is already installed"
+2026-09-14T17:32:13.8667187Z     else
+2026-09-14T17:32:13.8667560Z          log_info "libpcsclite1 package is not installed, installing it now."
+2026-09-14T17:32:13.8668027Z          sudo apt-get update -q -q
+2026-09-14T17:32:13.8668398Z          sudo apt-get install -yq libpcsclite1
+2026-09-14T17:32:13.8668739Z     fi
+2026-09-14T17:32:13.8668975Z     set -e
+2026-09-14T17:32:13.8669221Z   fi
+2026-09-14T17:32:13.8669452Z 
+2026-09-14T17:32:13.8669693Z   if [[ v2.5.2 == 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8670541Z     log_info "Downloading detached signature for platform-specific 'v2.5.2' of cosign...\n      https://github.com/sigstore/cosign/releases/download/v2.5.2/${desired_cosign_v060_signature}"
+2026-09-14T17:32:13.8671870Z     $SUDO curl -fsL https://github.com/sigstore/cosign/releases/download/v2.5.2/${desired_cosign_v060_signature} -o ${desired_cosign_filename}.sig
+2026-09-14T17:32:13.8672555Z   else
+2026-09-14T17:32:13.8673307Z     log_info "Downloading detached signature for platform-specific 'v2.5.2' of cosign...\n      https://github.com/sigstore/cosign/releases/download/v2.5.2/${desired_cosign_filename}.sig"
+2026-09-14T17:32:13.8674750Z     $SUDO curl -fsLO https://github.com/sigstore/cosign/releases/download/v2.5.2/${desired_cosign_filename}.sig
+2026-09-14T17:32:13.8675482Z   fi
+2026-09-14T17:32:13.8675712Z 
+2026-09-14T17:32:13.8675949Z   if [[ v2.5.2 < 'v0.6.0' ]]; then
+2026-09-14T17:32:13.8676669Z     log_info "Downloading cosign public key 'v2.5.2' of cosign...\n    https://raw.githubusercontent.com/sigstore/cosign/v2.5.2/.github/workflows/cosign.pub"
+2026-09-14T17:32:13.8677664Z     RELEASE_COSIGN_PUB_KEY=https://raw.githubusercontent.com/sigstore/cosign/v2.5.2/.github/workflows/cosign.pub
+2026-09-14T17:32:13.8678477Z     RELEASE_COSIGN_PUB_KEY_SHA='4aa4bd19530a4929d758a9896255aef2c82f1a3a9f4b000034c6df4307c14f9e'
+2026-09-14T17:32:13.8678993Z   else
+2026-09-14T17:32:13.8679631Z     log_info "Downloading cosign public key 'v2.5.2' of cosign...\n    https://raw.githubusercontent.com/sigstore/cosign/v2.5.2/release/release-cosign.pub"
+2026-09-14T17:32:13.8680604Z     RELEASE_COSIGN_PUB_KEY=https://raw.githubusercontent.com/sigstore/cosign/v2.5.2/release/release-cosign.pub
+2026-09-14T17:32:13.8681396Z     RELEASE_COSIGN_PUB_KEY_SHA='f4cea466e5e887a45da5031757fa1d32655d83420639dc1758749b744179f126'
+2026-09-14T17:32:13.8681906Z   fi
+2026-09-14T17:32:13.8682132Z 
+2026-09-14T17:32:13.8682438Z   log_info "Verifying public key matches expected value"
+2026-09-14T17:32:13.8682900Z   $SUDO curl -fsL $RELEASE_COSIGN_PUB_KEY -o public.key
+2026-09-14T17:32:13.8683306Z   sha_fetched_key=$(shaprog public.key)
+2026-09-14T17:32:13.8683744Z   if [[ $sha_fetched_key != $RELEASE_COSIGN_PUB_KEY_SHA ]]; then
+2026-09-14T17:32:13.8684412Z     log_error "Fetched public key does not match expected digest, exiting"
+2026-09-14T17:32:13.8684848Z     exit 1
+2026-09-14T17:32:13.8685089Z   fi
+2026-09-14T17:32:13.8685312Z 
+2026-09-14T17:32:13.8685697Z   log_info "Using bootstrap cosign to verify signature of desired cosign version"
+2026-09-14T17:32:13.8686393Z   ./cosign verify-blob --key public.key --signature ${desired_cosign_filename}.sig cosign_v2.5.2
+2026-09-14T17:32:13.8686914Z 
+2026-09-14T17:32:13.8687141Z   $SUDO rm cosign
+2026-09-14T17:32:13.8687476Z   $SUDO mv cosign_v2.5.2 ${cosign_executable_name}
+2026-09-14T17:32:13.8687873Z   $SUDO chmod +x ${cosign_executable_name}
+2026-09-14T17:32:13.8688238Z   log_info "Installation complete!"
+2026-09-14T17:32:13.8688559Z fi
+2026-09-14T17:32:13.8725972Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:32:13.8726376Z env:
+2026-09-14T17:32:13.8726920Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:32:13.8727789Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:32:13.8728395Z   AWS_DEFAULT_REGION: us-east-1
+2026-09-14T17:32:13.8728706Z   AWS_REGION: us-east-1
+2026-09-14T17:32:13.8729084Z   AWS_ACCESS_KEY_ID: ***
+2026-09-14T17:32:13.8729473Z   AWS_SECRET_ACCESS_KEY: ***
+2026-09-14T17:32:13.8746296Z   AWS_SESSION_TOKEN: ***
+2026-09-14T17:32:13.8746808Z ##[endgroup]
+2026-09-14T17:32:13.8830495Z INFO: Downloading bootstrap version 'v2.5.2' of cosign to verify version to be installed...
+2026-09-14T17:32:13.8831421Z       https://github.com/sigstore/cosign/releases/download/v2.5.2/cosign-linux-amd64
+2026-09-14T17:32:14.6829074Z INFO: bootstrap version successfully verified and matches requested version so nothing else to do
+2026-09-14T17:32:14.6836282Z ##[end-action id=__sigstore_cosign-installer.__run;outcome=success;conclusion=success;duration_ms=825]
+2026-09-14T17:32:14.6840017Z ##[start-action display=Run echo "$HOME/.cosign" >> $GITHUB_PATH;id=__sigstore_cosign-installer.__run_2]
+2026-09-14T17:32:14.6860644Z ##[group]Run echo "$HOME/.cosign" >> $GITHUB_PATH
+2026-09-14T17:32:14.6861200Z echo "$HOME/.cosign" >> $GITHUB_PATH
+2026-09-14T17:32:14.6898635Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:32:14.6899034Z env:
+2026-09-14T17:32:14.6899583Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:32:14.6900487Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:32:14.6901080Z   AWS_DEFAULT_REGION: us-east-1
+2026-09-14T17:32:14.6901377Z   AWS_REGION: us-east-1
+2026-09-14T17:32:14.6901743Z   AWS_ACCESS_KEY_ID: ***
+2026-09-14T17:32:14.6902125Z   AWS_SECRET_ACCESS_KEY: ***
+2026-09-14T17:32:14.6907115Z   AWS_SESSION_TOKEN: ***
+2026-09-14T17:32:14.6907410Z ##[endgroup]
+2026-09-14T17:32:14.6978509Z ##[end-action id=__sigstore_cosign-installer.__run_2;outcome=success;conclusion=success;duration_ms=13]
+2026-09-14T17:32:14.6982220Z ##[start-action display=Run echo "$HOME/.cosign" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append;id=__sigstore_cosign-installer.__run_3]
+2026-09-14T17:32:14.6986644Z ##[end-action id=__sigstore_cosign-installer.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-09-14T17:32:14.7017123Z ##[group]Run set -euo pipefail
+2026-09-14T17:32:14.7017514Z set -euo pipefail
+2026-09-14T17:32:14.7017970Z cosign attest --predicate sbom.spdx.json --type spdxjson "$IMAGE_REF"
+2026-09-14T17:32:14.7018454Z cosign sign "$IMAGE_REF"
+2026-09-14T17:32:14.7055799Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-14T17:32:14.7056188Z env:
+2026-09-14T17:32:14.7056726Z   LOCAL_IMAGE: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api:52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0
+2026-09-14T17:32:14.7057613Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: microtodosuite-auth-api_52f4fdff5ed4601f09d8b8ae8f14be98f1c138f0.spdx.json
+2026-09-14T17:32:14.7058203Z   AWS_DEFAULT_REGION: us-east-1
+2026-09-14T17:32:14.7058494Z   AWS_REGION: us-east-1
+2026-09-14T17:32:14.7058856Z   AWS_ACCESS_KEY_ID: ***
+2026-09-14T17:32:14.7059232Z   AWS_SECRET_ACCESS_KEY: ***
+2026-09-14T17:32:14.7063819Z   AWS_SESSION_TOKEN: ***
+2026-09-14T17:32:14.7064871Z   IMAGE_REF: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api@sha256:b8aba84e88ec6593cd99631977664ed5ec1900fe80e0b98aa02404ff680abf8b
+2026-09-14T17:32:14.7065590Z   COSIGN_YES: true
+2026-09-14T17:32:14.7065839Z ##[endgroup]
+2026-09-14T17:32:15.0301572Z Generating ephemeral keys...
+2026-09-14T17:32:15.3040021Z Retrieving signed certificate...
+2026-09-14T17:32:15.5815213Z Successfully verified SCT...
+2026-09-14T17:32:15.5815991Z Using payload from: sbom.spdx.json
+2026-09-14T17:32:15.6036538Z 
+2026-09-14T17:32:15.6038049Z 	The sigstore service, hosted by sigstore a Series of LF Projects, LLC, is provided pursuant to the Hosted Project Tools Terms of Use, available at https://lfprojects.org/policies/hosted-project-tools-terms-of-use/.
+2026-09-14T17:32:15.6039580Z 	Note that if your submission includes personal data associated with this signed artifact, it will be part of an immutable record.
+2026-09-14T17:32:15.6040702Z 	This may include the email address associated with the account with which you authenticate your contractual Agreement.
+2026-09-14T17:32:15.6042909Z 	This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later, and is subject to the Immutable Record notice at https://lfprojects.org/policies/hosted-project-tools-immutable-records/.
+2026-09-14T17:32:15.6043871Z 
+2026-09-14T17:32:15.6045211Z By typing 'y', you attest that (1) you are not submitting the personal data of any other person; and (2) you understand and agree to the statement and the Agreement terms at the URLs listed above.
+2026-09-14T17:32:16.1625531Z tlog entry created with index: 2833434947
+2026-09-14T17:32:18.3888136Z Generating ephemeral keys...
+2026-09-14T17:32:18.6457613Z Retrieving signed certificate...
+2026-09-14T17:32:18.8539667Z Successfully verified SCT...
+2026-09-14T17:32:19.1912716Z 
+2026-09-14T17:32:19.1916170Z 	The sigstore service, hosted by sigstore a Series of LF Projects, LLC, is provided pursuant to the Hosted Project Tools Terms of Use, available at https://lfprojects.org/policies/hosted-project-tools-terms-of-use/.
+2026-09-14T17:32:19.1918886Z 	Note that if your submission includes personal data associated with this signed artifact, it will be part of an immutable record.
+2026-09-14T17:32:19.1920677Z 	This may include the email address associated with the account with which you authenticate your contractual Agreement.
+2026-09-14T17:32:19.1923262Z 	This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later, and is subject to the Immutable Record notice at https://lfprojects.org/policies/hosted-project-tools-immutable-records/.
+2026-09-14T17:32:19.1925067Z 
+2026-09-14T17:32:19.1926428Z By typing 'y', you attest that (1) you are not submitting the personal data of any other person; and (2) you understand and agree to the statement and the Agreement terms at the URLs listed above.
+2026-09-14T17:32:19.5436900Z tlog entry created with index: 2833435053
+2026-09-14T17:32:19.5438606Z Pushing signature to: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+2026-09-14T17:32:21.0558461Z Post job cleanup.
+2026-09-14T17:32:21.1220599Z Logging out of registry 575172595729.dkr.ecr.us-east-1.amazonaws.com
+2026-09-14T17:32:21.1657035Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:21.1658448Z Post job cleanup.
+2026-09-14T17:32:21.2945960Z Post job cleanup.
+2026-09-14T17:32:21.2953705Z ##[start-action display=Restore DB from cache;id=__a7173e1e-105f-479e-87f4-9c9d9fbd63ea.__actions_cache]
+2026-09-14T17:32:21.2992417Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:21.2993701Z Post job cleanup.
+2026-09-14T17:32:21.4156710Z Cache hit occurred on the primary key cache-trivy-2026-09-14, not saving cache.
+2026-09-14T17:32:21.4158910Z (node:12092) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:32:21.4160854Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:32:21.4218743Z ##[end-action id=__a7173e1e-105f-479e-87f4-9c9d9fbd63ea.__actions_cache;outcome=success;conclusion=success;duration_ms=126]
+2026-09-14T17:32:21.4221353Z ##[start-action display=Install Trivy;id=__a7173e1e-105f-479e-87f4-9c9d9fbd63ea.__aquasecurity_setup-trivy]
+2026-09-14T17:32:21.4292645Z Post job cleanup.
+2026-09-14T17:32:21.4296603Z ##[start-action display=Restore Trivy binary from cache;id=__a7173e1e-105f-479e-87f4-9c9d9fbd63ea.__aquasecurity_setup-trivy.cache]
+2026-09-14T17:32:21.4331693Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:21.4332956Z Post job cleanup.
+2026-09-14T17:32:21.5529967Z Cache hit occurred on the primary key trivy-binary-v0.72.0-Linux-X64, not saving cache.
+2026-09-14T17:32:21.5533609Z (node:12100) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:32:21.5535446Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:32:21.5620672Z ##[end-action id=__a7173e1e-105f-479e-87f4-9c9d9fbd63ea.__aquasecurity_setup-trivy.cache;outcome=success;conclusion=success;duration_ms=132]
+2026-09-14T17:32:21.5625494Z ##[end-action id=__a7173e1e-105f-479e-87f4-9c9d9fbd63ea.__aquasecurity_setup-trivy;outcome=success;conclusion=success;duration_ms=140]
+2026-09-14T17:32:21.5711511Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:21.5712875Z Post job cleanup.
+2026-09-14T17:32:21.8237424Z ##[group]Generating build summary
+2026-09-14T17:32:21.8242608Z exporting build record to /home/runner/work/_temp/docker-actions-toolkit-VM0h6T/export
+2026-09-14T17:32:21.8257532Z (node:12108) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:32:21.8258672Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:32:22.0181466Z [command]/usr/bin/docker buildx history export --builder builder-b34f2e04-7a14-432a-a861-b15aa5be2598 --output /home/runner/work/_temp/docker-actions-toolkit-VM0h6T/export/MicroTodoSuite~microservice-app-auth-api~178PHQ.dockerbuild 178phq8066lpxfne1xziph95x --finalize
+2026-09-14T17:32:22.2057923Z Build record written to /home/runner/work/_temp/docker-actions-toolkit-VM0h6T/export/MicroTodoSuite~microservice-app-auth-api~178PHQ.dockerbuild (47.73 KB)
+2026-09-14T17:32:22.2081350Z Uploading MicroTodoSuite~microservice-app-auth-api~178PHQ.dockerbuild to blob storage
+2026-09-14T17:32:22.6103172Z Beginning upload of artifact content to blob storage
+2026-09-14T17:32:22.6194909Z (node:12108) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T17:32:22.6202627Z Uploaded bytes 48875
+2026-09-14T17:32:23.0672082Z Finished uploading artifact content to blob storage!
+2026-09-14T17:32:23.0676486Z SHA256 hash of uploaded artifact is 2a219d9898ed1598131755fad72447e43c42be370645e8ca0fb852d1fd13dee1
+2026-09-14T17:32:23.0678306Z Finalizing artifact upload
+2026-09-14T17:32:23.4830854Z Artifact successfully finalized (10360992110)
+2026-09-14T17:32:23.4833021Z Artifact download URL: https://github.com/MicroTodoSuite/microservice-app-auth-api/actions/runs/34875097673/artifacts/10360992110
+2026-09-14T17:32:23.4860702Z Writing summary
+2026-09-14T17:32:23.4875126Z ##[endgroup]
+2026-09-14T17:32:23.4876187Z ##[group]Removing temp folder /home/runner/work/_temp/docker-actions-toolkit-pVLLzM
+2026-09-14T17:32:23.4878849Z ##[endgroup]
+2026-09-14T17:32:23.4879649Z ##[group]Post cache
+2026-09-14T17:32:23.4880808Z State not set
+2026-09-14T17:32:23.4881633Z ##[endgroup]
+2026-09-14T17:32:23.5044726Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:23.5046092Z Post job cleanup.
+2026-09-14T17:32:23.7642222Z ##[group]Removing builder
+2026-09-14T17:32:23.7650975Z (node:12258) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:32:23.7652644Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:32:23.8791608Z [command]/usr/bin/docker buildx rm builder-b34f2e04-7a14-432a-a861-b15aa5be2598
+2026-09-14T17:32:25.4742726Z builder-b34f2e04-7a14-432a-a861-b15aa5be2598 removed
+2026-09-14T17:32:25.4782000Z ##[endgroup]
+2026-09-14T17:32:25.4782787Z ##[group]Cleaning up certificates
+2026-09-14T17:32:25.4785437Z ##[endgroup]
+2026-09-14T17:32:25.4785887Z ##[group]Post cache
+2026-09-14T17:32:25.4787508Z State not set
+2026-09-14T17:32:25.4788141Z ##[endgroup]
+2026-09-14T17:32:25.4951849Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:25.4953211Z Post job cleanup.
+2026-09-14T17:32:25.6269197Z (node:12383) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:32:25.6270279Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:32:25.6479662Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:25.6481949Z Post job cleanup.
+2026-09-14T17:32:25.7783226Z (node:12391) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T17:32:25.7785249Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T17:32:25.7869580Z [command]/opt/hostedtoolcache/go/1.26.6/x64/bin/go env GOMODCACHE
+2026-09-14T17:32:25.7917203Z [command]/opt/hostedtoolcache/go/1.26.6/x64/bin/go env GOCACHE
+2026-09-14T17:32:25.7956415Z /home/runner/go/pkg/mod
+2026-09-14T17:32:25.7980712Z /home/runner/.cache/go-build
+2026-09-14T17:32:25.7989012Z Cache hit occurred on the primary key setup-go-Linux-x64-ubuntu24-go-1.26.6-b59f35301c8aa2be18df0853da83948c3a764079bbb0dd876804373a3088b518, not saving cache.
+2026-09-14T17:32:25.8183079Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T17:32:25.8185693Z Post job cleanup.
+2026-09-14T17:32:25.9097901Z [command]/usr/bin/git version
+2026-09-14T17:32:25.9145982Z git version 2.55.0
+2026-09-14T17:32:25.9189561Z Temporarily overriding HOME='/home/runner/work/_temp/0bdc5949-b026-4549-b3f3-cbe2268f0a3b' before making global git config changes
+2026-09-14T17:32:25.9191717Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T17:32:25.9196669Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/microservice-app-auth-api/microservice-app-auth-api
+2026-09-14T17:32:25.9250006Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T17:32:25.9292771Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T17:32:25.9565076Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T17:32:25.9596110Z http.https://github.com/.extraheader
+2026-09-14T17:32:25.9610156Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-14T17:32:25.9659783Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T17:32:25.9930166Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T17:32:25.9983648Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T17:32:26.0392677Z Evaluate and set job outputs
+2026-09-14T17:32:26.0397692Z Set output 'digest'
+2026-09-14T17:32:26.0400019Z Set output 'ref'
+2026-09-14T17:32:26.0401099Z Cleaning up orphan processes
+2026-09-14T17:32:26.0835408Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809, actions/checkout@11d5960a326750d5838078e36cf38b85af677262, actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff, actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020, actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02, aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708, docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8, docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
