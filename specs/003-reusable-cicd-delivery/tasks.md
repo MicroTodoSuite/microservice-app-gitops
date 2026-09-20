@@ -97,7 +97,14 @@ not new test suites.
   > records the design. **Still open**: enabling `require_code_owner_reviews` on
   > `main`'s live branch protection -- a repository-settings change outside this
   > pull request's diff, pending explicit confirmation before it is applied.
-- [ ] T021 [US2] Validate: digest identical across dev/staging/prod PRs, each PR scoped to one overlay, concurrent promotions don't collide, zero cluster mutation (quickstart §5)
+- [X] T021 [US2] Validate: digest identical across dev/staging/prod PRs, each PR scoped to one overlay, concurrent promotions don't collide, zero cluster mutation (quickstart §5)
+
+  > **Delivered.** Audited the fifteen real `promote.yml` pull requests merged
+  > 2026-09-14 (`gitops#150`-`#164`, five services x dev/staging/prod):
+  > digest identical across all three environments for every service, each PR
+  > touches exactly one overlay file, zero file-level collisions across the
+  > sixteen-minute concurrent merge window, and zero CI path that mutates a
+  > cluster. See `evidence/runs/20260920T231206Z-promotion-validation/README.md`.
 
 **Checkpoint**: The CI→ArgoCD delivery flow works build-once, digest-only, GitOps-only.
 
