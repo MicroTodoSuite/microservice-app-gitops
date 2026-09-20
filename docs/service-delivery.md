@@ -24,13 +24,23 @@ approval; rollback is `git revert`. No CI step mutates a cluster. See
 ## Shared JWT secret
 
 `auth-api`, `todos-api`, and `users-api` all consume `JWT_SECRET` and must share
-the **same value** so a token issued by `auth-api` verifies in the others. Each
-service's local overlay currently provisions its own ESO `Password` generator,
-which is correct when a service is activated in isolation. **Co-activating all
-three locally requires a single shared source** (for example a Kubernetes-provider
-`SecretStore` reading one owner Secret, or one shared Secret name consumed by all
-three); this is a tracked follow-up. Managed environments map all three to the
-same AWS Secrets Manager key through ESO. No JWT value is ever committed.
+the **same value** so a token issued by `auth-api` verifies in the others
+(research D13, `specs/003-reusable-cicd-delivery/research.md`). Locally,
+`auth-api`'s `overlays/local` is the **only** one that generates a value: its
+ESO `Password` generator plus `ExternalSecret` write it into `auth-api-secrets`
+(key `JWT_SECRET`). `todos-api` and `users-api` never provision a generator or
+`ExternalSecret` of their own -- their base `Deployment` reads
+`auth-api-secrets`/`JWT_SECRET` directly by name, a same-namespace Kubernetes
+Secret reference that needs no ExternalSecret on their side. One generated
+value, three consumers.
+
+This makes activation order matter locally: `auth-api-secrets` must exist
+before `todos-api` or `users-api` can start, which is why
+`scripts/pilot/publish-services.sh` always publishes `auth-api` before the
+other services. `tests/contract/shared-jwt-local.sh` guards both halves of the
+design -- the shared source exists, and neither consumer silently duplicates
+it. Managed environments map all three to the same AWS Secrets Manager key
+through ESO. No JWT value is ever committed.
 
 ## Redis (shared dependency, not a business service)
 
