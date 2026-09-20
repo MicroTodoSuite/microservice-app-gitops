@@ -173,6 +173,9 @@ jobs:
       - name: Validate the service tracing configuration (spec 010)
         run: tests/contract/service-tracing.sh
 
+      - name: Validate a designated codeowner for prod overlay changes (spec 003 T020)
+        run: tests/contract/prod-overlay-approval.sh
+
       - name: Reject committed secret material
         run: |
           set -euo pipefail
