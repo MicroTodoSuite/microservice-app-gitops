@@ -22,10 +22,32 @@ fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 # The collector must only read. A write verb against a managed cluster in its
 # source is a defect no runtime check would catch here, because the live half
 # never executes in this environment.
-if grep -nE '(kubectl|kube)[^|]*\b(apply|create|delete|patch|scale|edit|replace|annotate|label|cordon|drain|exec|run)\b' "$script" \
-  | grep -vE '^[0-9]+:[[:space:]]*#'; then
-  fail "the collector must stay read-only: a mutating kubectl verb appears above"
-fi
+#
+# Comments and string literals are removed before the search: several of this
+# collector's own failure messages talk about labels and creation, and matching
+# those words inside a message would report a mutation that no line performs.
+mutations="$(python3 - "$script" <<'PY'
+import re
+import sys
+
+VERBS = ("apply", "create", "delete", "patch", "scale", "edit", "replace",
+         "annotate", "label", "cordon", "drain", "uncordon", "taint", "exec",
+         "run", "set", "rollout")
+INVOCATION = re.compile(
+    r"\b(?:kubectl|kube)\b(?:\s+-{1,2}[^\s]+(?:\s+[^\s-][^\s]*)?)*\s+(" +
+    "|".join(VERBS) + r")\b")
+
+for number, line in enumerate(open(sys.argv[1]), start=1):
+    code = re.sub(r'"(?:\\.|[^"\\])*"', '""', line)
+    code = re.sub(r"'[^']*'", "''", code)
+    code = re.sub(r"#.*$", "", code)
+    found = INVOCATION.search(code)
+    if found:
+        print(f"{number}: {found.group(0).strip()}")
+PY
+)" || fail "could not scan the collector for mutating verbs"
+[[ -z "$mutations" ]] || fail "the collector must stay read-only, but these lines invoke a mutating verb:
+$mutations"
 
 before_runs="$(find "$repo_root/evidence/runs" -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
 
