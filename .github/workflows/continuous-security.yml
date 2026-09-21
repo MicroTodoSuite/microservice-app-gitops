@@ -1,0 +1,26 @@
+name: continuous security
+
+# Thin caller: the assessment itself lives in the organization's reusable
+# workflow (MicroTodoSuite/.github). This repository publishes no service image,
+# so only the source surface applies; the image surface reports BLOCKED, which
+# is its honest state rather than a silent skip (gitops spec 009 T146, FR-035).
+#
+# The schedule is here on purpose: GitHub does not fire `schedule` for a
+# reusable workflow, so the cron has to live in every caller.
+
+on:
+  schedule:
+    # Daily. Trivy's database refreshes several times a day, so a newly
+    # disclosed vulnerability surfaces within a day.
+    - cron: "7 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write # route an actionable finding into this repository
+
+jobs:
+  continuous-security:
+    uses: MicroTodoSuite/.github/.github/workflows/continuous-security.yml@76023377e1567d0906a3e7627b66343dd1fec3cc
+    secrets: inherit
