@@ -671,10 +671,27 @@ to stay empty at their bootstrap revision.
 
 - [ ] T118 [P] [US5] Add Azure module tests for subscription/location guards, non-overlapping VNet/pod/service ranges, private node subnets, AKS 1.35 with Azure CNI Overlay and Cilium policy enforcement, workload identity/OIDC, an API allowlist equal to the four approved `/32` CIDRs and never `0.0.0.0/0`, an empty Key Vault with exact AKS-reader and GitHub-seed access boundaries but zero `azurerm_key_vault_secret` resources, ACR, encrypted storage, tags, and a Standard static ingress public IP with unique DNS label, dedicated resource group, narrowly scoped cluster-identity role assignment, and name/resource-group/address/FQDN outputs in `../microservice-app-ops/azure/modules/aks-foundation/tests/aks-foundation.tftest.hcl`.
 - [ ] T119 [P] [US5] Add Azure DR root/backend tests for one unique locked state, consumer identity, exact non-secret Key Vault name mappings, no secret value/provider output/static credential, and active-active disabled by default in `../microservice-app-ops/azure/environments/dr/foundation/tests/foundation.tftest.hcl`.
-- [ ] T120 [P] [US5] Add AKS root tests for independent in-cluster reconciliation, an activation-empty bootstrap revision followed by production/full activation, cloud-specific secret store and encrypted Azure Disk persistence, ACR digest references for every service and mirrored platform image except full-dev-only SonarQube/PostgreSQL, complete otherwise-equivalent capability inventory, exact static-public-IP Service annotations, a default-disabled common-certificate component, and audience-`sts.amazonaws.com` projected token plus `AWS_ROLE_ARN`, `AWS_WEB_IDENTITY_TOKEN_FILE`, `AWS_REGION=us-east-1`, and regional-STS settings only on the cert-manager DNS-01 path in `tests/profiles/aks-dr.bats`.
+- [X] T120 [P] [US5] Add AKS root tests for independent in-cluster reconciliation, an activation-empty bootstrap revision followed by production/full activation, cloud-specific secret store and encrypted Azure Disk persistence, ACR digest references for every service and mirrored platform image except full-dev-only SonarQube/PostgreSQL, complete otherwise-equivalent capability inventory, exact static-public-IP Service annotations, a default-disabled common-certificate component, and audience-`sts.amazonaws.com` projected token plus `AWS_ROLE_ARN`, `AWS_WEB_IDENTITY_TOKEN_FILE`, `AWS_REGION=us-east-1`, and regional-STS settings only on the cert-manager DNS-01 path in `tests/profiles/aks-dr.bats`.
+  - Delivered as a failing test in `tests/profiles/aks-dr.bats` (commit
+    `d448f3a`), run by `validate-gitops` policy-contracts. It is red on
+    purpose until T129 creates `clusters/aks-dr/`: the bootstrap portion
+    passes with T129, and the activation branch checks T133's later
+    production/full activation. It pins the destination-scoped paths T129
+    must create (`environments/profiles/full/destinations/aks-dr`,
+    `apps/<service>/profiles/full/destinations/aks-dr`,
+    `infrastructure/profiles/full/{istio,prometheus}/destinations/aks-dr`,
+    `infrastructure/profiles/full/cert-manager/components/common-certificate`).
+    One gap T129 must close: `infrastructure/profiles/full/prometheus/azure`
+    inherits an `eks.amazonaws.com/role-arn` annotation from the
+    notifications component, which the test rejects on AKS.
 - [ ] T121 [P] [US5] Add shared-workflow tests for AWS/Azure OIDC service/platform OCI mirroring and DR secret seeding in `../.github/tests/workflows/{mirror-to-acr,mirror-platform-images,sync-dr-secrets}.bats`: require no Dockerfile/build, recursive signature/SBOM copy, equal manifest digests for the service artifact and complete locked platform graph, production-validated-only service input, approved platform-mirror identity, exact four-secret mapping, an in-process prod-JWT equality boolean with no value-derived digest, disabled shell tracing, early masking, no cache/artifact/value output, mode-`0600` temporary handling with cleanup trap, and no static credential.
 - [ ] T122 [P] [US5] Add dev-owner tests for exactly one canonical `microtodosuite.online` Route 53 zone at its separate resource address, zero legacy-zone replacement/destruction, the four exact destination CNAME records plus `sonar-full-dev.microtodosuite.online`, HTTPS health checks, fail-closed provider-FQDN inputs, zero `app.microtodosuite.online` routing records when disabled, one AKS-issuer IAM OIDC provider, exact AWS-production/AKS cert-manager trust subjects with audience `sts.amazonaws.com`, and permissions restricted to the common hostname's ACME TXT record in `../microservice-app-ops/aws/modules/environment-foundation/tests/{route53,dns01_irsa}.tftest.hcl`.
-- [ ] T123 [P] [US5] Add bounded selector/duration/abort/render tests for pod termination, network latency, Redis saturation, AWS-production outage, and Azure outage in `tests/chaos/dr-game-day.bats`.
+- [X] T123 [P] [US5] Add bounded selector/duration/abort/render tests for pod termination, network latency, Redis saturation, AWS-production outage, and Azure outage in `tests/chaos/dr-game-day.bats`.
+  - Delivered as a failing test in `tests/chaos/dr-game-day.bats` (commit
+    `430f4e8`), run by `validate-gitops` policy-contracts. It is red on
+    purpose until T135 creates the five scenario roots under
+    `experiments/full-profile/`, each with its `<name>-steady-state` abort
+    and steady-state ConfigMap.
 
 ### Implementation
 
