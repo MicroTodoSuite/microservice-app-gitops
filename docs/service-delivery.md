@@ -21,6 +21,24 @@ reconciles. Promotion to staging/prod copies the identical digest; prod requires
 approval; rollback is `git revert`. No CI step mutates a cluster. See
 `specs/003-reusable-cicd-delivery/contracts/promotion-flow.md`.
 
+### Production approval (FR-008)
+
+The repo-wide branch protection rule (`required_approving_review_count: 1`)
+already requires an approval on every pull request, including one that only
+touches `apps/*/profiles/*/overlays/prod/**`. That rule alone lets any collaborator
+approve a production change, which is not the same as an *explicit* human
+approval for production specifically. `CODEOWNERS` designates
+`@Juanmadiaz45`, `@EstebanGZam`, and `@Tiago0507` -- the same three humans
+already required to approve production deploys on every service repo's `prod`
+GitHub Environment -- as owners of `apps/*/profiles/*/overlays/prod/**`. Branch
+protection on `main` must have `require_code_owner_reviews` enabled; that live
+setting is not included in this pull request and remains open. Until it is
+enabled, a production overlay pull request can still merge after any ordinary
+approval. `tests/contract/prod-overlay-approval.sh`
+verifies the static half of this (`CODEOWNERS` names a `@`-owner for the
+pattern); the live branch-protection setting is GitHub state, not a file, and
+is verified operationally (`gh api repos/MicroTodoSuite/microservice-app-gitops/branches/main/protection`).
+
 ## Shared JWT secret
 
 `auth-api`, `todos-api`, and `users-api` all consume `JWT_SECRET` and must share
