@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: microtodosuite-common-production
+  namespace: istio-system
+spec:
+  secretName: microtodosuite-common-production-tls
+  issuerRef:
+    name: letsencrypt-common-production
+    kind: ClusterIssuer
+  dnsNames:
+    - app.microtodosuite.online

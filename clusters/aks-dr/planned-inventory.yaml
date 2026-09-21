@@ -1,0 +1,104 @@
+# Planned, NOT ACTIVE, inventory for the AKS DR cluster. This ConfigMap is
+# documentation only and is deliberately excluded from kustomization.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: planned-inventory
+  namespace: argocd
+  annotations:
+    microtodosuite.io/status: planned-not-active
+    microtodosuite.io/physical-cluster: pending-aks-dr
+data:
+  physicalCluster: pending-aks-dr
+  logicalEnvironment: prod
+  profile: full
+  plannedEnvironments: |
+    - env: prod
+      profile: full
+      destination: aks-dr
+      path: environments/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+  plannedServices: |
+    - name: auth-api
+      path: apps/auth-api/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: todos-api
+      path: apps/todos-api/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: users-api
+      path: apps/users-api/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: frontend
+      path: apps/frontend/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: log-message-processor
+      path: apps/log-message-processor/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+  plannedInfrastructure: |
+    - name: istio
+      path: infrastructure/profiles/full/istio/destinations/aks-dr
+      namespace: istio-system
+    - name: kiali
+      path: infrastructure/profiles/full/kiali/destinations/aks-dr
+      namespace: istio-system
+    - name: keda
+      path: infrastructure/profiles/full/keda/destinations/aks-dr
+      namespace: keda
+    - name: cert-manager
+      path: infrastructure/profiles/full/cert-manager/destinations/aks-dr
+      namespace: cert-manager
+    - name: external-secrets
+      path: infrastructure/profiles/full/external-secrets/destinations/aks-dr
+      namespace: external-secrets
+    - name: kyverno
+      path: infrastructure/profiles/full/kyverno/destinations/aks-dr
+      namespace: kyverno
+    - name: argo-rollouts
+      path: infrastructure/profiles/full/argo-rollouts/destinations/aks-dr
+      namespace: argo-rollouts
+    - name: prometheus
+      path: infrastructure/profiles/full/prometheus/destinations/aks-dr
+      namespace: observability
+    - name: grafana
+      path: infrastructure/profiles/full/grafana/destinations/aks-dr
+      namespace: observability
+    - name: jaeger
+      path: infrastructure/profiles/full/jaeger/destinations/aks-dr
+      namespace: observability
+    - name: eck-operator
+      path: infrastructure/profiles/full/eck-operator/destinations/aks-dr
+      namespace: elastic-system
+    - name: elasticsearch
+      path: infrastructure/profiles/full/elasticsearch/destinations/aks-dr
+      namespace: elasticsearch
+    - name: logstash
+      path: infrastructure/profiles/full/logstash/destinations/aks-dr
+      namespace: logstash
+    - name: kibana
+      path: infrastructure/profiles/full/kibana/destinations/aks-dr
+      namespace: kibana
+    - name: filebeat
+      path: infrastructure/profiles/full/filebeat/destinations/aks-dr
+      namespace: filebeat
+    - name: falco
+      path: infrastructure/profiles/full/falco/destinations/aks-dr
+      namespace: security
+    - name: chaos-mesh
+      path: infrastructure/profiles/full/chaos-mesh/destinations/aks-dr
+      namespace: chaos-mesh
+    - name: opencost
+      path: infrastructure/profiles/full/opencost/destinations/aks-dr
+      namespace: opencost
+    - name: trivy-operator
+      path: infrastructure/profiles/full/trivy-operator/destinations/aks-dr
+      namespace: security
+    - name: kube-bench
+      path: infrastructure/profiles/full/kube-bench/destinations/aks-dr
+      namespace: security
+    - name: kube-hunter
+      path: infrastructure/profiles/full/kube-hunter/destinations/aks-dr
+      namespace: security
+  activeAtThisRevision: |
+    environments: 0
+    businessApplications: 0
+    infrastructureApplications: 0

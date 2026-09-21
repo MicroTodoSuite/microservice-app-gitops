@@ -1,0 +1,103 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Bootstrap registration for the independently reconciled AKS destination.
+# Every activation list is intentionally empty until T133 supplies reviewed
+# live evidence and activates the complete inventory atomically.
+resources:
+  - ../base
+  - registration.yaml
+
+patches:
+  - path: activation-apps.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: apps
+  - path: activation-environments.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: environments
+  - path: activation-infrastructure.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: infrastructure
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: apps
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/source/path
+        value: '{{ .path.path }}/profiles/{{ .profile }}/destinations/{{ .destination }}'
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+      name: environments
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/source/path
+        value: 'environments/profiles/{{ .profile }}/destinations/{{ .destination }}'
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: cluster-registration
+      fieldPath: data.repoURL
+    targets:
+      - select:
+          kind: AppProject
+          name: microtodosuite
+        fieldPaths: [spec.sourceRepos.0]
+      - select:
+          kind: AppProject
+          name: default
+        fieldPaths: [spec.sourceRepos.0]
+      - select:
+          kind: Application
+          name: argocd
+        fieldPaths: [spec.source.repoURL]
+      - select:
+          kind: ApplicationSet
+          name: infrastructure
+        fieldPaths: [spec.template.spec.source.repoURL]
+      - select:
+          kind: ApplicationSet
+          name: environments
+        fieldPaths: [spec.template.spec.source.repoURL]
+      - select:
+          kind: ApplicationSet
+          name: apps
+        fieldPaths:
+          - spec.generators.0.matrix.generators.0.git.repoURL
+          - spec.template.spec.source.repoURL
+  - source:
+      kind: ConfigMap
+      name: cluster-registration
+      fieldPath: data.revision
+    targets:
+      - select:
+          kind: Application
+          name: argocd
+        fieldPaths: [spec.source.targetRevision]
+      - select:
+          kind: ApplicationSet
+          name: infrastructure
+        fieldPaths: [spec.template.spec.source.targetRevision]
+      - select:
+          kind: ApplicationSet
+          name: environments
+        fieldPaths: [spec.template.spec.source.targetRevision]
+      - select:
+          kind: ApplicationSet
+          name: apps
+        fieldPaths:
+          - spec.generators.0.matrix.generators.0.git.revision
+          - spec.template.spec.source.targetRevision

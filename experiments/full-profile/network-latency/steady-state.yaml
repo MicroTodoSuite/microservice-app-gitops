@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: network-latency-steady-state
+  namespace: microtodo-prod
+data:
+  targetCluster: eks-full-prod
+  maxDuration: 5m
+  abortProcedure: git-revert
+  steadyState: Frontend to auth-api traffic is healthy before and after the bounded delay.
+  abortConditions: |
+    - economical-regression
+    - selector-expansion
+    - both-destinations-unhealthy
+    - duration-exceeded
+    - release-digest-divergence
+    - telemetry-unavailable
+    - operator-abort
