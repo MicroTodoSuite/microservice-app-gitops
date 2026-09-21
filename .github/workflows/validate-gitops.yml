@@ -201,6 +201,9 @@ jobs:
       - name: Validate the DR game-day scenarios (spec 009 T123)
         run: tests/chaos/dr-game-day.bats
 
+      - name: Validate the AKS disaster-recovery root (spec 009 T120)
+        run: tests/profiles/aks-dr.bats
+
       - name: Validate the eck stack render (spec 009 T084)
         run: tests/platform/eck.bats
 
