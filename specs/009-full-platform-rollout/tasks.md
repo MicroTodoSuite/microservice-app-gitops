@@ -720,7 +720,14 @@ to stay empty at their bootstrap revision.
   > unchecked): the `tamper`, `failed-requirement`, and `economical-regression`
   > fixtures, which pair with the economical pre/post parity check left open in
   > T145.
-- [ ] T143 [P] [US6] Add CI tests for recurring source/image/cluster vulnerability findings and actionable ownership in `../.github/tests/workflows/continuous-security.bats`.
+- [X] T143 [P] [US6] Add CI tests for recurring source/image/cluster vulnerability findings and actionable ownership in `../.github/tests/workflows/continuous-security.bats`.
+
+  > Located on `.github` `main` (PR #30, merge commit `7602337`), together with
+  > `.github/workflows/continuous-security-self-test.yml`, which runs it on every
+  > change that could break it. It asserts the three surfaces, an explicit
+  > PASS/FAIL/BLOCKED per surface, routing into one deduplicated issue in the
+  > owning repository, OIDC without static credentials, SHA-pinned actions, and
+  > no cluster mutation.
 - [X] T144 [P] [US6] Add OpenCost allocation/label/query tests for cluster, environment, profile, namespace, and service in `tests/platform/opencost-allocation.bats`.
 
 ### Implementation
@@ -739,7 +746,20 @@ to stay empty at their bootstrap revision.
   > fixture, plus explicit requirement-coverage/stage-dependency assertions
   > beyond what the referenced-path and `stage-dependencies.bats` checks already
   > provide.
-- [ ] T146 [US6] Add scheduled reusable source/image/cluster vulnerability assessment and issue-routing behavior in `../.github/.github/workflows/continuous-security.yml`, then wire the five service repositories and ops/GitOps callers; make T143 pass.
+- [X] T146 [US6] Add scheduled reusable source/image/cluster vulnerability assessment and issue-routing behavior in `../.github/.github/workflows/continuous-security.yml`, then wire the five service repositories and ops/GitOps callers; make T143 pass.
+
+  > The reusable workflow is on `.github` `main` (PR #30, `7602337`) and makes
+  > T143 pass. All seven callers are located on their own `main`, each pinning
+  > that merge commit and carrying its own daily schedule, because GitHub does
+  > not fire `schedule` for a reusable workflow: auth-api #34, todos-api #31,
+  > users-api #34, frontend #36, log-message-processor #34, ops #123, and this
+  > repository's own `.github/workflows/continuous-security.yml` (#211).
+  >
+  > **No assessment has run yet**: the first execution is the next scheduled one.
+  > The source surface runs from that point without credentials. The **image**
+  > surface reports BLOCKED until a read-only ECR role exists, and the
+  > **cluster** surface reports BLOCKED until a cluster carries Argo CD
+  > (T063-T065). Both are contract-tested, not observed.
 - [X] T147 [US6] Complete OpenCost labels, Prometheus queries, Grafana dashboard, and evidence collector in `infrastructure/opencost/`, `infrastructure/grafana/dashboards/full-profile-cost.yaml`, and `scripts/managed/verify-full-profile-cost.sh`; make T144 pass.
   T144 and T147 are delivered in two slices (`research.md` Decision 24):
   - [X] Allocation sources, cluster and profile dimensions, and the cost dashboard,
