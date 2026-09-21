@@ -30,4 +30,4 @@ patches:
 images:
   - name: log-message-processor
     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-logmsgproc
-    digest: sha256:266918a09c1c7221c2d7ae883c280ab57be43602831371e4bf4e34d7eb561f14
+    digest: sha256:e708a84fd13b1838bf28f1cfea4613946cf4817d3886be7c08ee5587782525a3
