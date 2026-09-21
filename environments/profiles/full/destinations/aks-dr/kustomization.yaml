@@ -1,0 +1,60 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Azure-owned production environment policy. T125/T133 have not produced the
+# vault and workload-reader outputs yet, so the non-secret values below remain
+# explicit pending placeholders and this root stays unactivated.
+resources:
+  - ../../../../prod
+  - azure-secretstore.yaml
+
+patches:
+  - target:
+      group: external-secrets.io
+      version: v1
+      kind: SecretStore
+      name: aws-secrets-manager
+    patch: |-
+      apiVersion: external-secrets.io/v1
+      kind: SecretStore
+      metadata:
+        name: aws-secrets-manager
+      $patch: delete
+  - target:
+      group: networking.k8s.io
+      version: v1
+      kind: Ingress
+      name: frontend
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: frontend
+      $patch: delete
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: external-secrets-jwt
+    patch: |-
+      - op: remove
+        path: /metadata/annotations/eks.amazonaws.com~1role-arn
+      - op: add
+        path: /metadata/annotations/azure.workload.identity~1client-id
+        value: 00000000-0000-0000-0000-000000000000
+  - target:
+      group: external-secrets.io
+      version: v1
+      kind: ExternalSecret
+      name: auth-api-secrets
+    patch: |-
+      - op: replace
+        path: /spec/secretStoreRef/name
+        value: azure-key-vault
+      - op: replace
+        path: /spec/data/0/remoteRef/key
+        value: pending-production-jwt
+
+images:
+  - name: redis
+    newName: pendingacr.azurecr.io/microtodosuite/platform/redis
+    digest: sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99

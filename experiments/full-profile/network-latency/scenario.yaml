@@ -1,0 +1,25 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-latency
+  namespace: microtodo-prod
+  labels:
+    microtodosuite.io/experiment: network-latency
+    microtodosuite.io/target-cluster: eks-full-prod
+spec:
+  action: delay
+  mode: one
+  duration: 5m
+  direction: to
+  selector:
+    namespaces: [microtodo-prod]
+    labelSelectors:
+      app.kubernetes.io/name: frontend
+  target:
+    mode: all
+    selector:
+      namespaces: [microtodo-prod]
+      labelSelectors:
+        app.kubernetes.io/name: auth-api
+  delay:
+    latency: 5s

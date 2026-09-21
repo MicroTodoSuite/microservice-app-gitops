@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: azure-outage-steady-state
+  namespace: istio-system
+data:
+  targetCluster: aks-dr
+  maxDuration: 10m
+  abortProcedure: git-revert
+  steadyState: AWS production remains healthy while the AKS ingress is unavailable.
+  survivingDestination: eks-full-prod
+  recoveryObjective: 10m
+  abortConditions: |
+    - economical-regression
+    - selector-expansion
+    - both-destinations-unhealthy
+    - duration-exceeded
+    - release-digest-divergence
+    - telemetry-unavailable
+    - operator-abort

@@ -1,0 +1,5 @@
+# EMPTY AT BOOTSTRAP. T133 activates prod/full/aks-dr only after the complete
+# ACR graph, Azure identities, runtime values, and platform health are proven.
+- op: replace
+  path: /spec/generators/0/matrix/generators/1/list/elements
+  value: []

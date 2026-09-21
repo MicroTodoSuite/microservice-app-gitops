@@ -21,6 +21,16 @@ components:
   - ../components/cost-sources
 
 patches:
+  # Azure workload identity is destination-owned. The shared notifications
+  # component inherits the economical EKS annotation, so remove it before any
+  # AKS destination composes this cloud root.
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: observability-external-secrets-jwt
+    patch: |-
+      - op: remove
+        path: /metadata/annotations/eks.amazonaws.com~1role-arn
   - target:
       group: monitoring.coreos.com
       version: v1

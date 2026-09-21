@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Deliberately disabled. T139 may include this component only after the exact
+# OIDC provider, role, hosted-zone scope, and common-name certificate gate are
+# reviewed. The role below is an explicit pending non-secret placeholder.
+resources:
+  - issuer.yaml
+  - certificate.yaml
+
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: cert-manager
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: cert-manager
+      spec:
+        template:
+          spec:
+            containers:
+              - name: cert-manager-controller
+                env:
+                  - name: AWS_ROLE_ARN
+                    value: arn:aws:iam::575172595729:role/pending-aks-dr-cert-manager-dns01
+                  - name: AWS_WEB_IDENTITY_TOKEN_FILE
+                    value: /var/run/secrets/aws/token
+                  - name: AWS_REGION
+                    value: us-east-1
+                  - name: AWS_STS_REGIONAL_ENDPOINTS
+                    value: regional
+                volumeMounts:
+                  - name: aws-web-identity-token
+                    mountPath: /var/run/secrets/aws
+                    readOnly: true
+            volumes:
+              - name: aws-web-identity-token
+                projected:
+                  sources:
+                    - serviceAccountToken:
+                        audience: sts.amazonaws.com
+                        expirationSeconds: 3600
+                        path: token

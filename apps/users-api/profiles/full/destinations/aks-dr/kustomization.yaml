@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: microtodo-prod
+resources:
+  - ../../topology
+images:
+  - name: users-api
+    newName: pendingacr.azurecr.io/pending-t131/usersapi
+    digest: sha256:48936907d0b4fb68bd2f0644f8246517c9c9ad8c61e874c8ce3a31b89f11d845

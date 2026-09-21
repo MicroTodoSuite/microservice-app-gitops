@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [../../../../../kiali]
+components: [../../../components/aks-acr-images]
+patches:
+  - target: {version: v1, kind: ConfigMap, name: kiali}
+    patch: |-
+      - op: replace
+        path: /data/config.yaml
+        value: |-
+          auth:
+            strategy: anonymous
+          deployment:
+            cluster_wide_access: true
+            image_name: pendingacr.azurecr.io/microtodosuite/platform/kiali
+            image_digest: sha256
+            image_version: df636734606c220263c1eae85f473940b52ced3c026abfe7110c64014098fb41
+            ingress:
+              enabled: false
+          server:
+            web_root: /kiali
