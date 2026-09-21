@@ -235,10 +235,14 @@ else
 fi
 
 # --- the AWS reconcilers never manage AKS -------------------------------------
-if grep -rlE 'clusters/aks-dr|destinations/aks-dr' "$ROOT/clusters" --include='*.yaml' 2>/dev/null \
-    | grep -v "^$AKS/" | grep -q .; then
-  fail "no other cluster root may reference the AKS root or its destination paths"
-fi
+# Any non-comment mention in another root's YAML counts, in any form
+# (`../aks-dr`, a destination path, an activation element).
+for other in "$ROOT"/clusters/*/; do
+  [[ "${other%/}" == "$AKS" ]] && continue
+  if grep -rhE --include='*.yaml' 'aks-dr' "$other" 2>/dev/null | grep -Evq '^[[:space:]]*#'; then
+    fail "clusters/$(basename "$other") references aks-dr; no other cluster root may reference the AKS root or its destination paths"
+  fi
+done
 
 # --- planned inventory ---------------------------------------------------------
 planned="$AKS/planned-inventory.yaml"
