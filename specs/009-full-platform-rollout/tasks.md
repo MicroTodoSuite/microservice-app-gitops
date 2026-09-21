@@ -683,7 +683,10 @@ to stay empty at their bootstrap revision.
     `infrastructure/profiles/full/cert-manager/components/common-certificate`).
     One gap T129 must close: `infrastructure/profiles/full/prometheus/azure`
     inherits an `eks.amazonaws.com/role-arn` annotation from the
-    notifications component, which the test rejects on AKS.
+    notifications component, which the test rejects on AKS. Verified
+    against a throwaway, uncommitted scratch implementation: it passes
+    there at bootstrap and after a correct production/full activation, and
+    34 single-fact mutations of that implementation each turn it red.
 - [ ] T121 [P] [US5] Add shared-workflow tests for AWS/Azure OIDC service/platform OCI mirroring and DR secret seeding in `../.github/tests/workflows/{mirror-to-acr,mirror-platform-images,sync-dr-secrets}.bats`: require no Dockerfile/build, recursive signature/SBOM copy, equal manifest digests for the service artifact and complete locked platform graph, production-validated-only service input, approved platform-mirror identity, exact four-secret mapping, an in-process prod-JWT equality boolean with no value-derived digest, disabled shell tracing, early masking, no cache/artifact/value output, mode-`0600` temporary handling with cleanup trap, and no static credential.
 - [ ] T122 [P] [US5] Add dev-owner tests for exactly one canonical `microtodosuite.online` Route 53 zone at its separate resource address, zero legacy-zone replacement/destruction, the four exact destination CNAME records plus `sonar-full-dev.microtodosuite.online`, HTTPS health checks, fail-closed provider-FQDN inputs, zero `app.microtodosuite.online` routing records when disabled, one AKS-issuer IAM OIDC provider, exact AWS-production/AKS cert-manager trust subjects with audience `sts.amazonaws.com`, and permissions restricted to the common hostname's ACME TXT record in `../microservice-app-ops/aws/modules/environment-foundation/tests/{route53,dns01_irsa}.tftest.hcl`.
 - [X] T123 [P] [US5] Add bounded selector/duration/abort/render tests for pod termination, network latency, Redis saturation, AWS-production outage, and Azure outage in `tests/chaos/dr-game-day.bats`.
