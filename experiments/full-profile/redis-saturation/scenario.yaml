@@ -1,0 +1,19 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: redis-saturation
+  namespace: microtodo-prod
+  labels:
+    microtodosuite.io/experiment: redis-saturation
+    microtodosuite.io/target-cluster: eks-full-prod
+spec:
+  mode: one
+  duration: 5m
+  selector:
+    namespaces: [microtodo-prod]
+    labelSelectors:
+      app.kubernetes.io/name: redis
+  stressors:
+    cpu:
+      workers: 4
+      load: 50

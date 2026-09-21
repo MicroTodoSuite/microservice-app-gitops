@@ -1,0 +1,16 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: azure-outage
+  namespace: istio-system
+  labels:
+    microtodosuite.io/experiment: azure-outage
+    microtodosuite.io/target-cluster: aks-dr
+spec:
+  action: pod-failure
+  mode: all
+  duration: 10m
+  selector:
+    namespaces: [istio-system]
+    labelSelectors:
+      istio: ingressgateway
