@@ -198,6 +198,9 @@ jobs:
       - name: Validate the chaos-mesh and opencost render (spec 009 T087)
         run: tests/platform/chaos-mesh-opencost.bats
 
+      - name: Validate the DR game-day scenarios (spec 009 T123)
+        run: tests/chaos/dr-game-day.bats
+
       - name: Validate the eck stack render (spec 009 T084)
         run: tests/platform/eck.bats
 
