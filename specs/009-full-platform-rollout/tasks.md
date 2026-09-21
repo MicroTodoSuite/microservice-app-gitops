@@ -959,6 +959,21 @@ Terraform runtime teardown while retaining a reversible GitOps root.
   and final AWS status as evidence.
 
 
+- [ ] T178 [US1] Reactivate the economical activation for the observability and
+  security evidence (2026-09-21): restore the business, environment-policy, and
+  infrastructure activation lists to the reviewed pre-shutdown inventory,
+  replace the quiescence contract with the activation contract in CI, and after
+  the reviewed merge verify every generated Application Healthy and Synced.
+  - [X] Restore the three activation lists: fifteen infrastructure components,
+    and dev, staging, prod and demo for business and environment policy.
+  - [X] Replace the quiescence contract with the activation contract, run in CI
+    in its place, as T173 did for the 2026-09-14 reactivation.
+  - [ ] Merge through the required approval and verify the live Applications.
+  > The shutdown this reverses no longer needs a GitOps change at all:
+  > microservice-app-ops specs/003-profile-lifecycle T016 replaced the
+  > quiescence revision with a checksummed receipt and a post-destroy sweep, so
+  > T171, T176 and T177 have no successor revision to verify.
+
 ## Phase 13: Economical Public Access (2026-09-14)
 
 **Purpose**: Publish the economical environments under the canonical domain
