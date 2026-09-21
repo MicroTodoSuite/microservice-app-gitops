@@ -176,6 +176,9 @@ jobs:
       - name: Validate a designated codeowner for prod overlay changes (spec 003 T020)
         run: tests/contract/prod-overlay-approval.sh
 
+      - name: Validate the shared local JWT source (spec 003 T029)
+        run: tests/contract/shared-jwt-local.sh
+
       - name: Reject committed secret material
         run: |
           set -euo pipefail
@@ -221,6 +224,9 @@ jobs:
 
       - name: Validate full-profile cost allocation (spec 009 T144)
         run: tests/platform/opencost-allocation.bats
+
+      - name: Validate the full-profile cost evidence collector (spec 009 T147)
+        run: tests/platform/verify-full-profile-cost.bats
 
       - name: Reject post-bootstrap imperative managed mutations
         run: tests/policy/no-imperative-managed-mutations.bats

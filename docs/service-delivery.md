@@ -30,10 +30,11 @@ approve a production change, which is not the same as an *explicit* human
 approval for production specifically. `CODEOWNERS` designates
 `@Juanmadiaz45`, `@EstebanGZam`, and `@Tiago0507` -- the same three humans
 already required to approve production deploys on every service repo's `prod`
-GitHub Environment -- as owners of `apps/*/profiles/*/overlays/prod/**`, and branch
-protection on `main` has `require_code_owner_reviews` enabled. A production
-overlay pull request cannot merge without one of those three approving it,
-regardless of who else approves. `tests/contract/prod-overlay-approval.sh`
+GitHub Environment -- as owners of `apps/*/profiles/*/overlays/prod/**`. Branch
+protection on `main` must have `require_code_owner_reviews` enabled; that live
+setting is not included in this pull request and remains open. Until it is
+enabled, a production overlay pull request can still merge after any ordinary
+approval. `tests/contract/prod-overlay-approval.sh`
 verifies the static half of this (`CODEOWNERS` names a `@`-owner for the
 pattern); the live branch-protection setting is GitHub state, not a file, and
 is verified operationally (`gh api repos/MicroTodoSuite/microservice-app-gitops/branches/main/protection`).
@@ -41,13 +42,23 @@ is verified operationally (`gh api repos/MicroTodoSuite/microservice-app-gitops/
 ## Shared JWT secret
 
 `auth-api`, `todos-api`, and `users-api` all consume `JWT_SECRET` and must share
-the **same value** so a token issued by `auth-api` verifies in the others. Each
-service's local overlay currently provisions its own ESO `Password` generator,
-which is correct when a service is activated in isolation. **Co-activating all
-three locally requires a single shared source** (for example a Kubernetes-provider
-`SecretStore` reading one owner Secret, or one shared Secret name consumed by all
-three); this is a tracked follow-up. Managed environments map all three to the
-same AWS Secrets Manager key through ESO. No JWT value is ever committed.
+the **same value** so a token issued by `auth-api` verifies in the others
+(research D13, `specs/003-reusable-cicd-delivery/research.md`). Locally,
+`auth-api`'s `overlays/local` is the **only** one that generates a value: its
+ESO `Password` generator plus `ExternalSecret` write it into `auth-api-secrets`
+(key `JWT_SECRET`). `todos-api` and `users-api` never provision a generator or
+`ExternalSecret` of their own -- their base `Deployment` reads
+`auth-api-secrets`/`JWT_SECRET` directly by name, a same-namespace Kubernetes
+Secret reference that needs no ExternalSecret on their side. One generated
+value, three consumers.
+
+This makes activation order matter locally: `auth-api-secrets` must exist
+before `todos-api` or `users-api` can start, which is why
+`scripts/pilot/publish-services.sh` always publishes `auth-api` before the
+other services. `tests/contract/shared-jwt-local.sh` guards both halves of the
+design -- the shared source exists, and neither consumer silently duplicates
+it. Managed environments map all three to the same AWS Secrets Manager key
+through ESO. No JWT value is ever committed.
 
 ## Redis (shared dependency, not a business service)
 

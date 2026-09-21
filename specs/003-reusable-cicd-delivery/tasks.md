@@ -121,7 +121,22 @@ not new test suites.
 
 - [X] T022 [US3] Add active gates to `.github/workflows/ci.yml`: code-quality (SonarCloud, requires `sonar-project-key`) and image-scan (Trivy on the built image, blocking) — FR-014
 - [X] T023 [US3] Add skippable gate jobs to `.github/workflows/ci.yml`: `run-unit`/`run-integration`/`run-contract`/`run-e2e`/`run-perf`/`run-dast` (default false, visibly skipped, fail-fast when true with no artifacts) — FR-015/FR-017
-- [ ] T024 [US3] Validate gate presence/visibility and fail-fast behavior via `act` dry-run and a forced `run-unit=true` no-artifact run (quickstart §4)
+- [X] T024 [US3] Validate gate presence/visibility and fail-fast behavior via `act` dry-run and a forced `run-unit=true` no-artifact run (quickstart §4)
+
+  > **Delivered, with a reconciliation and a real defect found and fixed.**
+  > `run-unit` no longer exists (retired when the architecture moved to one
+  > mandatory `test-command`); local `act` proved impractical (20+ minutes
+  > pulling a runner image without finishing) and was abandoned for real
+  > GitHub Actions runs instead. Found live: `test-command: ""` made "Run
+  > repository tests" report `success` having tested nothing -- a real FR-017
+  > violation. Fixed in `.github#27` (guard step, SDD test-then-feat pair in
+  > `tests/workflows/reusable-workflow-contract.bats`), re-verified live
+  > post-fix: the guard now fails and "Run repository tests" is correctly
+  > skipped. Value-activated gates (`source-audit-command`,
+  > `contract-command`, Sonar fail-closed) already skip/fail visibly, unaffected.
+  > Also ran quickstart §1/§2/§6/§7 against current repos (T038's scope) since
+  > they were exercised anyway. See
+  > `evidence/runs/20260921T000000Z-gate-visibility-validation/README.md`.
 
 **Checkpoint**: The pipeline is structurally complete per §9 and honest about what it verifies.
 
@@ -137,7 +152,25 @@ not new test suites.
 - [X] T026 [P] [US4] [gitops] Onboard `apps/users-api/` (port 8083, health `/actuator/health`, JWT, no runtime dep)
 - [X] T027 [P] [US4] [gitops] Onboard `apps/frontend/` (port 8080, health `/`, `AUTH_API_ADDRESS`/`TODOS_API_ADDRESS` overlay values, no secret)
 - [X] T028 [P] [US4] [gitops] Onboard `apps/log-message-processor/` (worker; Prometheus `/metrics` on `PORT` as intrinsic health, Redis dep, no inbound API) — FR-026
-- [ ] T029 [US4] [gitops] Wire shared-JWT ESO in the `local` overlays of auth-api/todos-api/users-api so all three consume the same generated value (research D13) — depends on T025, T026
+- [X] T029 [US4] [gitops] Wire shared-JWT ESO in the `local` overlays of auth-api/todos-api/users-api so all three consume the same generated value (research D13) — depends on T025, T026
+
+  > **Already implemented at the base-manifest layer; this closes the missing
+  > overlay-level test and doc coverage the 2026-08-30 reconciliation flagged.**
+  > `auth-api`'s `overlays/local` is the only one with an ESO `Password`
+  > generator + `ExternalSecret` (`auth-api-secrets`/`JWT_SECRET`); `todos-api`
+  > and `users-api`'s base `Deployment` already read that exact Secret by name
+  > (a same-namespace reference needs no `ExternalSecret` of its own), and
+  > `scripts/pilot/publish-services.sh` already publishes `auth-api` first so
+  > the Secret exists before its consumers start. New:
+  > `tests/contract/shared-jwt-local.sh` (wired into `validate-gitops.yml`)
+  > guards both halves -- the shared source exists, and neither consumer
+  > silently provisions its own -- and `docs/service-delivery.md`'s "Shared
+  > JWT secret" section is rewritten from "tracked follow-up" to the resolved
+  > design. **Flagged, not fixed (out of scope here)**: `tests/contract/service-onboarding.sh`
+  > is broken on `main` (`apps/todos-api/topology/kustomization.yaml` no
+  > longer exists; the tree moved to `profiles/economical|full/`) and is wired
+  > into no CI workflow, so nothing catches it. It predates this task and
+  > needs its own owner.
 - [X] T030 [US4] [gitops] Document the shared local Redis dependency handling (kept out of `apps/<svc>`, environment/platform-owned) in `docs/` (research D14)
 - [X] T031 [US4] [gitops] Validate: `kustomize build | kubeconform` for every new overlay, confirm managed overlays inactive and digest-only active overlays (quickstart §6)
 
@@ -154,7 +187,20 @@ not new test suites.
 - [X] T032 [US5] Wire the `sbom` and `sign` composite actions into `.github/workflows/ci.yml`'s active path (subject = image digest) — FR-019
 - [X] T033 [US5] Add gated cloud legs to `.github/workflows/ci.yml`: OIDC-to-AWS (`aws-actions/configure-aws-credentials`, `id-token: write`) + ECR push, behind `cloud-enabled` (default false) — research D4/FR-020/FR-021
 - [X] T034 [US5] [gitops] Confirm the GHCR→ECR switch is value-only: `newName` in overlays + `registry`/`cloud-enabled` workflow inputs, no structural edits (SC-009)
-- [ ] T035 [US5] Validate: SBOM + signature produced for the digest, zero static credentials, cloud leg skipped when `cloud-enabled=false` (quickstart §3)
+- [X] T035 [US5] Validate: SBOM + signature produced for the digest, zero static credentials, cloud leg skipped when `cloud-enabled=false` (quickstart §3)
+
+  > **Delivered, with a reconciliation.** `cloud-enabled` no longer exists as
+  > an input on `.github/workflows/ci.yml` -- once real AWS infrastructure
+  > existed, the optional-cloud-leg design was retired and every run
+  > unconditionally publishes to ECR via OIDC, so there is no disabled leg
+  > left to prove is skipped. Audited a real push-to-main run
+  > (`microservice-app-auth-api` run 34875097673, job 104080217231,
+  > 2026-09-14): Syft SBOM produced and uploaded, two Sigstore transparency-log
+  > entries confirm a keyless Cosign signature and SBOM attestation, signature
+  > pushed to the real ECR, and the only AWS credential is an
+  > OIDC `role-to-assume` (short-lived STS, GitHub-masked, never a stored
+  > key -- `ci.yml` references no `secrets.AWS_*` anywhere). See
+  > `evidence/runs/20260920T233500Z-sbom-signature-validation/README.md`.
 
 **Checkpoint**: Supply-chain evidence is emitted and cloud-ready; activation awaits tasks 1/2 by value change only.
 
@@ -164,7 +210,21 @@ not new test suites.
 
 - [X] T036 [P] [gitops] Update `README.md`/`AGENTS.md` and `docs/` to describe the CI→ArgoCD delivery flow and the four onboarded services
 - [X] T037 [P] [.github] Add usage docs for the reusable workflows (inputs, pin policy, enabling a skipped gate) in `.github/README.md`; ensure all artifacts are English (FR-028)
-- [ ] T038 Run the full `quickstart.md` end-to-end against GHCR with the cloud legs inactive and record results
+- [X] T038 Run the full `quickstart.md` end-to-end against GHCR with the cloud legs inactive and record results
+
+  > **Delivered, with a reconciliation.** GHCR and a disableable cloud leg no
+  > longer exist -- once real AWS infrastructure existed, every run
+  > unconditionally publishes to ECR via OIDC (same reconciliation as T035).
+  > Ran every section of `quickstart.md` that still applies against the
+  > current repos rather than a GHCR/cloud-disabled mode that no longer
+  > exists: §1 (workflow contract, actionlint), §2 (thin callers, no
+  > `development.yml`, all five services), §3 (superseded by T035's real
+  > SBOM/signature/OIDC evidence, stronger than the original dry-run intent),
+  > §4 (T024, found and fixed a real gate-visibility defect), §5 (superseded
+  > by T021's real fifteen-PR promotion audit), §6 (render/kubeconform for
+  > all four onboarded services, shared-JWT), §7 (`validate-gitops.yml` runs
+  > on every PR, structurally proven by this repository's own history). See
+  > `evidence/runs/20260921T000000Z-gate-visibility-validation/README.md`.
 
 ---
 

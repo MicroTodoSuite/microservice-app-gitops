@@ -740,7 +740,7 @@ to stay empty at their bootstrap revision.
   > beyond what the referenced-path and `stage-dependencies.bats` checks already
   > provide.
 - [ ] T146 [US6] Add scheduled reusable source/image/cluster vulnerability assessment and issue-routing behavior in `../.github/.github/workflows/continuous-security.yml`, then wire the five service repositories and ops/GitOps callers; make T143 pass.
-- [ ] T147 [US6] Complete OpenCost labels, Prometheus queries, Grafana dashboard, and evidence collector in `infrastructure/opencost/`, `infrastructure/grafana/dashboards/full-profile-cost.yaml`, and `scripts/managed/verify-full-profile-cost.sh`; make T144 pass.
+- [X] T147 [US6] Complete OpenCost labels, Prometheus queries, Grafana dashboard, and evidence collector in `infrastructure/opencost/`, `infrastructure/grafana/dashboards/full-profile-cost.yaml`, and `scripts/managed/verify-full-profile-cost.sh`; make T144 pass.
   T144 and T147 are delivered in two slices (`research.md` Decision 24):
   - [X] Allocation sources, cluster and profile dimensions, and the cost dashboard,
     tested by `tests/platform/opencost-allocation.bats` (T144).
@@ -755,7 +755,19 @@ to stay empty at their bootstrap revision.
     > `infrastructure/grafana/dashboards/full-profile-cost.yaml` renders only in
     > the full Grafana roots. T147 stays unchecked: its evidence collector is
     > slice two, and no cost has been observed on a live cluster.
-  - [ ] `scripts/managed/verify-full-profile-cost.sh` with its structural test.
+  - [X] `scripts/managed/verify-full-profile-cost.sh` with its structural test.
+
+    > **Slice two, gitops PR (cost evidence collector).**
+    > `scripts/managed/verify-full-profile-cost.sh` is located and executable,
+    > and `tests/platform/verify-full-profile-cost.bats` runs it for real in
+    > `validate-gitops.yml`. Its offline half records each destination's cluster
+    > attribution against the `physicalCluster` its registration declares, the
+    > priced inputs, the grouping labels, the dashboard, and the profile label on
+    > all fifteen full business overlays. **No cost has been observed live**: the
+    > three full clusters carry no Argo CD (T063-T065) and this environment has
+    > no `eks-full-*` credentials, so the collector's real run today is
+    > `VERDICT: BLOCKED (22 passed, 0 failed, 3 blocked)`. T094 is where the live
+    > observation is recorded, and it belongs to another lane.
 - [X] T148 [P] [US6] Implement read-only multi-cluster desired/live/failure/rollback evidence collection in `scripts/managed/verify-full-platform.sh`, replacing warning-as-success behavior in `scripts/managed/verify-observability.sh` and `verify-security.sh` with explicit pass/fail/blocked output.
 - [ ] T149 [P] [US6] Add stage cost ceilings, actual spend review, availability trade-offs, ownership, and rollback decisions to `../microservice-app-docs/full-platform/stage-register.md` and live operational procedures to `../microservice-app-docs/full-platform/operations.md`.
 - [ ] T150 [US6] Validate every completed stage bundle, recompute all hashes, and generate FR-001..FR-050 and SC-001..SC-014 coverage in `evidence/runs/<timestamp>-final/requirements-matrix.json`; no requirement may be inferred from configuration alone.

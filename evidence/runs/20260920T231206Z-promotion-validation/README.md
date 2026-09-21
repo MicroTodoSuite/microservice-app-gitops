@@ -21,10 +21,15 @@ produce a new artifact would be wasted signal.
 | log-message-processor | [#155](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/155) | [#157](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/157) | [#162](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/162) | `sha256:b6bc3d24b1d96be4423e94e10655aee79e4df36388fa1d3f5387ca8d375a9684` |
 | users-api | [#158](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/158) | [#159](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/159) | [#161](https://github.com/MicroTodoSuite/microservice-app-gitops/pull/161) | `sha256:82c4ea7911297129da943a5b7f8ae95e42cc40bb7689e856cb5f067faef67aa1` |
 
-Every row's three PRs carry the exact same digest, retrieved from each PR's
+Every row's three PRs carry the exact same digest. Retrieved from each PR's
 own title via `gh pr list --state merged --search "promote in:title"`
-(`raw-merged-promotions.json` in this directory). No digest was rebuilt
-between dev, staging, and prod.
+(`raw-merged-promotions.json`), and independently confirmed against the
+actual committed content of each of the fifteen `kustomization.yaml` files
+(`gh pr diff <n>` for every PR, saved verbatim in `all-diffs.txt`): the
+`+    digest: sha256:...` line merged into each file matches its PR's title
+exactly, for all fifteen. A title could in principle differ from what was
+actually merged; the diff content is what was actually merged, and it agrees.
+No digest was rebuilt between dev, staging, and prod.
 
 ## Each PR scoped to exactly one overlay
 

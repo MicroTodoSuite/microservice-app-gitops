@@ -24,7 +24,7 @@ fail() { printf 'FAIL: %s\n' "$*" >&2; failures=$((failures + 1)); }
 }
 
 pattern='apps/*/profiles/*/overlays/prod/**'
-line="$(grep -F "$pattern" "$CODEOWNERS" || true)"
+line="$(awk -v pattern="$pattern" '$1 == pattern { print; exit }' "$CODEOWNERS" || true)"
 
 [[ -n "$line" ]] || fail "CODEOWNERS has no entry for '$pattern'"
 
@@ -33,6 +33,10 @@ if [[ -n "$line" ]]; then
   [[ -n "$owners" ]] || fail "the '$pattern' entry names no owner"
   for owner in $owners; do
     [[ "$owner" == @* ]] || fail "owner '$owner' is not a @user or @org/team handle"
+  done
+  for expected in @Juanmadiaz45 @EstebanGZam @Tiago0507; do
+    [[ " $owners " == *" $expected "* ]] \
+      || fail "the '$pattern' entry is missing owner '$expected'"
   done
 fi
 
