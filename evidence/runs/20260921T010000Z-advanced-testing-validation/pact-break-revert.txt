@@ -1,0 +1,35 @@
+T013: deliberate contract break, against the real running e2e stack
+=====================================================================
+
+BEFORE (baseline, all three contracts):
+$ bash pact/verify.sh
+...
+1 interaction, 0 failures
+pact provider verification OK: users-api (auth-api-users-api.json)
+pact provider verification OK: all consumer contracts satisfied
+
+BROKEN (auth-api-users-api.json: "lastname": "Bar" -> "lastname": "WRONG-VALUE"):
+$ bash pact/verify.sh > /tmp/pact-broken-output.txt 2>&1; echo "REAL EXIT CODE: $?"
+REAL EXIT CODE: 1
+
+Failures:
+
+  1) Verifying a pact between auth-api and users-api Get admin user with a valid service-issued bearer token with GET /users/admin returns a response which has a matching body
+     Failure/Error: expect(response_body).to match_term expected_response_body, diff_options, example
+
+       Actual: {"username":"admin","firstname":"Foo","lastname":"Bar","role":"ADMIN"}
+
+       Description of differences
+       --------------------------------------
+       * Expected "WRONG-VALUE" but got "Bar" at $.lastname
+
+1 interaction, 1 failure
+
+REVERTED (lastname restored to "Bar"):
+$ bash pact/verify.sh > /tmp/pact-fixed-output.txt 2>&1; echo "EXIT: $?"
+EXIT: 0
+
+1 interaction, 0 failures
+
+pact provider verification OK: users-api (auth-api-users-api.json)
+pact provider verification OK: all consumer contracts satisfied

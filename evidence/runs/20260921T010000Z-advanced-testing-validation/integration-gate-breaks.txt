@@ -1,0 +1,85 @@
+T018: each integration gate exercises the real dependency and fails when it breaks
+====================================================================================
+
+--- todos-api (Testcontainers Redis, real pub/sub) ---
+
+Baseline:
+$ node --test test/integration/redis-publish.test.js
+✔ creating a todo publishes a CREATE event to log_channel on real Redis (1206.560625ms)
+ℹ pass 1
+ℹ fail 0
+
+Regression: todoController.js, OPERATION_CREATE changed from 'CREATE' to 'CREATED_BROKEN'.
+
+$ node --test test/integration/redis-publish.test.js > /tmp/todos-broken.txt 2>&1; echo "EXIT: $?"
+EXIT: 1
+✖ creating a todo publishes a CREATE event to log_channel on real Redis (1177.722166ms)
+  AssertionError [ERR_ASSERTION]: expected a CREATE event on log_channel
+
+Reverted: OPERATION_CREATE restored to 'CREATE'. Re-run: 1 pass, 0 fail. git status clean.
+
+--- log-message-processor (testcontainers-python Redis, real pub/sub) ---
+
+Baseline:
+$ python -m pytest tests/integration/test_redis_consume.py -v
+tests/integration/test_redis_consume.py::test_consumes_published_log_channel_event_over_real_redis PASSED
+1 passed in 2.36s
+
+Regression: main.py, process_message's success path replaced
+  `with metrics.duration.time(): logger(message)` with `with metrics.duration.time(): pass`
+  (message no longer delivered to the logger).
+
+$ python -m pytest tests/integration/test_redis_consume.py -v
+FAILED tests/integration/test_redis_consume.py::test_consumes_published_log_channel_event_over_real_redis
+AssertionError: assert 0 == 1
+ +  where 0 = <_Counter object>.count
+ +    where <_Counter object> = <_Metrics object>.processed
+1 failed in 0.54s
+
+Reverted: main.py restored from backup. Re-run: 1 passed. git status clean.
+
+--- users-api (@SpringBootTest + MockMvc + real H2) ---
+
+Baseline:
+$ mvn -q -B -ntp test -Dtest=UsersApiApplicationTests
+Tests run: 13, Failures: 0, Errors: 0, Skipped: 0 -- EXIT: 0
+
+Regression: src/main/resources/data.sql, admin's seed row
+  ('admin', 'Foo', 'Bar', 1) -> ('admin', 'BROKEN', 'Bar', 1)
+
+$ mvn -q -B -ntp test -Dtest=UsersApiApplicationTests
+Tests run: 13, Failures: 1, Errors: 0, Skipped: 0 <<< FAILURE! -- EXIT: 1
+UsersApiApplicationTests.matchingJwtSubjectCanReadTheExistingH2User -- Time elapsed: 0.062 s <<< FAILURE!
+java.lang.AssertionError: JSON path "$.firstname" expected:<Foo> but was:<BROKEN>
+
+Reverted: data.sql restored. Re-run: Tests run: 13, Failures: 0 -- EXIT: 0. git status clean.
+
+--- auth-api (real httptest HTTP boundary, real retry/circuit-breaker logic) ---
+
+Baseline:
+$ go test ./... -run "TestUsersAPICallTimesOut|TestTransientFailureIsRetriedButAuthorizationFailureIsNot|TestCircuitBreakerOpensAndRecovers|TestCorrelationIDPropagatesToUsersAPI" -v
+--- PASS: TestCorrelationIDPropagatesToUsersAPI
+--- PASS: TestUsersAPICallTimesOut
+--- PASS: TestTransientFailureIsRetriedButAuthorizationFailureIsNot
+    --- PASS: transient_error_is_retried
+    --- PASS: 401_is_not_retried
+--- PASS: TestCircuitBreakerOpensAndRecovers
+ok
+
+First attempted regression (Authorization header renamed to X-Broken-Auth in user.go):
+result: all tests still PASS -- this specific test set does not assert on the
+header's name, only on timeout/retry/circuit-breaker mechanics. Reverted;
+not a defect, just the wrong lever to pull for these particular assertions.
+
+Second regression (operational.go, retryTransport loop):
+  `for attempt := 0; attempt <= t.maxRetries; attempt++`
+  -> `for attempt := 0; attempt < t.maxRetries; attempt++` (off-by-one, one fewer real attempt)
+
+$ go test ./... -run "TestTransientFailureIsRetriedButAuthorizationFailureIsNot" -v
+    operational_contract_test.go:210: a call that succeeds on the third attempt must succeed: Get "http://users-api/users/admin": connection refused
+--- FAIL: TestTransientFailureIsRetriedButAuthorizationFailureIsNot
+    --- FAIL: transient_error_is_retried
+    --- PASS: 401_is_not_retried
+FAIL
+
+Reverted: operational.go restored from backup. Re-run: ok, all pass. git status clean.
