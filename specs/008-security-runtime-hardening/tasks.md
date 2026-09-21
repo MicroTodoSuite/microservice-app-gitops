@@ -293,6 +293,16 @@ notification in Slack.
 the static contracts; live evidence joins T025 and T026 once the cluster is
 rebuilt. The Slack delivery depends on spec 006 T053.
 
+## Phase 8: Defect Follow-up
+
+**Purpose**: Repair what the canary-gate work exposed (gitops#197, 2026-09-15).
+
+- [ ] T040 Make `tests/platform/security-hardening.bats` independent of the
+  operator's locale. It compares namespace lists with `comm` against input
+  ordered by `sort -u`, so under `en_US.UTF-8` it exits 1 with
+  `comm: file 1 is not in sorted order`; it passes under `LC_ALL=C`, and it
+  fails the same way on `main`.
+
 ---
 
 ## Dependencies & Execution Order

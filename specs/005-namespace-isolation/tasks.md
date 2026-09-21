@@ -268,6 +268,19 @@ cross-feature policy additions.
   to the shared environment base. The corrected contract MUST account for that
   approved policy while retaining exact selector, direction, protocol, and port
   assertions.
+- [ ] T097 Resolve the broad-allowance failure in
+  `tests/contract/namespace-isolation.sh`. Reproduction:
+  `tests/contract/namespace-isolation.sh`. Output:
+  `FAIL: managed base contains a broad cross-environment or internet allowance`.
+  Diagnosis: gitops#190 gave
+  `environments/base/networkpolicy-allow-load-balancer.yaml` three `ipBlock`
+  peers (`10.10.0.0/24`, `10.10.1.0/24`, `10.10.2.0/24`) so the shared ALB can
+  reach the workloads; the contract treats any `ipBlock` in the managed base as
+  a violation. Decide which side is wrong, fix that side only, and keep the
+  exact selector, direction, protocol, and port assertions.
+- [ ] T098 Run `tests/contract/namespace-isolation.sh` in CI. No workflow in
+  `.github/workflows/` calls it, which is why T096 and T097 reached `main`
+  unnoticed.
 
 ---
 

@@ -419,6 +419,18 @@ request against exact evidence.
   `main` through a patch in `infrastructure/prometheus/kustomization.yaml`,
   leaving the vendored manifest and its checksum unchanged, and make T052 pass
 
+## Phase 9: Defect Follow-up
+
+**Purpose**: Repair what the canary-gate work exposed (gitops#197, 2026-09-15).
+
+- [ ] T054 Make `WorkloadHighLatency` able to fire. The alert selects
+  `workload:http_request_duration_seconds:avg5m{revision="stable"}`, but that
+  recording rule is `sum by (workload)` and carries no `revision` label, so the
+  selector matches no series. Add the failing assertion to
+  `tests/contract/observability.sh` first, then group the rule by
+  `namespace, workload, revision` like the rate and ratio rules beside it, and
+  prove the alert can fire through `promtool test rules`.
+
 ---
 
 ## Dependencies & Execution Order
