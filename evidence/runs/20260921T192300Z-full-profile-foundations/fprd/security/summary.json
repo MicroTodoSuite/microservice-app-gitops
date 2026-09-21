@@ -1,0 +1,30 @@
+{
+  "root": "microservice-app-ops/aws/environments/fprd/security",
+  "tasks": "gitops specs/009-full-platform-rollout T058/T059",
+  "account": "575172595729",
+  "region": "us-east-1",
+  "firstCreation": {
+    "date": "2026-09-14",
+    "evidenceDirectory": "~/backups-microtodosuite/full-bringup-20260914T213039Z/",
+    "planActions": {
+      "create": 31
+    },
+    "planSummary": "Plan: 31 to add, 0 to change, 0 to destroy.",
+    "applyResult": "Apply complete! Resources: 31 added, 0 changed, 0 destroyed.",
+    "savedPlanSha256": "ab254fbeb29e6a73e121efb64b9a149606a6337304e60803f4f557b29ef2aa3e",
+    "planJsonSha256": "ad474fbbc7d0ca1a4998f1ab9776165445648362c9443c8aba570ab5c2ee7687",
+    "stateBackup": {
+      "kind": "no-prior-state receipt",
+      "path": "~/backups-microtodosuite/full-bringup-20260914T213039Z/fprd-security.no-prior-state",
+      "receipt": {
+        "root": "fprd/security",
+        "key": "fprd/security/terraform.tfstate",
+        "checked": "2026-09-14T21:51:47Z"
+      }
+    },
+    "infracost": "not recorded in the facts brief or the 2026-09-14 evidence directory"
+  },
+  "lifecycleReUp20260921": "not planned: the lifecycle never plans the persistent <env>/security roots; they stayed in place from 2026-09-14",
+  "approval": "Exact-plan approval under the maintainer's standing authorization of 2026-09-20.",
+  "redaction": "Counts, summary lines, and SHA-256 checksums only. No plan JSON, state, resource ID, or ARN is copied."
+}

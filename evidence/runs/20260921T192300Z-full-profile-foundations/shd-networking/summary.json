@@ -1,0 +1,65 @@
+{
+  "root": "microservice-app-ops/aws/environments/shd/networking",
+  "tasks": "gitops specs/009-full-platform-rollout T053/T054",
+  "account": "575172595729",
+  "region": "us-east-1",
+  "firstCreation": {
+    "date": "2026-09-14",
+    "evidenceDirectory": "~/backups-microtodosuite/full-bringup-20260914T213039Z/",
+    "planActions": {
+      "create": 24
+    },
+    "planSummary": "Plan: 24 to add, 0 to change, 0 to destroy.",
+    "applyResult": "Apply complete! Resources: 24 added, 0 changed, 0 destroyed.",
+    "savedPlanSha256": "cb77862c2bd73fa6aff2c6fa6dd37601ca94fa44b4da55e3cc412358d5728a81",
+    "planJsonSha256": "cbe09cd3e2b7e674bc9dcc5002d9568c62919701c8b35a654240b25c1ac654e3",
+    "stateBackup": {
+      "kind": "no-prior-state receipt",
+      "path": "~/backups-microtodosuite/full-bringup-20260914T213039Z/shd-networking.no-prior-state",
+      "receipt": {
+        "root": "shd/networking",
+        "key": "shd/networking/terraform.tfstate",
+        "checked": "2026-09-14T21:43:22Z"
+      }
+    },
+    "infracost": "not recorded in the facts brief or the 2026-09-14 evidence directory"
+  },
+  "lifecycleReUp20260921": [
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T192817Z",
+      "pass": "hub-first",
+      "planActions": {
+        "create": 24
+      },
+      "savedPlanSha256": "e8b77cf60988b46b07bb407af1913d01bf1eba795d669bcd9502c8770ea4dd61",
+      "applyResult": "24 creates planned; only 22 of 24 applied: the hub flow-log group already existed as an orphan (created 2026-09-15T21:31:43Z by flow-log delivery, untagged). It was exported to ~/backups-microtodosuite/orphan-shd-flowlog-loggroup-20260921T194943Z/ and deleted by the maintainer; root cause fixed by ops specs/003 T017 (microservice-app-ops#129, #130).",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T193531Z/shd-networking.tfstate",
+      "infracost": "not recorded in the facts brief for this root and pass"
+    },
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T195633Z",
+      "pass": "cluster-first",
+      "planActions": {
+        "create": 2,
+        "no-op": 22
+      },
+      "savedPlanSha256": "4f1f3a34bb9f5a5d8eba102c68a0a7eb6bd6a0cecf56e6809077d394ce572629",
+      "applyResult": "101 creates across the bundle (shd 2, spokes 7 each, workloads 26 each), EXIT=0.",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T195836Z/shd-networking.tfstate",
+      "infracost": "USD 73/month (hub)"
+    },
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T210444Z",
+      "pass": "complete",
+      "planActions": {
+        "no-op": 24
+      },
+      "savedPlanSha256": "e2578bec788857754dddce0164080dfb6b726e12373225a7d209438770ac8070",
+      "applyResult": "security-irsa 15 creates each (45); every other root no-op; EXIT=0.",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T210746Z/shd-networking.tfstate",
+      "infracost": "not recorded in the facts brief for this root and pass"
+    }
+  ],
+  "approval": "Exact-plan approval under the maintainer's standing authorization of 2026-09-20.",
+  "redaction": "Counts, summary lines, and SHA-256 checksums only. No plan JSON, state, resource ID, or ARN is copied."
+}
