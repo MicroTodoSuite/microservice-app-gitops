@@ -227,7 +227,7 @@ not new test suites.
   > all four onboarded services, shared-JWT), §7 (`validate-gitops.yml` runs
   > on every PR, structurally proven by this repository's own history). See
   > `evidence/runs/20260921T000000Z-gate-visibility-validation/README.md`.
-- [ ] T039 [P] [svc:all] Bump the five service repositories' `promote.yml` pin
+- [X] T039 [P] [svc:all] Bump the five service repositories' `promote.yml` pin
   past `.github`#22. They pin `promote.yml@d0da1aef`, the commit before the one
   that made automated promotion pull requests carry the six sections
   `scripts/conventions/validate-pr.py` requires, so every promotion pull request
@@ -235,6 +235,12 @@ not new test suites.
   and #198 all failed it, and their bodies were rewritten by hand on 2026-09-20.
   Verify with a promotion pull request opened by the bumped workflow whose
   `conventions` check passes without a hand edit.
+
+  > **Delivered.** All five pins bumped (frontend#34, auth-api#33, users-api#33,
+  > todos-api#30, log-message-processor#33), merged 2026-09-21. Verified with
+  > gitops#213 (`promote(frontend): economical/staging`), opened by
+  > `app/microtodo-gitops-promoter` after the bump: mechanical body untouched,
+  > `conventions` check passes without a hand edit.
 
 ---
 
