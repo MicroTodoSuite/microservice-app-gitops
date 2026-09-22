@@ -1,0 +1,22 @@
+# The ops-owned velero-eco container (ops spec 005 FR-001, FR-004). The
+# account refuses Shared Key authorization (ops FR-002), so Velero authorizes
+# through Microsoft Entra ID only (useAAD) with Storage Blob Data Contributor
+# on this container (ops FR-012). storageAccountURI lets the plugin reach the
+# blob endpoint without an Azure Resource Manager call its container-scoped
+# principal cannot make. No key, SAS, or subscription setting belongs here.
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: velero.io/azure
+  default: true
+  accessMode: ReadWrite
+  objectStorage:
+    bucket: velero-eco
+  config:
+    resourceGroup: lex-mts-eco-rg-backups
+    storageAccount: lexmtsecostbackups
+    storageAccountURI: https://lexmtsecostbackups.blob.core.windows.net
+    useAAD: "true"

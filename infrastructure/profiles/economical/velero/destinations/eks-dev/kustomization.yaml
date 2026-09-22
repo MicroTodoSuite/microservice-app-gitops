@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Velero for lex-mts-eco-eks-main (spec 012): off-provider backups of the
+# economical cluster to the ops-owned velero-eco container in Azure, on the
+# Azure for Students subscription (ops spec 005). This root only adds eks-dev
+# values to the provider-neutral controller: the Entra-only backup location,
+# the External Secrets path for the credentials file, and the schedules.
+#
+# Not activated. Only clusters/eks-dev/activation-infrastructure.yaml may
+# activate this root (FR-014), in its own reviewed commit merged by a named
+# human (T012), after ops spec 005's storage and security roots are applied
+# and the Secrets Manager value is written. No full-profile or AKS root may
+# reference it.
+resources:
+  - ../../../../../velero
+  - external-secrets-serviceaccount.yaml
+  - secretstore.yaml
+  - externalsecret.yaml
+  - backupstoragelocation.yaml
+  - schedules.yaml
