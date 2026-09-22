@@ -60,21 +60,32 @@ named with their ops task and are ticked only in that repository.
 
 **Independent Test**: the controller part of `tests/platform/eco-velero.bats`.
 
-- [ ] T003 [US1] Verify, at implementation time and through the documentation
+- [X] T003 [US1] Verify, at implementation time and through the documentation
   MCP servers or the vendor sources the pull request names, the Velero `v1.18.x`
   and plugin `v1.14.x` patch releases, their compatibility, and both image
-  digests; record them in the pull request.
-- [ ] T004 [US1] Vendor the Velero `v1.18.<patch>` render into
+  digests; record them in the pull request. Delivered 2026-09-22: Velero
+  `v1.18.3` and plugin `v1.14.3` (compatibility table at plugin tag `v1.14.3`),
+  index digests recorded in `infrastructure/velero/README.md` and PR #230.
+- [X] T004 [US1] Vendor the Velero `v1.18.<patch>` render into
   `infrastructure/velero/vendor/v1.18.<patch>/manifests.yaml` (CRDs, RBAC,
   ServiceAccount, Deployment with the Azure plugin init container, no node agent,
   no default location), and record its provenance in
-  `infrastructure/velero/README.md` (FR-001, FR-004, FR-005).
+  `infrastructure/velero/README.md` (FR-001, FR-004, FR-005). Delivered
+  2026-09-22: `vendor/v1.18.3/manifests.yaml` with `SHA256SUMS`, rendered by
+  `velero install --no-secret` (the README records the command and why the
+  credentials wiring is restored by a Kustomize patch).
 - [ ] T005 [US1] Add `infrastructure/velero/namespace.yaml` and
   `infrastructure/velero/kustomization.yaml` with the `images:` digest pins of
-  both images (FR-002, FR-003).
-- [ ] T006 [US1] Add the destination root
+  both images (FR-002, FR-003). Partial, not ticked: `kustomization.yaml`
+  with both digest pins and the credentials wiring is delivered (2026-09-22),
+  but there is no `namespace.yaml`: the vendored render already contains the
+  `velero` Namespace, so a second one would collide, and `kustomization.yaml`
+  patches the vendored one instead (sync wave, platform labels, Pod Security
+  `baseline`). Ticking needs a maintainer to accept that in place of the named
+  file, or to amend this task.
+- [X] T006 [US1] Add the destination root
   `infrastructure/profiles/economical/velero/destinations/eks-dev/kustomization.yaml`
-  composing the controller root (FR-006).
+  composing the controller root (FR-006). Delivered 2026-09-22.
 
 ---
 
@@ -89,8 +100,9 @@ credentials part of the render contract.
 (`lex-mts-eco-role-velerosec`) exist in `microservice-app-ops`; the secret value is
 written by a human.
 
-- [ ] T007 [US2] Add `external-secrets-serviceaccount.yaml`, `secretstore.yaml`,
+- [X] T007 [US2] Add `external-secrets-serviceaccount.yaml`, `secretstore.yaml`,
   and `externalsecret.yaml` to the destination root (FR-008 to FR-010).
+  Delivered 2026-09-22; nothing reaches the cluster until T012.
 
 ---
 
@@ -101,14 +113,22 @@ written by a human.
 **Independent Test**: the location and Schedule part of the render contract;
 T013 after activation.
 
-- [ ] T008 [US3] Add `backupstoragelocation.yaml` to the destination root
-  (FR-007).
-- [ ] T009 [US3] Add `schedules.yaml` with `eco-daily` and `eco-weekly` to the
-  destination root (FR-011, FR-012).
+- [X] T008 [US3] Add `backupstoragelocation.yaml` to the destination root
+  (FR-007). Delivered 2026-09-22.
+- [X] T009 [US3] Add `schedules.yaml` with `eco-daily` and `eco-weekly` to the
+  destination root (FR-011, FR-012). Delivered 2026-09-22.
 - [ ] T010 [US3] Run both contracts green, `kubectl kustomize ... | kubeconform
   -strict -ignore-missing-schemas -summary` on both roots, and the existing
-  `validate-gitops.yml` jobs; quote the output in the pull request.
-- [ ] T011 [P] [US3] [US4] Write `docs/eco-velero-backups.md` (FR-018).
+  `validate-gitops.yml` jobs; quote the output in the pull request. Partial,
+  not ticked (2026-09-22): both contracts and both root renders pass, and every
+  other job passes except `tests/platform/security-hardening.bats`, which
+  derives the full-profile `require-immutable-images` namespaces from every
+  root under `infrastructure/` and so demands `velero` in
+  `infrastructure/profiles/full/kyverno`, which T002's contract forbids
+  (FR-014). The two contracts conflict; a maintainer decides which changes
+  (PR #230).
+- [X] T011 [P] [US3] [US4] Write `docs/eco-velero-backups.md` (FR-018).
+  Delivered 2026-09-22.
 - [ ] T012 [US3] In its own commit and pull request, merged by a named human,
   add the `velero` element to `clusters/eks-dev/activation-infrastructure.yaml`
   (FR-014, FR-015). Preconditions: ops spec 005's workload and security roots are
