@@ -1,0 +1,53 @@
+{
+  "root": "microservice-app-ops/aws/environments/fdev/workload",
+  "tasks": "gitops specs/009-full-platform-rollout T060",
+  "account": "575172595729",
+  "region": "us-east-1",
+  "firstCreation": {
+    "date": "2026-09-14",
+    "evidenceDirectory": "~/backups-microtodosuite/full-bringup-20260914T213039Z/",
+    "planActions": {
+      "create": 26
+    },
+    "planSummary": "Plan: 26 to add, 0 to change, 0 to destroy.",
+    "applyResult": "Apply complete! Resources: 26 added, 0 changed, 0 destroyed.",
+    "savedPlanSha256": "eb48a7b472b2417cb238529592be729a2da107c44ad7dfc1939671d30fdd26a3",
+    "planJsonSha256": "d2bc378de78a28bb79c8f563edb578bdac3288fd550e35005804106436751da5",
+    "stateBackup": {
+      "kind": "no-prior-state receipt",
+      "path": "~/backups-microtodosuite/full-bringup-20260914T213039Z/fdev-workload.no-prior-state",
+      "receipt": {
+        "root": "fdev/workload",
+        "key": "fdev/workload/terraform.tfstate",
+        "checked": "2026-09-14T21:52:34Z"
+      }
+    },
+    "infracost": "not recorded in the facts brief or the 2026-09-14 evidence directory"
+  },
+  "lifecycleReUp20260921": [
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T195633Z",
+      "pass": "cluster-first",
+      "planActions": {
+        "create": 26
+      },
+      "savedPlanSha256": "1b27c7828204ef4affbee17fe36bf1a1696e4ba5b9ecbf997e857efe72966ef5",
+      "applyResult": "101 creates across the bundle (shd 2, spokes 7 each, workloads 26 each), EXIT=0.",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T200830Z/fdev-workload.tfstate",
+      "infracost": "USD 144.90/month"
+    },
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T210444Z",
+      "pass": "complete",
+      "planActions": {
+        "no-op": 26
+      },
+      "savedPlanSha256": "6d3b8de45fbd08065763606cec298a014355322cbaae92a5bdf092caf3a5c5bc",
+      "applyResult": "security-irsa 15 creates each (45); every other root no-op; EXIT=0.",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T210823Z/fdev-workload.tfstate",
+      "infracost": "not recorded in the facts brief for this root and pass"
+    }
+  ],
+  "approval": "Exact-plan approval under the maintainer's standing authorization of 2026-09-20.",
+  "redaction": "Counts, summary lines, and SHA-256 checksums only. No plan JSON, state, resource ID, or ARN is copied."
+}
