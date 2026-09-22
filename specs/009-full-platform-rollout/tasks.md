@@ -216,22 +216,108 @@ T052 onward require live cloud reads, quota checks, refreshed plans against the
 real backends, exact-plan approval, and the merge of inert GitOps roots before
 the audited bootstrap. These human-gated operations are not started here.
 
-- [ ] T052 [US2] Run `make check PROFILE=full` and read-only collision, EIP, On-Demand/Spot, EKS, VPC, AZ/type, backend-key, and ownership discovery against account `575172595729` and Region `us-east-1`; store the redacted snapshot in `evidence/runs/<timestamp>-full-profile-foundations/infrastructure/preflight.json` and stop if any limit, name, input, backend, or owner differs from the rebuilt-root READMEs.
+- [X] T052 [US2] Run `make check PROFILE=full` and read-only collision, EIP, On-Demand/Spot, EKS, VPC, AZ/type, backend-key, and ownership discovery against account `575172595729` and Region `us-east-1`; store the redacted snapshot in `evidence/runs/<timestamp>-full-profile-foundations/infrastructure/preflight.json` and stop if any limit, name, input, backend, or owner differs from the rebuilt-root READMEs.
+  - Delivered from read-only discovery on 2026-09-21 in
+    `evidence/runs/20260921T192300Z-full-profile-foundations/infrastructure/preflight.json`.
+    The redacted snapshot records every full root ready, the live quota and
+    pre-up usage, the offered Availability Zones, the five non-overlapping
+    estate CIDRs, Terraform ownership of all 27 named `lex-mts-f*` resources,
+    and no deviation from the rebuilt-root READMEs. The raw discovery output
+    remains outside Git as stated in the artifact.
 - [ ] T053 [US2] Initialize and produce one saved plan plus Infracost for `../microservice-app-ops/aws/environments/shd/networking/` with that root's documented backend and variables; prove one NAT gateway and one Elastic IP, the hub and three isolated spoke Transit Gateway route tables, no environment attachment, no replacement or destroy, and record the plan, JSON, checksums, state-backup procedure, cost, and rollback acceptance in `evidence/runs/<timestamp>-full-profile-foundations/shd-networking/`.
+  - **Partial, reconciled 2026-09-21.** The first-creation saved plan, JSON,
+    checksums, and `no-prior-state` receipt exist in
+    `~/backups-microtodosuite/full-bringup-20260914T213039Z/`; its plan was 24
+    creates and its apply added 24. The lifecycle re-up retained checksum-valid
+    saved plans under `microservice-app-ops/.aws-profile-plans/` and recorded
+    the hub estimate as USD 73/month. The redacted record is
+    `evidence/runs/20260921T192300Z-full-profile-foundations/shd-networking/summary.json`.
+    The task stays unchecked because that record does not retain the named
+    NAT/EIP/Transit Gateway topology proof or rollback acceptance.
 - [ ] T054 [US2] After exact-plan approval, create the required external state backup or `no-prior-state` receipt and apply only T053's reviewed `shd/networking` plan; retain the approval, apply output, Terraform outputs, routes, flow logs, NAT health, and an unchanged economical baseline.
+  - **Partial, reconciled 2026-09-21.** First creation added all 24 resources
+    from the saved plan with a `no-prior-state` receipt. Under the maintainer's
+    standing exact-plan authorization of 2026-09-20, the 2026-09-21 hub-first
+    plan expected 24 creates but applied only 22 because the flow-log delivery
+    service had recreated an untagged log group after the prior down. The
+    maintainer exported it to
+    `~/backups-microtodosuite/orphan-shd-flowlog-loggroup-20260921T194943Z/`
+    and deleted the orphan; the checksum-valid cluster-first plan then added
+    the remaining two resources with `EXIT=0`. Ops specs/003 T017 and
+    microservice-app-ops#129/#130 fix the cause. State backups and the exact
+    result lines are in the T053 summary. The task stays unchecked because the
+    Terraform outputs, routes, flow-log/NAT health, and economical post-baseline
+    named by the task were not retained in this run.
 - [ ] T055 [US2] After T054, initialize and produce one saved plan plus Infracost for each of `../microservice-app-ops/aws/environments/{fdev,fstg,fprd}/networking/`; prove the exact VPC and subnet CIDRs, public/private tags, one isolated Transit Gateway attachment and route table per spoke, transit-only private egress, no per-spoke NAT gateway or Elastic IP, and no replacement or destroy.
+  - **Partial, reconciled 2026-09-21.** First creation planned and added 28
+    resources per spoke. After the lifecycle down retained 21 persistent
+    resources per spoke, the checksum-valid cluster-first plans each contained
+    seven creates and 21 no-ops, with USD 36.50/month recorded per spoke and no
+    change or destroy. See the three `networking/summary.json` files under
+    `evidence/runs/20260921T192300Z-full-profile-foundations/`. The task stays
+    unchecked because the committed record does not retain the named subnet
+    tags, isolated attachment/route-table, transit-only, and no-NAT/EIP proofs.
 - [ ] T056 [US2] **Superseded by the rebuilt layout:** do not re-plan or mutate `aws/environments/demo-full/foundation`. Full staging is the new `fstg` spoke and workload, planned with fdev and fprd by T055; the legacy root targets a retired account and is excluded from the lifecycle.
 - [ ] T057 [US2] After exact approval of all three T055 plans, create a separate external state backup or `no-prior-state` receipt and apply only those reviewed networking plans; retain every plan/state checksum, approval, apply output, route, flow-log, and unchanged economical-baseline result under `evidence/runs/<timestamp>-full-profile-foundations/{fdev,fstg,fprd}/networking/`.
+  - **Partial, reconciled 2026-09-21.** The first creation applied 28 resources
+    per spoke from saved plans and retained a separate `no-prior-state` receipt.
+    The 2026-09-21 re-up used the maintainer's standing exact-plan authorization
+    of 2026-09-20, timestamped per-root state backups, and checksum-valid saved
+    plans; the cluster-first bundle applied all three seven-resource spoke
+    deltas with `EXIT=0`. The task stays unchecked because route, flow-log, and
+    unchanged economical-baseline results were not retained.
 - [ ] T058 [US2] After T057, initialize and produce one saved plan plus Infracost for each persistent `../microservice-app-ops/aws/environments/{fdev,fstg,fprd}/security/` root; verify the exact cluster/node/add-on roles, KMS keys, security groups, JWT and webhook secret containers, VPC lookup, cluster-scoped Pod Identity trust, no replacement or destroy, and no secret value in plan, state, or evidence.
+  - **Partial, reconciled 2026-09-21.** The 2026-09-14 first-creation plans and
+    apply logs record 31 creates per security root with separate
+    `no-prior-state` receipts; these persistent roots remained after the down
+    and the lifecycle correctly did not plan them on 2026-09-21. The three
+    redacted `security/summary.json` files record that boundary. The task stays
+    unchecked because no Infracost figure or retained role/KMS/security-group/
+    secret-container/Pod-Identity and no-secret proof covers those plans.
 - [ ] T059 [US2] After exact approval of all three T058 plans, create a separate external `no-prior-state` receipt and apply only those reviewed security plans; retain every approval, plan/state checksum, apply output, named output, and unchanged economical-baseline result under each environment's `security/` evidence directory.
+  - **Partial, reconciled 2026-09-21.** Each security root was created on
+    2026-09-14 from a saved plan, added 31 resources, and has a separate
+    `no-prior-state` receipt plus matching saved-plan and plan-JSON checksums.
+    The later standing authorization of 2026-09-20 is recorded only for the
+    2026-09-21 exact-plan re-up and does not retroactively establish the
+    approval provenance of the 2026-09-14 applies. Named outputs and an
+    unchanged economical post-baseline were not retained, so the task remains
+    unchecked.
 - [ ] T060 [US2] In fdev, fstg, and fprd order, initialize, plan, approve, back up, and apply each `workload` root only after its networking and security roots, then repeat for each `security-irsa` root only after its cluster exists. Prove exact clusters `lex-mts-{fdev,fstg,fprd}-eks-main`, one On-Demand bootstrap node each, Karpenter queues `lex-mts-<env>-sqs-karpenter`, pinned add-ons, ready nodes, OIDC providers, and exact `jwt<code>`, `obssecret`, `secsecret`, `trivyecr`, `kyvernoecr`, `karpenter`, and `lbcontrol` roles without wildcard subjects; retain separate reviewed-plan, backup, apply, output, readiness, and economical-baseline evidence per root. Once all thirteen roots exist, run `make init PROFILE=full`, `make status PROFILE=full`, and a non-applied `make plan-up PROFILE=full`; inspect the saved bundle and require a complete no-change lifecycle baseline before GitOps bootstrap.
+  - **Partial, reconciled 2026-09-21.** First creation added 26 workload and 15
+    security-IRSA resources per environment. The lifecycle re-up, under the
+    maintainer's standing exact-plan authorization of 2026-09-20, added each
+    26-resource workload in the cluster-first pass and each 15-resource
+    security-IRSA pass in the complete pass; all saved-plan checksums validate,
+    every other root was no-op in the complete pass, and the three EKS clusters
+    were ACTIVE on Kubernetes 1.35 with ready `m7i-flex.large` nodes and
+    deletion protection. The six workload/security-IRSA summaries retain the
+    plan counts, backups, apply result lines, and the USD 144.90/month workload
+    estimates. The task stays unchecked because the complete named readiness,
+    OIDC-provider, role-subject, Karpenter-queue, economical-baseline, and final
+    non-applied no-change lifecycle proof was not retained; the observed node
+    counts were 1/1/2 rather than the task's one bootstrap node each.
 - [ ] T061 [US2] **Superseded by the rebuilt ownership model:** do not produce a legacy dev-owner plan. Shared registry and security resources belong to `shd/{registry,security}`, while every cluster-bound OIDC trust and reader/controller role belongs to that environment's `security-irsa` root. The separate platform-mirror repository and workflow remain T082 work and require their own reviewed IaC task rather than a hidden extension of dev state.
 - [ ] T062 [US2] **Superseded with T061:** do not apply a dev-owner bundle or extend shared roles with three issuers. Per-cluster least-privilege trust is applied and evidenced by T058/T059; any future platform-mirror or DR-seed identity is delivered through its owning specification and root.
 - [ ] T063 [US2] Open, review, and merge the three empty full-cluster GitOps roots through protected `main`, with registrations and planned inventories for `lex-mts-fdev-eks-main`, `lex-mts-fstg-eks-main`, and `lex-mts-fprd-eks-main`; retain PR checks, approval, reviewed head and merge SHAs, and an unchanged economical golden render.
-- [ ] T064 [US2] For each of `lex-mts-fdev-eks-main`, `lex-mts-fstg-eks-main`, and `lex-mts-fprd-eks-main`, first prove whether ArgoCD already exists with valid prior bootstrap evidence; execute exactly the two audited mutations from `scripts/managed/bootstrap-cluster.sh` only when absent, otherwise perform read-only verification, retain a separate transcript, and do nothing else directly in the cluster.
-- [ ] T065 [P] [US2] Verify each full ArgoCD root targets only `https://kubernetes.default.svc`, generates no business, environment, or platform Application before activation, and reports the reviewed `main` revision using read-only checks.
+  - **Still open, reconciled 2026-09-21.** The registration and planned-inventory
+    files exist on `main`, but the checks, approval, reviewed head/merge SHA set,
+    and unchanged economical golden render required by this task were not
+    retained as the current foundation gate evidence.
+- [X] T064 [US2] For each of `lex-mts-fdev-eks-main`, `lex-mts-fstg-eks-main`, and `lex-mts-fprd-eks-main`, first prove whether ArgoCD already exists with valid prior bootstrap evidence; execute exactly the two audited mutations from `scripts/managed/bootstrap-cluster.sh` only when absent, otherwise perform read-only verification, retain a separate transcript, and do nothing else directly in the cluster. — delivered 2026-09-22 by the lead: `kubectl get ns argocd` returned NotFound on all three clusters first; after a passing `--dry-run` on fdev, `scripts/managed/bootstrap-cluster.sh` ran on `lex-mts-{fdev,fstg,fprd}-eks-main` with `--revision 69fb5ab52ed4291a0d14e52febcdd005d8dd3798 --protected-ref origin/main --expected-account 575172595729` and each returned `PASS: bootstrapped ... with exactly 2 mutations`; the three transcripts (two `MUTATION` lines each) and the dry-run transcript are retained with the operator under `~/backups-microtodosuite/t064-bootstrap-20260922/`; nothing else was done directly in the clusters. Operator access came from appending `181.54.0.180/32` (maintainer-approved, append-only) through reviewed lifecycle bundles
+  - **Not done as of 2026-09-21.** No per-cluster ArgoCD discovery or audited
+    bootstrap transcript is retained.
+- [ ] T065 [P] [US2] Verify each full ArgoCD root targets only `https://kubernetes.default.svc`, generates no business, environment, or platform Application before activation, and reports the reviewed `main` revision using read-only checks. — partial, 2026-09-22: a read-only check shows only `argocd` and `root` Applications per full cluster, destination `https://kubernetes.default.svc`, synced revision `69fb5ab`, and no business/environment/platform Application (every activation list is `value: []`); the `apps` ApplicationSet failed on an unresolved `registration-revision` placeholder, leaving `root` Degraded on fdev and fstg — fixed by microservice-app-gitops#229; stays open until a read-only re-check on the merged revision shows `root` Healthy on all three
+  - **Not done as of 2026-09-21.** The post-bootstrap read-only root checks do
+    not exist because T064 remains open.
 - [ ] T066 [US2] Run VPC and Transit Gateway reachability tests proving fdev, fstg, and fprd private-node egress through the single `shd/networking` NAT gateway, public-subnet ingress readiness without public worker addresses, and no spoke-to-spoke or spoke-to-economical private route; record NAT, Transit Gateway, internet gateway, route, metric, and flow-log evidence in `evidence/runs/<timestamp>-full-profile-foundations/network-isolation/`.
+  - **Not done as of 2026-09-21.** No `network-isolation/` reachability,
+    route, metric, or flow-log evidence exists.
 - [ ] T067 [US2] Validate `evidence/runs/<timestamp>-full-profile-foundations/evidence.json` against SC-002, SC-003, SC-012, SC-013, and SC-014, and accept US2 only after the economical post-baseline passes and every superseded step above is recorded as not executed.
+  - **Not done as of 2026-09-21.** The run records redacted preflight and
+    per-root summaries only; it has no `evidence.json`, economical
+    post-baseline, superseded-step receipts, schema validation, or US2
+    acceptance.
 
 **Checkpoint**: Three isolated full AWS environments exist, but none hosts full workloads until US3 gates pass.
 
@@ -669,8 +755,35 @@ to stay empty at their bootstrap revision.
 
 ### Tests first
 
-- [ ] T118 [P] [US5] Add Azure module tests for subscription/location guards, non-overlapping VNet/pod/service ranges, private node subnets, AKS 1.35 with Azure CNI Overlay and Cilium policy enforcement, workload identity/OIDC, an API allowlist equal to the four approved `/32` CIDRs and never `0.0.0.0/0`, an empty Key Vault with exact AKS-reader and GitHub-seed access boundaries but zero `azurerm_key_vault_secret` resources, ACR, encrypted storage, tags, and a Standard static ingress public IP with unique DNS label, dedicated resource group, narrowly scoped cluster-identity role assignment, and name/resource-group/address/FQDN outputs in `../microservice-app-ops/azure/modules/aks-foundation/tests/aks-foundation.tftest.hcl`.
-- [ ] T119 [P] [US5] Add Azure DR root/backend tests for one unique locked state, consumer identity, exact non-secret Key Vault name mappings, no secret value/provider output/static credential, and active-active disabled by default in `../microservice-app-ops/azure/environments/dr/foundation/tests/foundation.tftest.hcl`.
+**IaC layout reconciliation, 2026-09-21.** The maintainer delegated this
+decision to the lead. MTS-IAC-102 requires Azure modules to live in
+`terraform-azure-modules`, one resource responsibility per module, and live
+roots to consume released module tags; PC-IAC-015 forbids a local module source
+on `main`. PC-IAC-022 accepts the `state`, `networking`, `registry`, `security`,
+and `workload` domains used below. The post-cluster `security-federation` pass
+contains only security-domain resources whose trust depends on the workload
+root's OIDC issuer, so it uses the separately reviewed PC-IAC-022 exception
+already drafted on the preserved microservice-app-ops#127 branch.
+
+T118/T125 are therefore re-targeted to per-resource modules in
+`terraform-azure-modules`, independently released and consumed by exact
+`<module>-v<MAJOR>.<MINOR>.<PATCH>` tags. T119/T126 are re-targeted to
+`../microservice-app-ops/azure/environments/fprd/{state,networking,registry,
+security,workload,security-federation}`. Closed pull requests
+terraform-azure-modules#2/#3 and microservice-app-ops#124/#127 retain the prior
+rule-compliant attempt and their branches; they are not reopened. The green
+microservice-app-ops#128 local-module implementation conflicts with this
+decision and is reworked through T178. T118, T119, T125, and T126 remain
+unchecked because no compliant implementation is merged.
+
+Every Azure resource belongs to the Azure for Students subscription
+(maintainer decision, 2026-09-21). The economical profile places only its
+off-provider Terraform-state and Velero backup copies in Azure; it runs no
+functional component there (maintainer decision, 2026-09-21, consistent with
+ADR-0001).
+
+- [ ] T118 [P] [US5] Add Azure per-resource module tests for subscription/location guards, non-overlapping VNet/pod/service ranges, private node subnets, AKS 1.35 with Azure CNI Overlay and Cilium policy enforcement, workload identity/OIDC, an API allowlist equal to the four approved `/32` CIDRs and never `0.0.0.0/0`, an empty Key Vault with exact AKS-reader and GitHub-seed access boundaries but zero `azurerm_key_vault_secret` resources, ACR, encrypted storage, tags, and a Standard static ingress public IP with unique DNS label, dedicated resource group, narrowly scoped cluster-identity role assignment, and name/resource-group/address/FQDN outputs in `../terraform-azure-modules/{resource-group,network,managed-identity,key-vault,container-registry,storage-account,public-ip,aks-cluster}/tests/*.tftest.hcl`.
+- [ ] T119 [P] [US5] Add Azure DR domain-root/backend tests for separately locked state, consumer identity, exact non-secret Key Vault name mappings, no secret value/provider output/static credential, and active-active disabled by default in `../microservice-app-ops/azure/environments/fprd/{state,networking,registry,security,workload,security-federation}/tests/*.tftest.hcl`.
 - [X] T120 [P] [US5] Add AKS root tests for independent in-cluster reconciliation, an activation-empty bootstrap revision followed by production/full activation, cloud-specific secret store and encrypted Azure Disk persistence, ACR digest references for every service and mirrored platform image except full-dev-only SonarQube/PostgreSQL, complete otherwise-equivalent capability inventory, exact static-public-IP Service annotations, a default-disabled common-certificate component, and audience-`sts.amazonaws.com` projected token plus `AWS_ROLE_ARN`, `AWS_WEB_IDENTITY_TOKEN_FILE`, `AWS_REGION=us-east-1`, and regional-STS settings only on the cert-manager DNS-01 path in `tests/profiles/aks-dr.bats`.
   - Delivered as a failing test in `tests/profiles/aks-dr.bats` (commit
     `d448f3a`), run by `validate-gitops` policy-contracts. It is red on
@@ -687,8 +800,28 @@ to stay empty at their bootstrap revision.
     against a throwaway, uncommitted scratch implementation: it passes
     there at bootstrap and after a correct production/full activation, and
     34 single-fact mutations of that implementation each turn it red.
-- [ ] T121 [P] [US5] Add shared-workflow tests for AWS/Azure OIDC service/platform OCI mirroring and DR secret seeding in `../.github/tests/workflows/{mirror-to-acr,mirror-platform-images,sync-dr-secrets}.bats`: require no Dockerfile/build, recursive signature/SBOM copy, equal manifest digests for the service artifact and complete locked platform graph, production-validated-only service input, approved platform-mirror identity, exact four-secret mapping, an in-process prod-JWT equality boolean with no value-derived digest, disabled shell tracing, early masking, no cache/artifact/value output, mode-`0600` temporary handling with cleanup trap, and no static credential.
-- [ ] T122 [P] [US5] Add dev-owner tests for exactly one canonical `microtodosuite.online` Route 53 zone at its separate resource address, zero legacy-zone replacement/destruction, the four exact destination CNAME records plus `sonar-full-dev.microtodosuite.online`, HTTPS health checks, fail-closed provider-FQDN inputs, zero `app.microtodosuite.online` routing records when disabled, one AKS-issuer IAM OIDC provider, exact AWS-production/AKS cert-manager trust subjects with audience `sts.amazonaws.com`, and permissions restricted to the common hostname's ACME TXT record in `../microservice-app-ops/aws/modules/environment-foundation/tests/{route53,dns01_irsa}.tftest.hcl`.
+  - **Scope reconciled 2026-09-21.** The `complete otherwise-equivalent
+    capability inventory` assertion is superseded for AKS by the six-vCPU
+    warm-standby decision recorded under T133. T120 remains ticked because its
+    named test artifact was delivered and inspected, but that artifact still
+    encodes the superseded inventory. This pull request deliberately does not
+    edit `tests/profiles/aks-dr.bats`; T179 owns the test-first contract and
+    planned-inventory update after this decision merges.
+- [X] T121 [P] [US5] Add shared-workflow tests for AWS/Azure OIDC service/platform OCI mirroring and DR secret seeding in `../.github/tests/workflows/{mirror-to-acr,mirror-platform-images,sync-dr-secrets}.bats`: require no Dockerfile/build, recursive signature/SBOM copy, equal manifest digests for the service artifact and complete locked platform graph, production-validated-only service input, approved platform-mirror identity, exact four-secret mapping, an in-process prod-JWT equality boolean with no value-derived digest, disabled shell tracing, early masking, no cache/artifact/value output, mode-`0600` temporary handling with cleanup trap, and no static credential.
+  - Delivered on the MicroTodoSuite/.github `main` branch by .github#31, merged
+    as `0624824` on 2026-09-21. The three named tests were located, inspected,
+    and run locally; all pass against the merged workflows. This register pull
+    request is the cross-repository companion required by conventions section 8.
+- [ ] T122 [P] [US5] Add rebuilt-owner tests for exactly one canonical `microtodosuite.online` Route 53 zone at its separate resource address, zero legacy-zone replacement/destruction, the four exact destination CNAME records plus `sonar-full-dev.microtodosuite.online`, HTTPS health checks, fail-closed provider-FQDN inputs, zero `app.microtodosuite.online` routing records when disabled, one AKS-issuer IAM OIDC provider, exact AWS-production/AKS cert-manager trust subjects with audience `sts.amazonaws.com`, and permissions restricted to the common hostname's ACME TXT record in `../microservice-app-ops/aws/environments/shd/dns/tests/dns.tftest.hcl` and `../microservice-app-ops/aws/environments/fprd/security-irsa/tests/security-irsa.tftest.hcl`.
+  - **Owner reconciliation, 2026-09-21.** The maintainer delegated this
+    decision to the lead. The legacy
+    `aws/modules/environment-foundation/tests/{route53,dns01_irsa}.tftest.hcl`
+    target no longer exists. The rebuilt `shd/dns` root exists and owns the
+    canonical zone and its records; the rebuilt `fprd/security-irsa` root exists
+    and owns the full-production OIDC provider and the post-cluster IAM role
+    pass, so it or a reviewed successor owns the AKS-issuer provider and the two
+    DNS-01 roles. The task stays unchecked until both rebuilt-root contracts
+    cover its complete text.
 - [X] T123 [P] [US5] Add bounded selector/duration/abort/render tests for pod termination, network latency, Redis saturation, AWS-production outage, and Azure outage in `tests/chaos/dr-game-day.bats`.
   - Delivered as a failing test in `tests/chaos/dr-game-day.bats` (commit
     `430f4e8`), run by `validate-gitops` policy-contracts. It is red on
@@ -699,8 +832,8 @@ to stay empty at their bootstrap revision.
 ### Implementation
 
 - [ ] T124 [US5] Install/verify Azure CLI from the checksum-pinned artifact in `scripts/managed/full-profile-toolchain.lock`, then run `../microservice-app-ops/scripts/preflight/azure-dr.sh` against the real authenticated account, verify approved subscription/location/backend/VNet/quota/provider data, select collision-free VNet `10.50.0.0/16` only if live evidence permits it plus non-overlapping pod/service/DNS ranges, and retain redacted results; stop on any unresolved fact.
-- [ ] T125 [US5] Implement direct AzureRM 5.0.1 AKS foundation resources with Azure CNI Overlay/Cilium using T124's verified ranges, bounded cluster autoscaler, empty Key Vault plus exact workload-reader/GitHub-seed identities and non-secret name outputs, and a Terraform-owned Standard static ingress public IP in a dedicated resource group with unique DNS label, narrowly scoped cluster-identity Network Contributor assignment, and name/resource-group/address/FQDN outputs in `../microservice-app-ops/azure/modules/aks-foundation/{variables,main,network,identity,registry,secrets,ingress,outputs,versions}.tf`; make T118 pass.
-- [ ] T126 [US5] Create `../microservice-app-ops/azure/environments/dr/foundation/` with the verified non-secret values, distinct locked Azure Blob backend key, AKS 1.35, VNet, exact four-`/32` API allowlist, ACR, Key Vault, workload identities, static ingress public-IP/DNS-label inputs, and `enable_active_active=false`; add a plan-only Terraform 1.15.8/Azure-OIDC/Infracost workflow in `../microservice-app-ops/.github/workflows/azure-dr-foundation-checks.yml`, and make T119 pass.
+- [ ] T125 [US5] Implement the AzureRM 5.0.1 per-resource modules `resource-group`, `network`, `managed-identity`, `key-vault`, `container-registry`, `storage-account`, `public-ip`, and `aks-cluster` in `../terraform-azure-modules/`, using T124's verified ranges, Azure CNI Overlay/Cilium, a bounded cluster autoscaler, an empty Key Vault plus exact workload-reader/GitHub-seed identities and non-secret name outputs, and a Terraform-owned Standard static ingress public IP in a dedicated resource group with unique DNS label, narrowly scoped cluster-identity Network Contributor assignment, and name/resource-group/address/FQDN outputs; release each module under its own exact tag and make T118 pass.
+- [ ] T126 [US5] Create the domain-split live roots under `../microservice-app-ops/azure/environments/fprd/{state,networking,registry,security,workload,security-federation}/`, consuming T125's modules only by exact released tags, with the verified non-secret values, one distinct locked Azure Blob state key per root, AKS 1.35, VNet, exact four-`/32` API allowlist, ACR, Key Vault, workload identities, static ingress public-IP/DNS-label inputs, and `enable_active_active=false`; add a plan-only Terraform 1.15.8/Azure-OIDC/Infracost workflow in `../microservice-app-ops/.github/workflows/azure-dr-foundation-checks.yml`, and make T119 pass.
 - [ ] T127 [US5] Initialize the verified Azure backend and produce a refreshed saved plan plus Infracost; prove correct subscription/location, no unexpected destroy, quota/cost fit, no static secret, and accepted rollback before any apply, retaining only redacted plan metadata in `evidence/runs/<timestamp>-azure-foundation/infrastructure/`.
 - [ ] T128 [US5] After exact-plan approval and an external timestamped Azure state backup, apply only T127's saved AKS plan; record plan/state checksums, identity, outputs, node readiness, ACR/Key Vault access boundaries, and unchanged economical post-baseline in `evidence/runs/<timestamp>-azure-foundation/live/`.
 - [X] T129 [US5] Create `clusters/aks-dr/` with independent in-cluster ArgoCD and an initially empty activation root that declares the planned production/full capability inventory, Azure secret-store overlay, ACR digest paths, exclusion of AWS-only Karpenter and full-dev-only SonarQube/PostgreSQL, and an Istio LoadBalancer Service bound to T125's exact public-IP name/resource group without activating them yet; add a default-disabled common-certificate component whose cert-manager-only contract requires the projected audience-`sts.amazonaws.com` token and `AWS_ROLE_ARN`/`AWS_WEB_IDENTITY_TOKEN_FILE`/`AWS_REGION`/regional-STS values but no static key, and make the bootstrap portion of T120 pass.
@@ -714,9 +847,37 @@ to stay empty at their bootstrap revision.
     foundation work, bootstrap, secret/image mirroring, and activation remain
     separate incomplete gates.
 - [ ] T130 [US5] Merge the activation-empty AKS root through protected `main`, execute exactly the two audited bootstrap mutations for the verified AKS context, and prove independent empty-root sync/health/notifications with no workload/platform activation and no post-bootstrap direct mutation.
-- [ ] T131 [US5] Implement the OIDC-authenticated no-rebuild service OCI graph mirror and extend `../.github/.github/workflows/mirror-platform-images.yml` to copy the complete already-signed locked platform graph from ECR to ACR in `../.github/.github/workflows/{mirror-to-acr,mirror-platform-images}.yml`; implement the no-persistence secret seed in `../.github/.github/workflows/sync-dr-secrets.yml`, integrate the service mirror and seed after successful AWS production promotion in `../.github/.github/workflows/promote.yml`, and make T121 pass.
+- [X] T131 [US5] Implement the OIDC-authenticated no-rebuild service OCI graph mirror and extend `../.github/.github/workflows/mirror-platform-images.yml` to copy the complete already-signed locked platform graph from ECR to ACR in `../.github/.github/workflows/{mirror-to-acr,mirror-platform-images}.yml`; implement the no-persistence secret seed in `../.github/.github/workflows/sync-dr-secrets.yml`, integrate the service mirror and seed after successful AWS production promotion in `../.github/.github/workflows/promote.yml`, and make T121 pass.
+  - Delivered by MicroTodoSuite/.github#31 (`0624824`). The merged
+    `mirror-to-acr.yml` enforces production-validated input and equal recursive
+    OCI-graph digests without a rebuild; `mirror-platform-images.yml` copies the
+    already-signed locked graph through the dedicated mirror identity;
+    `sync-dr-secrets.yml` transfers exactly four secrets without persistence and
+    exposes only the in-process JWT equality boolean; and `promote.yml` routes
+    only `prod/full/aks-dr/dr-rolling` through the service mirror and then the
+    seed. All three T121 contract tests pass locally. No workflow was dispatched
+    and no live mirror or seed is claimed; those remain T133.
 - [ ] T132 [US5] Configure the least-privilege GitHub-to-Azure federated credentials, exact AWS DR seed-role subject, and repository environment approvals from Terraform/approved settings; verify no PAT, client secret, registry password, AWS access key, personal token, or secret value is maintained in GitHub configuration, and retain metadata-only proof in `evidence/runs/<timestamp>-azure-foundation/identity/github-federation.json`.
 - [ ] T133 [US5] Run the reviewed DR seed workflow and verify only four Azure Key Vault secret names/versions exist plus an in-process true production-JWT equality result with no value-bearing or value-derived output; copy every locked signed platform OCI graph from ECR to ACR and prove complete digest/signature equality before activating AKS capabilities through a reviewed GitOps PR, then mirror T115's production service digest/signature/SBOM graph, verify ECR/ACR manifest digest equality and Cosign identity, and promote that exact digest to AKS by rolling GitOps PR only after platform health and External Secrets readiness, retaining redacted proof in `evidence/runs/<timestamp>-dr-game-day/aks-activation/`.
+  - **Scope reconciliation, 2026-09-21.** The maintainer delegated this
+    decision to the lead after read-only quota discovery confirmed an Azure for
+    Students ceiling of six regional vCPUs, four DSv4-family vCPUs, and zero
+    DSv5-family vCPUs. Per ADR-0001, which requires the Azure estate to stay
+    small enough for that subscription, the warm standby carries the production
+    environment and five-service workload path (including its Redis dependency)
+    plus only the platform needed for independent reconciliation, secrets,
+    ingress TLS, and failover: its own ArgoCD root, External Secrets, Istio, and
+    cert-manager. The platform graph and health gate in this task refer to that
+    minimum inventory.
+  - The following previously planned AKS inventory is deferred, owned by the
+    microservice-app-gitops platform owner, and tracked by T179: Kiali, KEDA,
+    Kyverno, Argo Rollouts, Prometheus, Grafana, Jaeger, ECK Operator,
+    Elasticsearch, Logstash, Kibana, Filebeat, Falco, Chaos Mesh, OpenCost,
+    Trivy Operator, kube-bench, and kube-hunter. Their AWS full-profile scope is
+    unchanged. T133 stays unchecked until the minimum inventory is live and its
+    mirror, seed, activation, health, and digest evidence exists.
+- [ ] T178 [US5] Rework microservice-app-ops#128 through a new pull request without reopening closed pull requests: preserve its correct green contracts, plan-only workflow, and collision-free range work, remove the local `azure/modules/aks-foundation` and single `azure/environments/dr/foundation` layout, consume the independently tagged T125 modules, implement the six T126 domain roots, and retain the reviewed `security-federation` exception; owner: microservice-app-ops IaC owner.
+- [ ] T179 [US5] After this reconciliation merges, update `tests/profiles/aks-dr.bats` and `clusters/aks-dr/planned-inventory.yaml` in a test-first pull request so the AKS contract requires only the minimum T133 inventory and rejects the deferred capabilities; remove the exact Prometheus destination-path and Prometheus/Grafana managed-disk assertions that no longer apply, and update the comments/final result that currently claim a complete equivalent full inventory; owner: microservice-app-gitops platform owner.
 - [ ] T134 [US5] Verify the live AKS ingress address and provider FQDN equal T125's Terraform outputs, then add only the `full-prod-azure.microtodosuite.online` CNAME, Terraform-owned HTTPS health checks, the AKS-issuer IAM OIDC provider, and separate exact-subject AWS-production/AKS DNS-01 solver roles to dev owner state with `enable_active_active=false`; restrict both roles to `_acme-challenge.app.microtodosuite.online` TXT changes and minimum read/status actions, produce a refreshed saved plan and Infracost, obtain exact-plan/cost approval, create an external state backup, apply only that saved plan, wait for trusted AKS destination HTTP-01 TLS, and make T122 pass.
 - [X] T135 [US5] Implement disabled-by-default GitOps scenarios and steady-state assertions under `experiments/full-profile/{pod-termination,network-latency,redis-saturation,aws-prod-outage,azure-outage}/`; make T123 pass.
   - Delivered as five independent, non-aggregated Kustomize roots with one

@@ -1,0 +1,54 @@
+{
+  "root": "microservice-app-ops/aws/environments/fprd/networking",
+  "tasks": "gitops specs/009-full-platform-rollout T055/T057",
+  "account": "575172595729",
+  "region": "us-east-1",
+  "firstCreation": {
+    "date": "2026-09-14",
+    "evidenceDirectory": "~/backups-microtodosuite/full-bringup-20260914T213039Z/",
+    "planActions": {
+      "create": 28
+    },
+    "planSummary": "Plan: 28 to add, 0 to change, 0 to destroy.",
+    "applyResult": "Apply complete! Resources: 28 added, 0 changed, 0 destroyed.",
+    "savedPlanSha256": "e985d02d33b96623b3c422cc7ed416572b22d1887284c37847329b1bb7d56cff",
+    "planJsonSha256": "8c3fa997b0aaddfc82b7a2e610973db7b2608e8aa8e0d1f8eea7dbda8da9a7af",
+    "stateBackup": {
+      "kind": "no-prior-state receipt",
+      "path": "~/backups-microtodosuite/full-bringup-20260914T213039Z/fprd-networking.no-prior-state",
+      "receipt": {
+        "root": "fprd/networking",
+        "key": "fprd/networking/terraform.tfstate",
+        "checked": "2026-09-14T21:47:09Z"
+      }
+    },
+    "infracost": "not recorded in the facts brief or the 2026-09-14 evidence directory"
+  },
+  "lifecycleReUp20260921": [
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T195633Z",
+      "pass": "cluster-first",
+      "planActions": {
+        "create": 7,
+        "no-op": 21
+      },
+      "savedPlanSha256": "332d5acd8fdb1c88e7c56ba459ab3224f2143967820629dac3442ab77920c46d",
+      "applyResult": "101 creates across the bundle (shd 2, spokes 7 each, workloads 26 each), EXIT=0.",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T200530Z/fprd-networking.tfstate",
+      "infracost": "USD 36.50/month"
+    },
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T210444Z",
+      "pass": "complete",
+      "planActions": {
+        "no-op": 28
+      },
+      "savedPlanSha256": "2b906e1ba4b10fb2469fb9d4f8e97f747b35850fab521196f85050cfe52674cf",
+      "applyResult": "security-irsa 15 creates each (45); every other root no-op; EXIT=0.",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T210817Z/fprd-networking.tfstate",
+      "infracost": "not recorded in the facts brief for this root and pass"
+    }
+  ],
+  "approval": "Exact-plan approval under the maintainer's standing authorization of 2026-09-20.",
+  "redaction": "Counts, summary lines, and SHA-256 checksums only. No plan JSON, state, resource ID, or ARN is copied."
+}
