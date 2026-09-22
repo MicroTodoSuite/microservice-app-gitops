@@ -80,6 +80,9 @@ jobs:
       - name: Preserve economical renders and validate profile routing
         run: tests/profiles/validate-profile-routing.bats
 
+      - name: Resolve every cluster root's registration
+        run: tests/profiles/cluster-roots-resolved.bats
+
       - name: Validate economical runtime dependency cleanup
         run: tests/contract/economical-runtime-quiescence.sh
 
