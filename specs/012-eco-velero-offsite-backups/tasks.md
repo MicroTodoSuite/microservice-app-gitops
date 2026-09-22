@@ -30,7 +30,7 @@ named with their ops task and are ticked only in that repository.
 > Commit both contracts failing, wired into `validate-gitops.yml`, before any
 > manifest.
 
-- [ ] T001 [P] [US1] [US3] Add the failing render contract
+- [X] T001 [P] [US1] [US3] Add the failing render contract
   `tests/platform/eco-velero.bats`: `infrastructure/velero` and
   `infrastructure/profiles/economical/velero/destinations/eks-dev` render and
   pass `kubeconform -strict`; the controller root serves the `velero.io` CRDs,
@@ -41,14 +41,16 @@ named with their ops task and are ticked only in that repository.
   location, Schedule, Secret, or DaemonSet; the destination root renders the
   BackupStorageLocation of FR-007, the IRSA ServiceAccount, SecretStore, and
   ExternalSecret of FR-008 to FR-010, and the Schedules of FR-011 and FR-012.
-  Wire it into the `policy-contracts` job.
-- [ ] T002 [P] [US2] [US4] Add the failing policy contract
+  Wire it into the `policy-contracts` job. Committed failing on 2026-09-22:
+  both roots are absent.
+- [X] T002 [P] [US2] [US4] Add the failing policy contract
   `tests/policy/eco-velero-credentials.bats`: both roots exist; their tracked
   files and renders carry no secret material (FR-017); no `Secret` is rendered;
   `cloud-credentials` comes only from an ExternalSecret; the location uses
   Entra ID only (FR-007); the `velero` ServiceAccount has no AWS role (FR-013);
   no registration other than `clusters/eks-dev`, and no full-profile or AKS
   root, references Velero (FR-014). Wire it into the `policy-contracts` job.
+  Committed failing on 2026-09-22: both roots are absent.
 
 ---
 

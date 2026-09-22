@@ -204,6 +204,12 @@ jobs:
       - name: Validate the AKS disaster-recovery root (spec 009 T120)
         run: tests/profiles/aks-dr.bats
 
+      - name: Validate the eco Velero off-provider backup render (spec 012 T001)
+        run: tests/platform/eco-velero.bats
+
+      - name: Validate the eco Velero credentials and ownership policy (spec 012 T002)
+        run: tests/policy/eco-velero-credentials.bats
+
       - name: Validate the eck stack render (spec 009 T084)
         run: tests/platform/eck.bats
 
