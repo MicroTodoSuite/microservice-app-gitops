@@ -20,4 +20,4 @@ patches:
 images:
   - name: frontend
     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-frontend
-    digest: sha256:952ef1211a8800511e17195f4d0c59eafc54e71761456292af0b3dee6b7ab33b
+    digest: sha256:73c87ba1a2eb0149a68202ad1e0d9b985a89b9b817536479ed03cb5ebece37c6
