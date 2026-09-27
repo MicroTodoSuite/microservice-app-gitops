@@ -305,7 +305,11 @@ KYVERNO_CLI_IMAGE='ghcr.io/kyverno/kyverno-cli@sha256:7224ed05508c24419c3df98114
 ADMISSION_FIXTURES=tests/platform/fixtures/full-profile-admission
 # kube-system holds the Terraform-managed EKS add-ons and, like kyverno, is
 # excluded by Kyverno's webhook; the bootstrap installs argocd with tagged images.
-OUTSIDE_ADMISSION=(kube-system kyverno argocd)
+# velero is economical-only: infrastructure/velero is rendered by the economical
+# destinations alone, and no full-profile or AKS root may reference it (maintainer
+# decision 2026-09-21, gitops spec 012). The full profile therefore renders no
+# velero namespace, and its policy must not claim one.
+OUTSIDE_ADMISSION=(kube-system kyverno argocd velero)
 
 # Print a render without one document (kind and metadata.name), so two renders
 # can be compared everywhere else.
