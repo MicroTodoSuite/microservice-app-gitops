@@ -30,4 +30,4 @@ patches:
 images:
   - name: todos-api
     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-todosapi
-    digest: sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+    digest: sha256:711f8954b9203468a07404816fa6dd90d9b4725c693e5caf8bafb98e81fe189e
