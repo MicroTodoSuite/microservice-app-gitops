@@ -941,6 +941,17 @@ ADR-0001).
   > fixture, plus explicit requirement-coverage/stage-dependency assertions
   > beyond what the referenced-path and `stage-dependencies.bats` checks already
   > provide.
+- [X] T180 [US6] Keep `tests/evidence/validate-evidence.bats` independent of the calendar: render the `valid` and `terraform-stage-valid` positive controls with a run-time `generatedAt` and validate them under a freshness bound, keep `stale-timestamp.json` fixed in the past, and check each invalid fixture with no freshness bound so it is rejected for its own defect rather than its age.
+
+  > **Defect, found 2026-09-27.** Both positive controls carried the fixed
+  > `generatedAt` `2026-08-24T20:00:00Z`. `validate-gitops.yml` sets
+  > `EVIDENCE_MAX_AGE_DAYS: 30`, so they aged out on 2026-09-23 and `main` has
+  > been red since, with `FAIL: evidence is stale: generated
+  > 2026-08-24T20:00:00Z is older than 30.0 days`. The same bound also meant
+  > every invalid fixture was rejected as stale, so removing a validator check
+  > could no longer turn the suite red. Delivered in
+  > `tests/evidence/validate-evidence.bats`; the validator and the committed
+  > fixtures are unchanged.
 - [X] T146 [US6] Add scheduled reusable source/image/cluster vulnerability assessment and issue-routing behavior in `../.github/.github/workflows/continuous-security.yml`, then wire the five service repositories and ops/GitOps callers; make T143 pass.
 
   > The reusable workflow is on `.github` `main` (PR #30, `7602337`) and makes
