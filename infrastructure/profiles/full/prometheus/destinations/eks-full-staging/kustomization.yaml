@@ -42,7 +42,7 @@ patches:
     patch: |-
       - op: replace
         path: /metadata/annotations/eks.amazonaws.com~1role-arn
-        value: arn:aws:iam::575172595729:role/lex-mts-fstg-role-obssecret
+        value: arn:aws:iam::376784708420:role/lex-mts-fstg-role-obssecret
   - target:
       group: external-secrets.io
       version: v1

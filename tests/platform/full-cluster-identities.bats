@@ -91,16 +91,16 @@ for index in "${!destinations[@]}"; do
     "$prefix-vpc-main"
     "$prefix-sqs-karpenter"
     "$prefix-role-node"
-    "arn:aws:iam::575172595729:role/$prefix-role-jwt$code"
+    "arn:aws:iam::376784708420:role/$prefix-role-jwt$code"
     "$prefix-sm-jwt$code"
-    "arn:aws:iam::575172595729:role/$prefix-role-obssecret"
+    "arn:aws:iam::376784708420:role/$prefix-role-obssecret"
     "$prefix-sm-slackobs"
-    "arn:aws:iam::575172595729:role/$prefix-role-secsecret"
+    "arn:aws:iam::376784708420:role/$prefix-role-secsecret"
     "$prefix-sm-slacksec"
-    "arn:aws:iam::575172595729:role/$prefix-role-trivyecr"
-    "arn:aws:iam::575172595729:role/$prefix-role-kyvernoecr"
-    "arn:aws:iam::575172595729:role/$prefix-role-karpenter"
-    "arn:aws:iam::575172595729:role/$prefix-role-lbcontrol"
+    "arn:aws:iam::376784708420:role/$prefix-role-trivyecr"
+    "arn:aws:iam::376784708420:role/$prefix-role-kyvernoecr"
+    "arn:aws:iam::376784708420:role/$prefix-role-karpenter"
+    "arn:aws:iam::376784708420:role/$prefix-role-lbcontrol"
   )
   for literal in "${expected_literals[@]}"; do
     grep -Fq "$literal" "$combined" \
@@ -114,7 +114,7 @@ for index in "${!destinations[@]}"; do
   ec2_node_class="$(document EC2NodeClass full-profile-spot <"$combined")"
   nodepool="$(document NodePool full-profile-spot <"$combined")"
 
-  grep -Fq "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/$prefix-role-karpenter" <<<"$karpenter_service_account" \
+  grep -Fq "eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/$prefix-role-karpenter" <<<"$karpenter_service_account" \
     || fail "$destination Karpenter ServiceAccount must use its exact IRSA role"
   for setting in \
     "CLUSTER_NAME|$cluster" \
@@ -130,7 +130,7 @@ for index in "${!destinations[@]}"; do
   [[ "$(grep -Fc "karpenter.sh/discovery: $cluster" <<<"$ec2_node_class")" -eq 2 ]] \
     || fail "$destination EC2NodeClass must select both security groups and subnets for $cluster"
 
-  grep -Fq "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/$prefix-role-lbcontrol" <<<"$load_balancer_service_account" \
+  grep -Fq "eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/$prefix-role-lbcontrol" <<<"$load_balancer_service_account" \
     || fail "$destination load balancer ServiceAccount must use its exact IRSA role"
   grep -Fq -- "--cluster-name=$cluster" <<<"$load_balancer_deployment" \
     || fail "$destination load balancer controller must receive its exact cluster name"
@@ -154,7 +154,7 @@ for index in "${!destinations[@]}"; do
     fi
   done
 
-  if grep -Eq "CHANGEME|microtodosuite-full-(dev|prod)|microtodosuite-demo-full|$retired_account|arn:aws:iam::575172595729:role/lex-mts-eco-" "$combined"; then
+  if grep -Eq "CHANGEME|microtodosuite-full-(dev|prod)|microtodosuite-demo-full|$retired_account|arn:aws:iam::376784708420:role/lex-mts-eco-" "$combined"; then
     fail "$destination render contains a placeholder, retired full-cluster value, retired account, or economical role ARN"
   fi
 

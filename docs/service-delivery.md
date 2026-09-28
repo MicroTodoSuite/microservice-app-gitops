@@ -74,13 +74,13 @@ activation (and thus a running Redis) is optional and deferred.
 ## Managed overlays and the shared EKS cluster
 
 The `clusters/eks-dev` registration targets the in-cluster API of the shared
-`lex-mts-eco-eks-main` EKS cluster in AWS account `575172595729`, region
+`lex-mts-eco-eks-main` EKS cluster in AWS account `376784708420`, region
 `us-east-1`. The legacy GitOps directory is retained across the physical
 rebuild, while
 the registration activates dev, staging, and prod as isolated namespaces.
 
 All managed overlays use the environment-neutral private repository
-`575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>`. A
+`376784708420.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>`. A
 service is built once by its reviewed `main` workflow, then the same signed
 immutable digest is pinned in dev, staging, and prod. Environment-specific
 Secrets Manager readers remain separate IRSA roles even though the artifact is

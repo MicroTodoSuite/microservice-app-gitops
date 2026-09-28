@@ -26,7 +26,7 @@ patches:
               - name: cert-manager-controller
                 env:
                   - name: AWS_ROLE_ARN
-                    value: arn:aws:iam::575172595729:role/pending-aks-dr-cert-manager-dns01
+                    value: arn:aws:iam::376784708420:role/pending-aks-dr-cert-manager-dns01
                   - name: AWS_WEB_IDENTITY_TOKEN_FILE
                     value: /var/run/secrets/aws/token
                   - name: AWS_REGION
