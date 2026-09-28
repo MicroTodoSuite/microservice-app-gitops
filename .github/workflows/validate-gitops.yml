@@ -83,8 +83,8 @@ jobs:
       - name: Resolve every cluster root's registration
         run: tests/profiles/cluster-roots-resolved.bats
 
-      - name: Validate economical runtime dependency cleanup
-        run: tests/contract/economical-runtime-quiescence.sh
+      - name: Validate economical runtime activation
+        run: tests/contract/economical-runtime-activation.sh
 
       - name: Validate the economical public entry point
         run: tests/contract/economical-public-entry.sh
