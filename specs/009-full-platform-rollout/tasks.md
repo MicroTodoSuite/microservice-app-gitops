@@ -1102,6 +1102,13 @@ ADR-0001).
 **Purpose**: Restore the economical shared-cluster platform in the replacement AWS
 account without activating the full profile or rewriting historical evidence.
 
+> **Current-state note (2026-09-28).** The replacement account used by the
+> historical Phase 10 entries was rebuilt again. The verified live AWS account
+> is now `376784708420`; active GitOps and service publication paths are being
+> repointed through the account-recovery pull requests. This preparation does
+> not retick T165, T166, or T169: reviewed-main publication, protected-main
+> merge, audited bootstrap, and live acceptance remain pending.
+
 - [X] T163 Add a failing account-recovery contract in
   `tests/contract/economical-account-recovery.sh` that rejects the retired account
   from active economical image, IRSA, operator-documentation, and managed-bootstrap

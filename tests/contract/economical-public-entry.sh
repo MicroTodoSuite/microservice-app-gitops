@@ -52,7 +52,7 @@ fi
 
 controller="$TMP_DIR/controller.yaml"
 render_kustomize "$ROOT/$destination" >"$controller" || fail "$destination does not render"
-require_line "$controller" "    eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-lbcontrol" \
+require_line "$controller" "    eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/lex-mts-eco-role-lbcontrol" \
   "the controller must assume lex-mts-eco-role-lbcontrol"
 for argument in --cluster-name=lex-mts-eco-eks-main --ingress-class=alb --aws-region=us-east-1 --aws-vpc-tags=Name=lex-mts-eco-vpc-main; do
   require_line "$controller" "        - $argument" "the controller must run with $argument"
