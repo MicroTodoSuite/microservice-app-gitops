@@ -17,7 +17,7 @@ patches:
       - op: add
         path: /metadata/annotations
         value:
-          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-lbcontrol
+          eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/lex-mts-eco-role-lbcontrol
   - target:
       group: apps
       version: v1

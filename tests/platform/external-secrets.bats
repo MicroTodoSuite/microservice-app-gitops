@@ -72,7 +72,7 @@ for index in "${!DESTINATIONS[@]}"; do
 
   service_account="$(document ServiceAccount external-secrets-jwt <<<"$env_render")"
   require_text "$destination JWT reader" "$service_account" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-$prefix-role-$jwt_code"
+    "eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/lex-mts-$prefix-role-$jwt_code"
   reject_text "$destination JWT reader" "$service_account" '000000000000'
 
   store="$(document SecretStore aws-secrets-manager <<<"$env_render")"
