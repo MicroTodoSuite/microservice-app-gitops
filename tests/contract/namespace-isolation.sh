@@ -9,6 +9,11 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 pass() { printf 'PASS: %s\n' "$*" >&2; }
 
+# require_text/reject_text/require_render_count read ripgrep's exit status
+# and output; without rg every rejection and count would pass vacuously.
+command -v rg >/dev/null 2>&1 \
+  || fail "ripgrep (rg) is required: without it this contract passes vacuously"
+
 render_kustomize() {
   if command -v kustomize >/dev/null 2>&1; then
     kustomize build "$1"

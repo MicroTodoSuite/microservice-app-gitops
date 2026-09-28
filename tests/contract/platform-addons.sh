@@ -15,6 +15,11 @@ pass() {
   printf 'PASS: %s\n' "$*" >&2
 }
 
+# require_text/reject_text/check_rendered_images read ripgrep's exit status and
+# output; without rg every rejection and --*image= check would pass vacuously.
+command -v rg >/dev/null 2>&1 \
+  || fail "ripgrep (rg) is required: without it this contract passes vacuously"
+
 render_kustomize() {
   if command -v kustomize >/dev/null 2>&1; then
     kustomize build "$1"
