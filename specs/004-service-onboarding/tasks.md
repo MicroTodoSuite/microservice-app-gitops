@@ -141,6 +141,20 @@ in the required order, and prove every story live.
 
 ---
 
+## Phase 8: Contract Drift Follow-up
+
+**Purpose**: Keep the onboarding contract executable after the profile-aware
+layout supersedes its original single-topology paths.
+
+- [ ] T035 Repair `tests/contract/service-onboarding.sh` after spec 009
+  T020-T024 moved managed service composition from `apps/<service>/topology/`
+  and `apps/<service>/overlays/<environment>/` into `profiles/`; retain the
+  original structure, immutable-image, economical-topology, progressive-sync,
+  and production-canary assertions against the replacement paths, and run the
+  contract in `.github/workflows/validate-gitops.yml`.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

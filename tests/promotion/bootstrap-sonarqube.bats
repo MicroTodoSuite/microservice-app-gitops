@@ -11,7 +11,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
 script="$repo_root/scripts/managed/bootstrap-sonarqube.sh"
-workspace_root="$(cd "$repo_root/.." && pwd)"
+workspace_root="${MICROTODO_WORKSPACE_ROOT:-$(cd "$repo_root/.." && pwd)}"
 
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
