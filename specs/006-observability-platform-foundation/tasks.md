@@ -423,13 +423,22 @@ request against exact evidence.
 
 **Purpose**: Repair what the canary-gate work exposed (gitops#197, 2026-09-15).
 
-- [ ] T054 Make `WorkloadHighLatency` able to fire. The alert selects
+- [X] T054 Make `WorkloadHighLatency` able to fire. The alert selects
   `workload:http_request_duration_seconds:avg5m{revision="stable"}`, but that
   recording rule is `sum by (workload)` and carries no `revision` label, so the
   selector matches no series. Add the failing assertion to
   `tests/contract/observability.sh` first, then group the rule by
   `namespace, workload, revision` like the rate and ratio rules beside it, and
   prove the alert can fire through `promtool test rules`.
+  > **Delivered 2026-09-28.** `tests/contract/observability.sh` asserts both
+  > sides of the ratio group by `namespace, workload, revision`, and
+  > `tests/platform/golden-signals-rules.bats` runs promtool 3.12.0 (the
+  > deployed Prometheus release, checksum-pinned in `validate-gitops`) against
+  > `tests/platform/fixtures/golden-signals/latency-alert.test.yaml`: the
+  > alert fires for a 2 s stable average in `microtodo-prod` and stays silent
+  > for an equally slow canary. Before the fix promtool reported `got: []`.
+  > The Grafana latency panel now shows one series per namespace and revision,
+  > as the traffic and error panels already did.
 
 ---
 
