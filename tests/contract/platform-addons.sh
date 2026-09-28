@@ -97,8 +97,6 @@ infrastructure_root_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
   infrastructure_root_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#infrastructure_root_names[@]}" == "15" ]] \
-  || fail "expected exactly fifteen infrastructure roots, found ${#infrastructure_root_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
   [[ " ${infrastructure_root_names[*]} " == *" $addon "* ]] \
@@ -205,9 +203,16 @@ require_text infrastructure/kyverno/kustomization.yaml \
   "Kyverno admission ServiceAccount lacks its exact ECR verifier IRSA role"
 require_text infrastructure/kyverno/policies.yaml 'verifyImages:' \
   "Kyverno lacks enforcing signature verification"
-require_text infrastructure/kyverno/policies.yaml \
-  '575172595729\.dkr\.ecr\.us-east-1\.amazonaws\.com/microtodosuite/\*' \
-  "signature verification is not limited to neutral MicroTodoSuite ECR"
+# Signature verification covers exactly the five rebuilt shared ECR repositories
+# (lex-mts-shd-ecr-<key>, commit 752fdb2) and no broader registry pattern.
+if [[ "$(rg -c 'dkr\.ecr\.' "$ROOT/infrastructure/kyverno/policies.yaml")" != "5" ]]; then
+  fail "signature verification must reference exactly the five MicroTodoSuite ECR repositories"
+fi
+for image_key in authapi frontend logmsgproc todosapi usersapi; do
+  require_text infrastructure/kyverno/policies.yaml \
+    "^            - \"575172595729\\.dkr\\.ecr\\.us-east-1\\.amazonaws\\.com/lex-mts-shd-ecr-${image_key}\\*\"$" \
+    "signature verification is not limited to the $image_key MicroTodoSuite ECR repository"
+done
 require_text infrastructure/kyverno/policies.yaml \
   'https://token\.actions\.githubusercontent\.com' \
   "signature verification lacks the approved GitHub OIDC issuer"
@@ -367,13 +372,25 @@ for crd in rollouts.argoproj.io analysisruns.argoproj.io analysistemplates.argop
   require_resource "$TMP_DIR/argo-rollouts.yaml" CustomResourceDefinition "$crd"
 done
 
-if [[ "$(rg -c '^    - name:' "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" || true)" != 13 ]]; then
-  fail "shared EKS infrastructure activation must contain exactly thirteen final controllers"
+# The economical registration is either active with the exact final controller
+# set or fully quiesced for an approved teardown (spec 009 T170-T177). The
+# quiescent shape is exactly `value: []`, which
+# tests/contract/economical-runtime-quiescence.sh also enforces; any other
+# shape must be the complete active set.
+eks_infrastructure_activation="$ROOT/clusters/eks-dev/activation-infrastructure.yaml"
+if rg -q '^  value: \[\]$' "$eks_infrastructure_activation"; then
+  if rg -n '^    - ' "$eks_infrastructure_activation"; then
+    fail "quiescent shared EKS infrastructure activation still lists controllers"
+  fi
+else
+  if [[ "$(rg -c '^    - name:' "$eks_infrastructure_activation" || true)" != 13 ]]; then
+    fail "shared EKS infrastructure activation must contain exactly thirteen final controllers"
+  fi
+  for addon in keda cert-manager external-secrets kyverno argo-rollouts ebs-csi-driver prometheus grafana jaeger loki falco kube-bench kube-hunter; do
+    require_text clusters/eks-dev/activation-infrastructure.yaml \
+      "name: $addon" "shared EKS infrastructure activation omits $addon"
+  done
 fi
-for addon in keda cert-manager external-secrets kyverno argo-rollouts ebs-csi-driver prometheus grafana jaeger loki falco kube-bench kube-hunter; do
-  require_text clusters/eks-dev/activation-infrastructure.yaml \
-    "name: $addon" "shared EKS infrastructure activation omits $addon"
-done
 reject_text clusters/eks-dev/activation-infrastructure.yaml \
   'name: redis' "shared EKS infrastructure activation retains shared Redis"
 

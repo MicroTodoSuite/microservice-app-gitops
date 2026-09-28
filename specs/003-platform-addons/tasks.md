@@ -131,7 +131,7 @@ request against exact evidence.
 **Purpose**: Keep the feature-owned static contract valid as later features add
 independent infrastructure roots.
 
-- [ ] T031 Reconcile the stale global root-count assertion in
+- [X] T031 Reconcile the stale global root-count assertion in
   `tests/contract/platform-addons.sh`. Reproduction:
   `tests/contract/platform-addons.sh`. Output:
   `FAIL: expected exactly fifteen infrastructure roots, found 27`.
@@ -140,6 +140,21 @@ independent infrastructure roots.
   feature 003 owns only its required platform-add-on roots. The corrected
   contract MUST validate the feature-owned inventory without rejecting
   unrelated roots added by later specifications.
+  Reconciled 2026-09-28: the repository has 28 direct infrastructure roots
+  (every `infrastructure/*/kustomization.yaml`; `infrastructure/profiles/` is
+  not a root). The quoted 27 predates the spec 012 `velero` root (00cb1ac,
+  2026-09-22), and fifteen predates the spec 009 full-profile roots. No global
+  count is the right number: feature 003 owns only its KEDA, cert-manager,
+  External Secrets, and Kyverno roots (plus the Redis and SonarQube roots it
+  names), so the contract checks those by name and keeps their exact
+  resource/provenance assertions. Two further stale assertions surfaced once
+  the count stopped failing first, and were reconciled the same way: the
+  Kyverno signature scope now names exactly the five rebuilt
+  `lex-mts-shd-ecr-<key>` repositories (752fdb2) instead of the retired
+  `microtodosuite/*` prefix, and the thirteen-controller EKS activation check
+  applies while the registration is active and accepts only the exact
+  `value: []` quiescent shape that spec 009 T176 left and
+  `tests/contract/economical-runtime-quiescence.sh` owns.
 
 ---
 
