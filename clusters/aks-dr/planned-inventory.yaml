@@ -1,0 +1,51 @@
+# Planned, NOT ACTIVE, minimum six-vCPU warm-standby inventory for the AKS DR
+# cluster. This ConfigMap is documentation only and is deliberately excluded
+# from kustomization.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: planned-inventory
+  namespace: argocd
+  annotations:
+    microtodosuite.io/status: planned-not-active
+    microtodosuite.io/physical-cluster: pending-aks-dr
+data:
+  physicalCluster: pending-aks-dr
+  logicalEnvironment: prod
+  profile: full
+  plannedEnvironments: |
+    - env: prod
+      profile: full
+      destination: aks-dr
+      path: environments/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+  plannedServices: |
+    - name: auth-api
+      path: apps/auth-api/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: todos-api
+      path: apps/todos-api/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: users-api
+      path: apps/users-api/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: frontend
+      path: apps/frontend/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+    - name: log-message-processor
+      path: apps/log-message-processor/profiles/full/destinations/aks-dr
+      namespace: microtodo-prod
+  plannedInfrastructure: |
+    - name: istio
+      path: infrastructure/profiles/full/istio/destinations/aks-dr
+      namespace: istio-system
+    - name: cert-manager
+      path: infrastructure/profiles/full/cert-manager/destinations/aks-dr
+      namespace: cert-manager
+    - name: external-secrets
+      path: infrastructure/profiles/full/external-secrets/destinations/aks-dr
+      namespace: external-secrets
+  activeAtThisRevision: |
+    environments: 0
+    businessApplications: 0
+    infrastructureApplications: 0

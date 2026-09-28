@@ -1,0 +1,47 @@
+# Scheduled backups of eco (spec 012 FR-011, FR-012; decisions G2 to G4).
+# Cron times are UTC. Both schedules keep backups 30 days, take no volume
+# snapshot or file-system backup (no economical namespace has a volume), and
+# exclude Secrets, which External Secrets re-creates from AWS Secrets Manager.
+# useOwnerReferencesInBackup stays false so that ArgoCD pruning a Schedule
+# never deletes the backups it produced.
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: eco-daily
+  namespace: velero
+spec:
+  schedule: "30 2 * * *"
+  paused: false
+  useOwnerReferencesInBackup: false
+  template:
+    includedNamespaces:
+      - microtodo-dev
+      - microtodo-staging
+      - microtodo-prod
+      - microtodo-demo
+    excludedResources:
+      - secrets
+    storageLocation: default
+    ttl: 720h0m0s
+    snapshotVolumes: false
+    defaultVolumesToFsBackup: false
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: eco-weekly
+  namespace: velero
+spec:
+  schedule: "0 4 * * 0"
+  paused: false
+  useOwnerReferencesInBackup: false
+  template:
+    includedNamespaces:
+      - "*"
+    includeClusterResources: true
+    excludedResources:
+      - secrets
+    storageLocation: default
+    ttl: 720h0m0s
+    snapshotVolumes: false
+    defaultVolumesToFsBackup: false

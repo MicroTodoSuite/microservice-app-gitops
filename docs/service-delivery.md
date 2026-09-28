@@ -30,14 +30,14 @@ approve a production change, which is not the same as an *explicit* human
 approval for production specifically. `CODEOWNERS` designates
 `@Juanmadiaz45`, `@EstebanGZam`, and `@Tiago0507` -- the same three humans
 already required to approve production deploys on every service repo's `prod`
-GitHub Environment -- as owners of `apps/*/profiles/*/overlays/prod/**`. Branch
-protection on `main` must have `require_code_owner_reviews` enabled; that live
-setting is not included in this pull request and remains open. Until it is
-enabled, a production overlay pull request can still merge after any ordinary
-approval. `tests/contract/prod-overlay-approval.sh`
-verifies the static half of this (`CODEOWNERS` names a `@`-owner for the
-pattern); the live branch-protection setting is GitHub state, not a file, and
-is verified operationally (`gh api repos/MicroTodoSuite/microservice-app-gitops/branches/main/protection`).
+GitHub Environment -- as owners of `apps/*/profiles/*/overlays/prod/**`, and
+branch protection on `main` has `require_code_owner_reviews` enabled
+(confirmed live, 2026-09-21). A production overlay pull request cannot merge
+without one of those three approving it, regardless of who else approves.
+`tests/contract/prod-overlay-approval.sh` verifies the static half of this
+(`CODEOWNERS` names the three `@`-owners for the pattern); the live
+branch-protection setting is GitHub state, not a file, and is verified
+operationally (`gh api repos/MicroTodoSuite/microservice-app-gitops/branches/main/protection`).
 
 ## Shared JWT secret
 
@@ -74,13 +74,13 @@ activation (and thus a running Redis) is optional and deferred.
 ## Managed overlays and the shared EKS cluster
 
 The `clusters/eks-dev` registration targets the in-cluster API of the shared
-`lex-mts-eco-eks-main` EKS cluster in AWS account `575172595729`, region
+`lex-mts-eco-eks-main` EKS cluster in AWS account `376784708420`, region
 `us-east-1`. The legacy GitOps directory is retained across the physical
 rebuild, while
 the registration activates dev, staging, and prod as isolated namespaces.
 
 All managed overlays use the environment-neutral private repository
-`575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>`. A
+`376784708420.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>`. A
 service is built once by its reviewed `main` workflow, then the same signed
 immutable digest is pinned in dev, staging, and prod. Environment-specific
 Secrets Manager readers remain separate IRSA roles even though the artifact is

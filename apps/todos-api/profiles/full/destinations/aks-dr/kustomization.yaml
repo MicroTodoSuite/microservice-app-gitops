@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: microtodo-prod
+resources:
+  - ../../topology
+patches:
+  - target: {kind: ConfigMap, name: todos-api-config}
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: {name: todos-api-config}
+      data:
+        REDIS_HOST: redis
+images:
+  - name: todos-api
+    newName: pendingacr.azurecr.io/pending-t131/todosapi
+    digest: sha256:3ff827efe849fe812151c221c3d4c418d7490384e2bcb5c1bb9975fd3f2a4185
