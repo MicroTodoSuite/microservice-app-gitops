@@ -92,8 +92,32 @@ for environment in "${ENVIRONMENTS[@]}"; do
     || fail "$root: the tracing egress rule must allow only TCP 4317"
 done
 
+# --- No Zipkin setting in any rendered application or environment (T017) ----
+# The single exception is the frontend ZIPKIN_URL that the currently promoted
+# frontend image still needs to start. T018 removes it once the T011 image is
+# promoted everywhere; its failing-test commit deletes this exception, and the
+# exception already fails here as stale the moment the value is gone.
+T018_EXCEPTION='^  ZIPKIN_URL: http://127\.0\.0\.1:9411/api/v2/spans$'
+exception_seen=0
+while IFS= read -r root; do
+  if ! out="$(render "$root" 2>&1)"; then
+    fail "$root does not render"
+    continue
+  fi
+  hits="$(grep -i 'zipkin' <<<"$out" || true)"
+  if [[ "$root" == apps/frontend/* ]] && grep -Eq "$T018_EXCEPTION" <<<"$hits"; then
+    exception_seen=1
+    hits="$(grep -Ev "$T018_EXCEPTION" <<<"$hits" || true)"
+  fi
+  [[ -z "$hits" ]] || fail "$root renders a Zipkin setting: $(head -1 <<<"$hits")"
+done < <(find apps environments -name kustomization.yaml -not -path '*/components/*' \
+           -printf '%h\n' | sort -u)
+if (( exception_seen == 0 )); then
+  fail "no frontend render carries ZIPKIN_URL any more: remove the T018 exception from this contract"
+fi
+
 if (( failures > 0 )); then
   printf '\n%s failure(s)\n' "$failures" >&2
   exit 1
 fi
-printf 'PASS: service tracing configuration (5 services, 4 economical environments, Jaeger egress only)\n'
+printf 'PASS: service tracing configuration (5 services, 4 economical environments, Jaeger egress only; no Zipkin setting beyond the T018 frontend exception)\n'
