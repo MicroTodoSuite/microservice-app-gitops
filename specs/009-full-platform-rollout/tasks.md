@@ -1153,6 +1153,15 @@ twelve-digit number across every repository.
   that the rebuilt economical cluster reconciles name the account it runs in,
   and rerun `tests/contract/aws-account-parameter.sh`. Publishing images to the
   new account's registry stays with the service delivery pipeline.
+- [X] T183 Make an account change roll out the pods that assume an IRSA role:
+  add the failing contract `tests/contract/irsa-account-rollout.sh`, which
+  renders every root `clusters/eks-dev/activation-infrastructure.yaml`
+  activates and requires each Deployment running as an IRSA ServiceAccount to
+  carry the declared account as `microtodosuite.io/aws-account` in its pod
+  template, run it in `validate-gitops.yml`, and annotate the load balancer
+  controller, Kyverno admission controller, and Trivy Operator. After T182 those
+  three pods kept the retired account's `AWS_ROLE_ARN`, which the pod identity
+  webhook injects only at pod creation.
 
 ---
 

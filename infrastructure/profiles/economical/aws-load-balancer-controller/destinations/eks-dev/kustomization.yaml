@@ -31,6 +31,9 @@ patches:
         namespace: kube-system
       spec:
         template:
+          metadata:
+            annotations:
+              microtodosuite.io/aws-account: "376784708420"
           spec:
             containers:
               - name: controller
