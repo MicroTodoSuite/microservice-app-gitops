@@ -49,6 +49,7 @@ patches:
           metadata:
             annotations:
               microtodosuite.io/ecr-verifier-irsa-revision: "v1"
+              microtodosuite.io/aws-account: "376784708420"
 
 images:
   - name: reg.kyverno.io/kyverno/kyverno
