@@ -259,7 +259,7 @@ account without exceeding the replacement cluster's two-node capacity.
 **Purpose**: Keep the feature-owned isolation contract aligned with approved
 cross-feature policy additions.
 
-- [ ] T096 Reconcile the stale exact NetworkPolicy count in
+- [X] T096 Reconcile the stale exact NetworkPolicy count in
   `tests/contract/namespace-isolation.sh`. Reproduction:
   `tests/contract/namespace-isolation.sh`. Output:
   `FAIL: dev steady state must contain default deny plus exact allowances: expected 6, found 7 (environment-dev.yaml)`.
@@ -268,7 +268,7 @@ cross-feature policy additions.
   to the shared environment base. The corrected contract MUST account for that
   approved policy while retaining exact selector, direction, protocol, and port
   assertions.
-- [ ] T097 Resolve the broad-allowance failure in
+- [X] T097 Resolve the broad-allowance failure in
   `tests/contract/namespace-isolation.sh`. Reproduction:
   `tests/contract/namespace-isolation.sh`. Output:
   `FAIL: managed base contains a broad cross-environment or internet allowance`.
@@ -278,7 +278,7 @@ cross-feature policy additions.
   reach the workloads; the contract treats any `ipBlock` in the managed base as
   a violation. Decide which side is wrong, fix that side only, and keep the
   exact selector, direction, protocol, and port assertions.
-- [ ] T098 Run `tests/contract/namespace-isolation.sh` in CI. No workflow in
+- [X] T098 Run `tests/contract/namespace-isolation.sh` in CI. No workflow in
   `.github/workflows/` calls it, which is why T096 and T097 reached `main`
   unnoticed.
 

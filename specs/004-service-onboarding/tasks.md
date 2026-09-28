@@ -146,7 +146,7 @@ in the required order, and prove every story live.
 **Purpose**: Keep the onboarding contract executable after the profile-aware
 layout supersedes its original single-topology paths.
 
-- [ ] T035 Repair `tests/contract/service-onboarding.sh` after spec 009
+- [X] T035 Repair `tests/contract/service-onboarding.sh` after spec 009
   T020-T024 moved managed service composition from `apps/<service>/topology/`
   and `apps/<service>/overlays/<environment>/` into `profiles/`; retain the
   original structure, immutable-image, economical-topology, progressive-sync,

@@ -97,8 +97,6 @@ infrastructure_root_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
   infrastructure_root_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#infrastructure_root_names[@]}" == "15" ]] \
-  || fail "expected exactly fifteen infrastructure roots, found ${#infrastructure_root_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
   [[ " ${infrastructure_root_names[*]} " == *" $addon "* ]] \

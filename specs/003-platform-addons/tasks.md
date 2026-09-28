@@ -131,7 +131,7 @@ request against exact evidence.
 **Purpose**: Keep the feature-owned static contract valid as later features add
 independent infrastructure roots.
 
-- [ ] T031 Reconcile the stale global root-count assertion in
+- [X] T031 Reconcile the stale global root-count assertion in
   `tests/contract/platform-addons.sh`. Reproduction:
   `tests/contract/platform-addons.sh`. Output:
   `FAIL: expected exactly fifteen infrastructure roots, found 27`.
@@ -140,6 +140,11 @@ independent infrastructure roots.
   feature 003 owns only its required platform-add-on roots. The corrected
   contract MUST validate the feature-owned inventory without rejecting
   unrelated roots added by later specifications.
+  Reconciled 2026-09-28: the repository has 28 direct infrastructure roots;
+  the task's quoted 27 was an earlier inventory. The contract now checks the
+  feature-owned KEDA, cert-manager, External Secrets, and Kyverno roots by
+  name and keeps their exact resource/provenance assertions without imposing
+  a global count on roots owned by later specifications.
 
 ---
 

@@ -728,6 +728,10 @@ to stay empty at their bootstrap revision.
 
 - [X] T102 [US4] Make `../.github/.github/workflows/ci.yml` fail closed for required Sonar/test inputs, retain build-once/Trivy/Syft/Cosign behavior, pin every Action by full SHA, and make the CI portion of T099 pass.
 - [X] T103 [P] [US4] Pin and validate the GitHub App installation-token paths in `../.github/.github/workflows/{release,promote}.yml`; add reviewed manifests for separate release and GitOps-promotion Apps, exact repository installations/permissions, selected-repository organization secret names, mode-`0600` private-key upload/cleanup, rotation, and fail-closed authority checks to `../microservice-app-docs/full-platform/github-app-authentication.md`; add a value-blind one-time Sonar administrator-rotation/forced-auth/five-project/analysis-only-token helper in `scripts/managed/bootstrap-sonarqube.sh` and its tests in `tests/promotion/bootstrap-sonarqube.bats`, without adding a PAT, leaving anonymous project access, or exposing either credential.
+  Reverified 2026-09-28: the helper tries GNU `stat -c` before the BSD
+  fallback, its value-blind contract passes on Linux, and that contract is now
+  a blocking `validate-gitops` step. This repairs the offline prerequisite for
+  T111; T111's live Sonar and GitHub App evidence remains open.
 - [X] T104 [US4] Extend `../.github/.github/workflows/promote.yml` with validated `profile`, `destination`, and strategy inputs, pinned Kustomize/checksum installation, exact-digest Cosign verification, and one-overlay PR behavior; make T099 pass.
 - [X] T105 [P] [US4] Wire auth-api's complete required gates and updated shared workflow SHAs in `../microservice-app-auth-api/.github/workflows/ci.yml`.
 - [X] T106 [P] [US4] Wire frontend's unit, conformance, Pact, full five-service stack E2E, performance, DAST, Sonar, and updated shared workflow SHAs in `../microservice-app-frontend/.github/workflows/{ci,conformance,pact,e2e,perf,dast}.yml`, extending `../microservice-app-frontend/e2e/` so the matrix covers every service interaction required for release.

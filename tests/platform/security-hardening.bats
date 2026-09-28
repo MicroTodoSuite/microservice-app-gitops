@@ -8,6 +8,10 @@
 # image signature is verified here; that needs the registry and Rekor.
 set -euo pipefail
 
+# Namespace sets feed sort and comm below. Force one collation order internally
+# so callers get the same result regardless of their inherited locale.
+export LC_ALL=C
+
 command -v kubeconform >/dev/null || { printf 'FAIL: kubeconform is required\n' >&2; exit 1; }
 if ! command -v kustomize >/dev/null && ! command -v kubectl >/dev/null; then
   printf 'FAIL: standalone kustomize or kubectl is required\n' >&2
