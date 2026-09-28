@@ -1,0 +1,56 @@
+# promtool unit test for spec 006 T054: WorkloadHighLatency fires on slow
+# stable traffic and ignores an equally slow canary. The runner extracts the
+# PrometheusRule's groups into golden-signals.rules.yaml next to this file.
+rule_files:
+  - golden-signals.rules.yaml
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    input_series:
+      # auth-api stable in prod: 60 requests/min taking 120 s in total, a 2 s
+      # average, above the 1 s threshold.
+      - series: 'auth_api_request_duration_seconds_sum{namespace="microtodo-prod",revision="stable",job="auth-api",instance="10.0.0.1:8000"}'
+        values: '0+120x20'
+      - series: 'auth_api_request_duration_seconds_count{namespace="microtodo-prod",revision="stable",job="auth-api",instance="10.0.0.1:8000"}'
+        values: '0+60x20'
+      # auth-api canary in prod, equally slow: the canary gate owns it, so the
+      # stable-traffic alert must stay silent for it.
+      - series: 'auth_api_request_duration_seconds_sum{namespace="microtodo-prod",revision="canary",job="auth-api-canary",instance="10.0.0.2:8000"}'
+        values: '0+120x20'
+      - series: 'auth_api_request_duration_seconds_count{namespace="microtodo-prod",revision="canary",job="auth-api-canary",instance="10.0.0.2:8000"}'
+        values: '0+60x20'
+      # todos-api stable in prod: a 0.1 s average, below the threshold.
+      - series: 'todo_api_request_duration_seconds_sum{namespace="microtodo-prod",revision="stable",job="todos-api",instance="10.0.0.3:8082"}'
+        values: '0+6x20'
+      - series: 'todo_api_request_duration_seconds_count{namespace="microtodo-prod",revision="stable",job="todos-api",instance="10.0.0.3:8082"}'
+        values: '0+60x20'
+
+    promql_expr_test:
+      - expr: workload:http_request_duration_seconds:avg5m
+        eval_time: 10m
+        exp_samples:
+          - labels: 'workload:http_request_duration_seconds:avg5m{namespace="microtodo-prod",revision="stable",workload="auth-api"}'
+            value: 2
+          - labels: 'workload:http_request_duration_seconds:avg5m{namespace="microtodo-prod",revision="canary",workload="auth-api"}'
+            value: 2
+          - labels: 'workload:http_request_duration_seconds:avg5m{namespace="microtodo-prod",revision="stable",workload="todos-api"}'
+            value: 0.1
+
+    alert_rule_test:
+      # Still pending: the condition holds, but not yet for the full 5m.
+      - eval_time: 4m
+        alertname: WorkloadHighLatency
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: WorkloadHighLatency
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: microtodo-prod
+              revision: stable
+              workload: auth-api
+            exp_annotations:
+              summary: "auth-api average latency above 1s"
+              description: "auth-api average request duration is 2s over the last 5 minutes."

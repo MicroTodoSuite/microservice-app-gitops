@@ -200,6 +200,27 @@ jobs:
       - name: Validate the observability platform static contract (spec 006)
         run: tests/contract/observability.sh
 
+      # promtool from the Prometheus release the observability root deploys
+      # (vendored kube-prometheus v0.18.0 -> Prometheus v3.12.0); checksum from
+      # that release's sha256sums.txt.
+      - name: Install checksum-pinned promtool
+        run: |
+          set -euo pipefail
+          version=3.12.0
+          checksum=20da47f8e5303f74aecb78edd7f7e39041dac08ac4939dba75efd7a900ae8867
+          archive="$(mktemp)"
+          extract_dir="$(mktemp -d)"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            "https://github.com/prometheus/prometheus/releases/download/v${version}/prometheus-${version}.linux-amd64.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
+          tar -xzf "$archive" -C "$extract_dir" "prometheus-${version}.linux-amd64/promtool"
+          sudo install -m 0755 "$extract_dir/prometheus-${version}.linux-amd64/promtool" /usr/local/bin/promtool
+          promtool --version
+
+      - name: Prove the golden-signal alerts can fire (spec 006 T054)
+        run: tests/platform/golden-signals-rules.bats
+
       - name: Validate the platform add-on contract (spec 003 T031)
         run: tests/contract/platform-addons.sh
 
