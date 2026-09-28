@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 # AKS disaster-recovery root contract (spec 009 T120, US5).
 #
-# Pins what T129 must deliver (and what the later T133 activation must keep
-# true) for the independently reconciled Azure destination:
+# Pins the minimum warm-standby inventory that T133 activation must keep true
+# for the independently reconciled Azure destination:
 #
 #   clusters/aks-dr/{kustomization,registration,root-app,planned-inventory,
 #     activation-apps,activation-environments,activation-infrastructure}.yaml
 #   environments/profiles/full/destinations/aks-dr/            secret store
 #   apps/<service>/profiles/full/destinations/aks-dr/          ACR digests
 #   infrastructure/profiles/full/istio/destinations/aks-dr/    static public IP
-#   infrastructure/profiles/full/prometheus/destinations/aks-dr/
 #   infrastructure/profiles/full/cert-manager/components/common-certificate/
 #
 # registration.yaml (ConfigMap cluster-registration) carries only non-secret
@@ -100,17 +99,18 @@ planned_block() {
 
 services=(auth-api todos-api users-api frontend log-message-processor)
 
-# Every capability FR-023 requires of a full workload cluster, plus the
-# security audit jobs the AWS full-production root runs. Alertmanager ships
-# inside prometheus.
-required_capabilities=(
-  istio kiali keda cert-manager external-secrets kyverno argo-rollouts
-  prometheus grafana jaeger eck-operator elasticsearch logstash kibana filebeat
-  falco chaos-mesh opencost trivy-operator kube-bench kube-hunter
+# The six-vCPU Azure for Students warm standby carries only ingress/TLS and
+# secret reconciliation for the production workload path. Its own ArgoCD root
+# is asserted separately below. The AWS full-profile inventory is unchanged.
+required_capabilities=(istio cert-manager external-secrets)
+# Quota-deferred platform capabilities, AWS-only controllers, full-dev-only CI
+# tooling, and the economical-only log store never run on AKS.
+forbidden_capabilities=(
+  kiali keda kyverno argo-rollouts prometheus grafana jaeger eck-operator
+  elasticsearch logstash kibana filebeat falco chaos-mesh opencost
+  trivy-operator kube-bench kube-hunter
+  karpenter aws-load-balancer-controller ebs-csi-driver sonarqube postgresql loki
 )
-# AWS-only controllers, full-dev-only CI tooling, and the economical-only log
-# store never run on AKS.
-forbidden_capabilities=(karpenter aws-load-balancer-controller ebs-csi-driver sonarqube postgresql loki)
 
 # --- root files ---------------------------------------------------------------
 for file in kustomization.yaml registration.yaml root-app.yaml planned-inventory.yaml \
@@ -273,8 +273,6 @@ for capability in "${forbidden_capabilities[@]}"; do
 done
 [[ "${planned_path[istio]:-}" == infrastructure/profiles/full/istio/destinations/aks-dr ]] \
   || fail "plannedInfrastructure istio must be infrastructure/profiles/full/istio/destinations/aks-dr"
-[[ "${planned_path[prometheus]:-}" == infrastructure/profiles/full/prometheus/destinations/aks-dr ]] \
-  || fail "plannedInfrastructure prometheus must be infrastructure/profiles/full/prometheus/destinations/aks-dr"
 for service in "${services[@]}"; do
   grep -Fq "path: apps/$service/profiles/full/destinations/aks-dr" "$planned" \
     || fail "planned inventory plannedServices must name apps/$service/profiles/full/destinations/aks-dr"
@@ -406,7 +404,7 @@ elif render_to env "$env_path"; then
   fi
 fi
 
-# --- planned platform renders: ACR, persistence, identity, static IP ----------
+# --- minimum planned platform: ACR, persistence, identity, static IP -----------
 for name in "${!planned_path[@]}"; do
   path="$ROOT/${planned_path[$name]}"
   label="${planned_path[$name]}"
@@ -418,12 +416,6 @@ for name in "${!planned_path[@]}"; do
   check_persistence "$label" "$flat" "$raw"
   check_no_dns01_identity "$label" "$raw"
   check_load_balancers "$label" "$flat"
-done
-for stateful in prometheus grafana; do
-  if [[ -f "$workdir/infra-$stateful.flat" ]]; then
-    awk -F'\t' '$2 ~ /storageClassName=managed-csi/' "$workdir/infra-$stateful.flat" | grep -q . \
-      || fail "$stateful on AKS must keep its data on an encrypted managed-csi Azure Disk"
-  fi
 done
 if [[ -f "$workdir/infra-istio.flat" ]]; then
   gateway="$(docs_of "$workdir/infra-istio.flat" Service istio-ingressgateway)"
@@ -532,4 +524,4 @@ if [[ "$failures" -ne 0 ]]; then
   exit 1
 fi
 
-printf 'PASS: the AKS DR root reconciles independently in-cluster (%s), plans the complete full inventory from ACR digests with an Azure secret store, managed-csi persistence, and the Terraform-owned static IP, and keeps the DNS-01 web identity in a disabled cert-manager-only component.\n' "$state"
+printf 'PASS: the AKS DR root reconciles independently in-cluster (%s), plans the minimum six-vCPU warm-standby inventory from ACR digests with an Azure secret store and the Terraform-owned static IP, rejects quota-deferred capabilities, and keeps the DNS-01 web identity in a disabled cert-manager-only component.\n' "$state"
