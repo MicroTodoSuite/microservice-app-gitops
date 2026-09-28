@@ -78,8 +78,12 @@ data:
     receivers:
       otlp:
         protocols:
+          # Without an endpoint the receiver binds 127.0.0.1, which the
+          # jaeger-collector Service cannot reach.
           grpc:
+            endpoint: 0.0.0.0:4317
           http:
+            endpoint: 0.0.0.0:4318
 
     processors:
       batch:
