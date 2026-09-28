@@ -5,16 +5,9 @@
 # tests/contract/*.sh do for the economical profile. No live cluster is
 # touched, so this runs identically in CI and on a laptop with only Docker.
 #
-# T069 also names two things this file intentionally does NOT assert, because
-# nothing in this PR implements them yet:
-#   - AWS-controller NLB versus Terraform-owned static-public-IP Azure ingress
-#     wiring — depends on infrastructure/aws-load-balancer-controller/, which
-#     needs a real Terraform-output IRSA role ARN that does not exist until
-#     Phase 4 (spec 009 T057-T062) applies a full-profile EKS cluster.
-#   - Destination HTTP-01 versus production DNS-01 certificate separation —
-#     depends on a cert-manager Issuer design decision not yet recorded
-#     anywhere in this repository.
-# Both remain unchecked in tasks.md; see the PR body for the same note.
+# The complete contract intentionally remains red until destination ingress,
+# certificate, and exact-flow roots exist. Keeping those assertions here makes
+# the former partial-delivery boundary explicit and machine-checkable.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -29,6 +22,10 @@ fi
 failures=0
 fail() { printf 'FAIL: %s\n' "$*" >&2; failures=$((failures + 1)); }
 
+require_file() {
+  [[ -f "$ROOT/$1" ]] || fail "required file is missing: $1"
+}
+
 # Standalone kustomize is checksum-locked in CI (full-profile-toolchain.lock);
 # kubectl's embedded kustomize is the documented local fallback (CLAUDE.md).
 render() {
@@ -37,6 +34,19 @@ render() {
   else
     kubectl kustomize "$1"
   fi
+}
+
+document() {
+  awk -v kind="$1" -v name="$2" '
+    function flush() {
+      if (doc ~ ("\nkind: " kind "\n") && doc ~ ("\n  name: " name "\n")) printf "%s", doc
+      doc = "\n"
+    }
+    BEGIN { doc = "\n" }
+    /^---$/ { flush(); next }
+    { doc = doc $0 "\n" }
+    END { flush() }
+  '
 }
 
 validate() {
@@ -75,11 +85,14 @@ if grep -qE 'type: (LoadBalancer|NodePort)' <<<"$kiali_service_block"; then
   fail "the Kiali Service must not be publicly reachable (LoadBalancer/NodePort)"
 fi
 
-# --- namespace mesh injection ------------------------------------------------
+# --- namespace revision pin ---------------------------------------------------
 fixture_render="$(render "$FIXTURE")"
-namespace_block="$(grep -A3 '^kind: Namespace' <<<"$fixture_render")"
-grep -q 'istio-injection: enabled' <<<"$namespace_block" \
-  || fail "a full-topology namespace must carry istio-injection: enabled"
+namespace_block="$(document Namespace microtodo-full-dev <<<"$fixture_render")"
+grep -q 'istio.io/rev: default' <<<"$namespace_block" \
+  || fail "a full-topology namespace must pin the installed Istio revision with istio.io/rev: default"
+if grep -q 'istio-injection:' <<<"$namespace_block"; then
+  fail "a full-topology namespace must use the revision label, not the unversioned istio-injection label"
+fi
 
 # --- default-deny at L7 (AuthorizationPolicy) and L3/L4 (NetworkPolicy) ----
 grep -q '^kind: AuthorizationPolicy' <<<"$fixture_render" \
@@ -87,14 +100,122 @@ grep -q '^kind: AuthorizationPolicy' <<<"$fixture_render" \
 awk '/^kind: AuthorizationPolicy/{f=1} f&&/^spec: \{\}/{found=1} /^---/{f=0}END{exit !found}' <<<"$fixture_render" \
   || fail "the default-deny AuthorizationPolicy must have an empty spec (deny-all)"
 
-for flow in allow-dns allow-istiod-discovery; do
+network_deny="$(document NetworkPolicy default-deny <<<"$fixture_render")"
+[[ -n "$network_deny" ]] \
+  || fail "environments/full must add a default-deny NetworkPolicy"
+for direction in Ingress Egress; do
+  grep -q -- "- $direction" <<<"$network_deny" \
+    || fail "the default-deny NetworkPolicy must cover $direction"
+done
+
+for flow in \
+  allow-dns \
+  allow-ingress-gateway \
+  allow-service-dependencies \
+  allow-redis \
+  allow-telemetry \
+  allow-controller-webhook \
+  allow-cloud-api; do
   grep -q "name: $flow" <<<"$fixture_render" \
     || fail "environments/full must define the $flow required-flow NetworkPolicy"
 done
+
+# The development fixture may name its own environment and shared platform
+# namespaces, but never a peer business environment.
+if grep -qE 'microtodo-(staging|prod)' <<<"$fixture_render"; then
+  fail "the full-dev mesh policy must expose no cross-environment path"
+fi
+
+# The four HTTP services carry the active resilience policy. The Redis
+# subscriber deliberately has no HTTP traffic object, but its Redis flow is
+# covered by NetworkPolicy above.
+for service in auth-api todos-api users-api frontend; do
+  service_render="$(render "apps/$service/profiles/full/topology")"
+  rule="$(document DestinationRule "$service" <<<"$service_render")"
+  route="$(document VirtualService "$service" <<<"$service_render")"
+  for field in 'mode: ISTIO_MUTUAL' 'connectionPool:' 'outlierDetection:'; do
+    grep -qF -- "$field" <<<"$rule" \
+      || fail "$service DestinationRule must declare $field"
+  done
+  for field in 'retries:' 'timeout:'; do
+    grep -qF -- "$field" <<<"$route" \
+      || fail "$service VirtualService must declare $field"
+  done
+done
+
+# Ingress is cloud-specific. EKS uses the AWS controller to provision an NLB;
+# AKS binds the existing Terraform-owned Standard public IP by exact name and
+# resource group. Placeholder values are not an activatable contract.
+for destination in eks-full-dev eks-full-staging eks-full-prod; do
+  path="infrastructure/profiles/full/istio/destinations/$destination"
+  require_file "$path/kustomization.yaml"
+  [[ -f "$ROOT/$path/kustomization.yaml" ]] || continue
+  ingress="$(render "$path" | document Service istio-ingressgateway)"
+  grep -qF 'service.beta.kubernetes.io/aws-load-balancer-type: external' <<<"$ingress" \
+    || fail "$destination Istio ingress must be owned by AWS Load Balancer Controller"
+  grep -qF 'service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip' <<<"$ingress" \
+    || fail "$destination Istio ingress must use NLB IP targets"
+  grep -qF 'service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing' <<<"$ingress" \
+    || fail "$destination Istio ingress must use the reviewed public NLB scheme"
+done
+
+AZURE_ISTIO=infrastructure/profiles/full/istio/destinations/aks-dr
+require_file "$AZURE_ISTIO/kustomization.yaml"
+if [[ -f "$ROOT/$AZURE_ISTIO/kustomization.yaml" ]]; then
+  azure_ingress="$(render "$AZURE_ISTIO" | document Service istio-ingressgateway)"
+  grep -qF 'service.beta.kubernetes.io/azure-pip-name:' <<<"$azure_ingress" \
+    || fail "AKS Istio ingress must bind the Terraform-owned public IP by name"
+  grep -qF 'service.beta.kubernetes.io/azure-load-balancer-resource-group:' <<<"$azure_ingress" \
+    || fail "AKS Istio ingress must bind the Terraform-owned ingress resource group"
+  if grep -qE 'pending|CHANGEME' <<<"$azure_ingress"; then
+    fail "AKS Istio ingress must not contain an unverified static-IP placeholder"
+  fi
+fi
+
+# Each destination has a separate HTTP-01 issuer/certificate. The common
+# production hostname is a distinct DNS-01 component and must not create or
+# depend on the shared application record.
+for destination in eks-full-dev eks-full-staging eks-full-prod aks-dr; do
+  cert_root="infrastructure/profiles/full/cert-manager/destinations/$destination"
+  istio_root="infrastructure/profiles/full/istio/destinations/$destination"
+  require_file "$cert_root/kustomization.yaml"
+  require_file "$istio_root/kustomization.yaml"
+  [[ -f "$ROOT/$cert_root/kustomization.yaml" && -f "$ROOT/$istio_root/kustomization.yaml" ]] || continue
+  certs="$(render "$cert_root")"
+  ingress_policy="$(render "$istio_root")"
+  grep -q '^kind: ClusterIssuer$' <<<"$certs" \
+    || fail "$destination must render its HTTP-01 ClusterIssuer"
+  grep -q 'http01:' <<<"$certs" \
+    || fail "$destination certificate must use HTTP-01"
+  grep -q '^kind: Certificate$' <<<"$certs" \
+    || fail "$destination must render its trusted ingress Certificate"
+  gateway="$(document Gateway microtodosuite-ingress <<<"$ingress_policy")"
+  [[ -n "$gateway" ]] || fail "$destination must render Gateway microtodosuite-ingress"
+  grep -q 'credentialName:' <<<"$gateway" \
+    || fail "$destination Gateway must terminate TLS with the cert-manager Secret"
+  grep -q 'httpsRedirect: true' <<<"$gateway" \
+    || fail "$destination Gateway must redirect plaintext by default"
+  acme="$(document VirtualService acme-http01-exception <<<"$ingress_policy")"
+  grep -qF 'prefix: /.well-known/acme-challenge/' <<<"$acme" \
+    || fail "$destination plaintext exception must be limited to the ACME HTTP-01 path"
+done
+
+COMMON_CERT=infrastructure/profiles/full/cert-manager/components/common-certificate
+require_file "$COMMON_CERT/kustomization.yaml"
+if [[ -f "$ROOT/$COMMON_CERT/kustomization.yaml" ]]; then
+  common="$(render "$COMMON_CERT")"
+  grep -q 'dns01:' <<<"$common" \
+    || fail "the common production certificate must use DNS-01"
+  grep -qF -- '- app.microtodosuite.online' <<<"$common" \
+    || fail "the DNS-01 certificate must cover only the common production hostname"
+  if grep -q 'http01:' <<<"$common"; then
+    fail "the common production certificate must not use destination HTTP-01"
+  fi
+fi
 
 if [[ "$failures" -ne 0 ]]; then
   printf 'FAIL: %d mesh-policy violation(s)\n' "$failures" >&2
   exit 1
 fi
 
-printf 'PASS: istio and kiali render valid, mesh-wide mTLS is STRICT, Kiali has no public ingress, and the full-topology namespace fixture carries default-deny AuthorizationPolicy/NetworkPolicy plus sidecar injection.\n'
+printf 'PASS: full namespaces pin the Istio revision; STRICT mTLS, exact default-deny/allow flows, resilient service routing, cloud-specific ingress, separated HTTP-01/DNS-01 certificates, trusted TLS, and non-public Kiali all render without cross-environment paths.\n'
