@@ -10,6 +10,11 @@ metadata:
   labels:
     app.kubernetes.io/name: jaeger
     app.kubernetes.io/part-of: microtodosuite
+  annotations:
+    # Replace, not server-side apply: an apply keeps the RollingUpdate defaults
+    # already on the live object, which the API server rejects next to
+    # strategy Recreate. Replace takes precedence over ServerSideApply=true.
+    argocd.argoproj.io/sync-options: Replace=true
 spec:
   replicas: 1
   # Badger locks its single ReadWriteOnce volume, so a new pod can only start
