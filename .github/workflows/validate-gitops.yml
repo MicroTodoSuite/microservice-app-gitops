@@ -138,8 +138,8 @@ jobs:
           kustomize version
           kubeconform -v
 
-      - name: Validate the full-topology mesh policy render (spec 009 T069)
-        run: tests/platform/mesh-policy.bats
+      - name: Validate the delivered mesh scaffold render (spec 009 T069/T083)
+        run: tests/platform/mesh-policy-scaffold.bats
 
       - name: Validate the per-service mesh traffic policy render (spec 009 T083)
         run: tests/platform/mesh-traffic-policy.bats
@@ -236,6 +236,9 @@ jobs:
 
       - name: Validate the full-profile service runtime (spec 009 T090)
         run: tests/platform/service-runtime-full.bats
+
+      - name: Validate the controlled runtime configuration (spec 009 T071/T090)
+        run: tests/platform/runtime-config.bats
 
       - name: Validate full-profile cost allocation (spec 009 T144)
         run: tests/platform/opencost-allocation.bats

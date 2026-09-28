@@ -331,10 +331,52 @@ the audited bootstrap. These human-gated operations are not started here.
 
 ### Tests first
 
-- [ ] T068 [P] [US3] Add a failing exact capability/version/resource-budget/image/storage inventory test in `tests/platform/full-capability-inventory.bats`, comparing every full root against FR-023 plus required audit/notification capabilities, requiring every GitOps-installed third-party platform image by immutable upstream digest and mirrored ECR digest, enforcing cloud-specific encrypted EKS/Azure Disk storage overlays for stateful capabilities, requiring exactly one SonarQube/PostgreSQL shared-tooling activation in full-dev and none elsewhere, applying cloud-specific Karpenter rules, and forbidding full-only capabilities in economical roots.
-- [ ] T069 [P] [US3] Add failing mesh/network render tests for namespace revision labels, STRICT mTLS, default-deny AuthorizationPolicy and NetworkPolicy, explicit DNS/ingress/service-dependency/Redis/telemetry/controller-webhook/cloud-API flows with no cross-environment path, retries/timeouts/connection pools/outlier detection, AWS-controller NLB versus Terraform-owned static-public-IP Azure ingress wiring, destination HTTP-01 and production DNS-01 certificate separation, an HTTP exception limited to the ACME challenge path with all other plaintext redirected/rejected, trusted ingress TLS, and Kiali non-public access in `tests/platform/mesh-policy.bats`.
+- [X] T068 [P] [US3] Add a failing exact capability/version/resource-budget/image/storage inventory test in `tests/platform/full-capability-inventory.bats`, comparing every full root against FR-023 plus required audit/notification capabilities, requiring every GitOps-installed third-party platform image by immutable upstream digest and mirrored ECR digest, enforcing cloud-specific encrypted EKS/Azure Disk storage overlays for stateful capabilities, requiring exactly one SonarQube/PostgreSQL shared-tooling activation in full-dev and none elsewhere, applying cloud-specific Karpenter rules, and forbidding full-only capabilities in economical roots.
+  > Delivered failing in `tests/platform/full-capability-inventory.bats`
+  > (commit `008152e`), inspected and run offline: it fails on the real gaps
+  > (planned inventories that list Loki and omit several FR-023 capabilities,
+  > missing `infrastructure/argocd-notifications/`, lock rows missing for
+  > Falco/Grafana/Jaeger/kube-bench/kube-hunter/trivy-operator/SonarQube/
+  > PostgreSQL, upstream rather than ECR-mirror images, containers with no
+  > CPU/memory bounds, missing full Grafana/Elasticsearch/SonarQube
+  > destination roots, and zero full-dev SonarQube activations). T091 and
+  > T082/T092 make it pass; it is not wired into `validate-gitops.yml` until then.
+- [X] T069 [P] [US3] Add failing mesh/network render tests for namespace revision labels, STRICT mTLS, default-deny AuthorizationPolicy and NetworkPolicy, explicit DNS/ingress/service-dependency/Redis/telemetry/controller-webhook/cloud-API flows with no cross-environment path, retries/timeouts/connection pools/outlier detection, AWS-controller NLB versus Terraform-owned static-public-IP Azure ingress wiring, destination HTTP-01 and production DNS-01 certificate separation, an HTTP exception limited to the ACME challenge path with all other plaintext redirected/rejected, trusted ingress TLS, and Kiali non-public access in `tests/platform/mesh-policy.bats`.
+  > Completed failing in `tests/platform/mesh-policy.bats` (commit `008152e`):
+  > the `istio.io/rev: default` revision label (the vendored injector's
+  > `rev.namespace` webhook selects it only when `istio-injection` is absent),
+  > default-deny NetworkPolicy over Ingress and Egress, the seven named flows,
+  > no `microtodo-staging`/`microtodo-prod` path from full-dev, per-service
+  > retries/timeouts/connection pools/outlier detection, AWS Load Balancer
+  > Controller NLB annotations on EKS versus `azure-pip-name` plus
+  > `azure-load-balancer-resource-group` on AKS, per-destination HTTP-01
+  > issuers, the DNS-01 `app.microtodosuite.online` certificate, the
+  > ACME-only plaintext exception with HTTPS redirect, and non-public Kiali.
+  > It fails 26 assertions until T083 lands. `validate-gitops.yml` now runs
+  > `tests/platform/mesh-policy-scaffold.bats`, the previous file's
+  > assertions with the namespace check widened to accept either injector
+  > selector, so the delivered scaffold stays guarded.
 - [ ] T070 [P] [US3] Add failing cloud-secret tests for AWS IRSA and Azure workload identity/Key Vault references, exact JWT/Alertmanager/Falco/Grafana/Sonar source-name mappings, production JWT parity metadata, no ad hoc generator for application or operator-supplied runtime/admin values, an explicit generator/consumer/rotation allowlist limited to controller-owned TLS/service-account/internal-bootstrap material, exact full-dev-only Sonar reader scope, and no literal/exported values in `tests/platform/external-secrets.bats`.
-- [ ] T071 [P] [US3] Add failing platform tests for unsigned/unmirrored/mutable images, wrong platform-mirror signature identity, incomplete OCI graph, alert, Falco trigger, ECK recovery, SonarQube/PostgreSQL readiness and retained-volume recovery, audit Jobs, bounded scaling, chaos activation, controlled non-secret runtime configuration, and auditable default-off feature toggles as GitOps-owned manifests in `tests/platform/{platform-image-supply-chain,failure-fixtures,runtime-config}.bats`.
+  > Partially delivered, failing, in `tests/platform/external-secrets.bats`
+  > (commit `008152e`): exact IRSA role and JWT/Slack source names per EKS
+  > destination, Azure workload identity and Key Vault references with the
+  > four Decision 14 names on the `azure-key-vault` store, production JWT
+  > parity metadata, full-dev-only Sonar scope, a named generator allowlist,
+  > no Password generator for Grafana or SonarQube, and no committed Secret
+  > value. Stays unchecked: the AWS Grafana-admin and Sonar DB/admin sources
+  > are pinned only to the rebuilt `lex-mts-<env>-sm-<code>` convention,
+  > because no IaC root owns those containers yet (audit 2026-09-27 D8) and
+  > their codes are a maintainer decision. T089 makes the rest pass.
+- [X] T071 [P] [US3] Add failing platform tests for unsigned/unmirrored/mutable images, wrong platform-mirror signature identity, incomplete OCI graph, alert, Falco trigger, ECK recovery, SonarQube/PostgreSQL readiness and retained-volume recovery, audit Jobs, bounded scaling, chaos activation, controlled non-secret runtime configuration, and auditable default-off feature toggles as GitOps-owned manifests in `tests/platform/{platform-image-supply-chain,failure-fixtures,runtime-config}.bats`.
+  > Delivered in `tests/platform/{platform-image-supply-chain,failure-fixtures,runtime-config}.bats`
+  > (commit `008152e`). `runtime-config.bats` passes against the T090 slices
+  > (a default-on `FEATURE_*` literal was checked to fail it) and is wired
+  > into `validate-gitops.yml`. The other two fail until T082/T088/T092 add
+  > the platform-mirror attestor, the four negative admission fixtures, the
+  > OCI graph template, and the mirrored images, and T094 adds the alert,
+  > retained-volume recovery, and bounded-scaling fixtures; they stay out of
+  > CI until then. The registry-backed signature and referrer checks run in
+  > T092's static-evidence run once the mirror exists.
 - [X] T072 [P] [US3] Add auth-api health, correlation, OpenTelemetry, timeout/retry/circuit-breaker, and metrics tests in `../microservice-app-auth-api/main_test.go` and `user_test.go`; confirm failure before T077.
 - [X] T073 [P] [US3] Add frontend health/config/correlation and failure UX tests in `../microservice-app-frontend/test/unit/operational-contract.test.js` and extend `../microservice-app-frontend/e2e/specs/todos.spec.js`; confirm failure before T078.
 - [X] T074 [P] [US3] Add log processor health, correlation, OpenTelemetry, Redis retry/backoff, and metrics tests in `../microservice-app-log-message-processor/tests/test_operational_contract.py` and `tests/integration/test_redis_consume.py`; confirm failure before T079.
@@ -406,7 +448,8 @@ to stay empty at their bootstrap revision.
 > certificates for Istio, the ingress Gateway's real NLB wiring, DestinationRule/
 > VirtualService for any of the five services, and live-cluster proof (render
 > tests only — `tests/platform/mesh-policy.bats`). T069 and T083 stay
-> unchecked below; neither is complete.
+> unchecked below; neither is complete. (Superseded for T069: its complete
+> failing contract landed later; see the annotation under T069 above.)
 
 ### Platform implementation
 
@@ -699,6 +742,9 @@ to stay empty at their bootstrap revision.
   > runtime-config portion of T071 it must make pass lives in
   > `tests/platform/runtime-config.bats`, which T071 has not created, and no
   > probe, budget, scaling, or toggle has run against a cluster (T094).
+  > Update: T071 created `tests/platform/runtime-config.bats` (commit
+  > `008152e`) and it passes offline, so only the cluster evidence keeps T090
+  > open.
 - [ ] T091 [US3] Define explicit dependency-wave capability activation in `clusters/eks-full-{dev,staging,prod}/activation-infrastructure.yaml`, activate SonarQube/PostgreSQL only in full-dev after ingress/storage/secrets, and keep business activation separate; make T068 pass.
 - [ ] T092 [US3] Run every service test/contract suite, all Kustomize/kubeconform/policy tests, image/secret scans, and resource-budget calculations; merge T082's reviewed organization-workflow PR through protected `main`, execute that exact revision for every locked third-party image before any EKS capability activation, and prove upstream-to-ECR digest mapping, complete OCI graph, scan pass, approved keyless signature identity, and absence of mutable/unmirrored references; retain redacted output in `evidence/runs/<timestamp>-full-platform-static/` and stop on any skip/failure.
 - [ ] T093 [US3] Merge the full-dev platform dependency waves through reviewed GitOps PRs through the Istio NLB and capture its real hostname; implement validated optional records in `../microservice-app-ops/aws/modules/environment-foundation/route53.tf` and the dev root, inventory current registrar-hosted records, then use one reviewed saved plan/Infracost plus external backup/approval to create exactly one separately addressed `microtodosuite.online` Route 53 zone and only `full-dev.microtodosuite.online` and `sonar-full-dev.microtodosuite.online` CNAMEs to that NLB with zero legacy-zone replacement/destruction; change registrar delegation only to the exact Terraform output name servers, verify public NS/SOA agreement, wait read-only for both trusted HTTP-01 certificates, SonarQube/PostgreSQL, and every wave to become Synced/Healthy, and revert/stop on record loss, capacity, storage, CRD, policy, secret, TLS, DNS, or economical regression.
