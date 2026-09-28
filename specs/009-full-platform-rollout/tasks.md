@@ -803,10 +803,9 @@ ADR-0001).
   - **Scope reconciled 2026-09-21.** The `complete otherwise-equivalent
     capability inventory` assertion is superseded for AKS by the six-vCPU
     warm-standby decision recorded under T133. T120 remains ticked because its
-    named test artifact was delivered and inspected, but that artifact still
-    encodes the superseded inventory. This pull request deliberately does not
-    edit `tests/profiles/aks-dr.bats`; T179 owns the test-first contract and
-    planned-inventory update after this decision merges.
+    named test artifact was delivered and inspected, but at that revision it
+    still encoded the superseded inventory. T179 now owns and records the
+    completed test-first contract and planned-inventory correction below.
 - [X] T121 [P] [US5] Add shared-workflow tests for AWS/Azure OIDC service/platform OCI mirroring and DR secret seeding in `../.github/tests/workflows/{mirror-to-acr,mirror-platform-images,sync-dr-secrets}.bats`: require no Dockerfile/build, recursive signature/SBOM copy, equal manifest digests for the service artifact and complete locked platform graph, production-validated-only service input, approved platform-mirror identity, exact four-secret mapping, an in-process prod-JWT equality boolean with no value-derived digest, disabled shell tracing, early masking, no cache/artifact/value output, mode-`0600` temporary handling with cleanup trap, and no static credential.
   - Delivered on the MicroTodoSuite/.github `main` branch by .github#31, merged
     as `0624824` on 2026-09-21. The three named tests were located, inspected,
@@ -821,7 +820,21 @@ ADR-0001).
     and owns the full-production OIDC provider and the post-cluster IAM role
     pass, so it or a reviewed successor owns the AKS-issuer provider and the two
     DNS-01 roles. The task stays unchecked until both rebuilt-root contracts
-    cover its complete text.
+    cover its complete text on the ops `main` branch.
+  - **Partial, 2026-09-28.** Both contracts are authored as failing-first tests
+    in the open microservice-app-ops#138 (commits `25fb716` and `d64a92c`),
+    which is not merged. The `shd/dns` contract requires that the default root
+    manages exactly one zone, `microtodosuite.online` (the legacy zone was
+    removed on 2026-09-28 and ops#136 made it optional), the four destination
+    CNAMEs plus `sonar-full-dev`, four HTTPS health checks, fail-closed provider
+    FQDNs, and zero `app.microtodosuite.online` records by default. The
+    `fprd/security-irsa` contract requires one AKS-issuer OIDC provider with
+    only the `sts.amazonaws.com` audience and two separate DNS-01 roles, each
+    trusting only `system:serviceaccount:cert-manager:cert-manager` and allowed
+    to change only the `_acme-challenge.app.microtodosuite.online` TXT record.
+    Both roots were green before the contracts and are red only on the missing
+    T134 resources, so ops#138 merges together with T134's implementation; tick
+    this task in that register update.
 - [X] T123 [P] [US5] Add bounded selector/duration/abort/render tests for pod termination, network latency, Redis saturation, AWS-production outage, and Azure outage in `tests/chaos/dr-game-day.bats`.
   - Delivered as a failing test in `tests/chaos/dr-game-day.bats` (commit
     `430f4e8`), run by `validate-gitops` policy-contracts. It is red on
@@ -846,6 +859,8 @@ ADR-0001).
     `tests/profiles/aks-dr.bats` passes in bootstrap state. T124, live Azure
     foundation work, bootstrap, secret/image mirroring, and activation remain
     separate incomplete gates.
+  - T179 later reduced the planned platform inventory to the minimum six-vCPU
+    warm standby; the complete non-AWS inventory above is historical.
 - [ ] T130 [US5] Merge the activation-empty AKS root through protected `main`, execute exactly the two audited bootstrap mutations for the verified AKS context, and prove independent empty-root sync/health/notifications with no workload/platform activation and no post-bootstrap direct mutation.
 - [X] T131 [US5] Implement the OIDC-authenticated no-rebuild service OCI graph mirror and extend `../.github/.github/workflows/mirror-platform-images.yml` to copy the complete already-signed locked platform graph from ECR to ACR in `../.github/.github/workflows/{mirror-to-acr,mirror-platform-images}.yml`; implement the no-persistence secret seed in `../.github/.github/workflows/sync-dr-secrets.yml`, integrate the service mirror and seed after successful AWS production promotion in `../.github/.github/workflows/promote.yml`, and make T121 pass.
   - Delivered by MicroTodoSuite/.github#31 (`0624824`). The merged
@@ -876,8 +891,23 @@ ADR-0001).
     Trivy Operator, kube-bench, and kube-hunter. Their AWS full-profile scope is
     unchanged. T133 stays unchecked until the minimum inventory is live and its
     mirror, seed, activation, health, and digest evidence exists.
+  - T179 encoded this minimum inventory in `clusters/aks-dr/planned-inventory.yaml`
+    and `tests/profiles/aks-dr.bats`; T181 owns any later restoration or removal
+    of the deferred capabilities.
 - [ ] T178 [US5] Rework microservice-app-ops#128 through a new pull request without reopening closed pull requests: preserve its correct green contracts, plan-only workflow, and collision-free range work, remove the local `azure/modules/aks-foundation` and single `azure/environments/dr/foundation` layout, consume the independently tagged T125 modules, implement the six T126 domain roots, and retain the reviewed `security-federation` exception; owner: microservice-app-ops IaC owner.
-- [ ] T179 [US5] After this reconciliation merges, update `tests/profiles/aks-dr.bats` and `clusters/aks-dr/planned-inventory.yaml` in a test-first pull request so the AKS contract requires only the minimum T133 inventory and rejects the deferred capabilities; remove the exact Prometheus destination-path and Prometheus/Grafana managed-disk assertions that no longer apply, and update the comments/final result that currently claim a complete equivalent full inventory; owner: microservice-app-gitops platform owner.
+- [X] T179 [US5] After this reconciliation merges, update `tests/profiles/aks-dr.bats` and `clusters/aks-dr/planned-inventory.yaml` in a test-first pull request so the AKS contract requires only the minimum T133 inventory and rejects the deferred capabilities; remove the exact Prometheus destination-path and Prometheus/Grafana managed-disk assertions that no longer apply, and update the comments/final result that currently claim a complete equivalent full inventory; owner: microservice-app-gitops platform owner.
+  - Delivered through failing contract commits `e151243` and `7f1b8a7` and the
+    matching planned-inventory update. The AKS root still asserts its own ArgoCD, production/full
+    service paths, Redis through the environment composition, ACR digests,
+    Azure Workload Identity secret store, static-public-IP annotations, and the
+    disabled cert-manager projected-token DNS-01 component. Only Istio,
+    cert-manager, and External Secrets remain in `plannedInfrastructure`; all
+    18 capabilities named by T133 are now explicitly forbidden on AKS, and the
+    planned list must hold exactly the three minimum capabilities. Admission-time
+    image-signature enforcement on AKS is deferred with Kyverno; signatures stay
+    verified at mirror time by T131/T133, and digest pinning to ACR stays
+    asserted here.
+- [ ] T181 [US5] Decide the future of the 18 capabilities deferred from AKS by the 2026-09-21 T133 decision (Kiali, KEDA, Kyverno, Argo Rollouts, Prometheus, Grafana, Jaeger, ECK Operator, Elasticsearch, Logstash, Kibana, Filebeat, Falco, Chaos Mesh, OpenCost, Trivy Operator, kube-bench, kube-hunter): either, after a larger Azure quota is verified by read-only discovery, restore each one to `clusters/aks-dr/planned-inventory.yaml` test-first in `tests/profiles/aks-dr.bats` with its render, ACR-digest, persistence, and identity assertions, restoring Kyverno admission-time signature verification first, or remove its dormant `infrastructure/profiles/full/<capability>/destinations/aks-dr/` overlay, which no root or test renders after T179; owner: microservice-app-gitops platform owner.
 - [ ] T134 [US5] Verify the live AKS ingress address and provider FQDN equal T125's Terraform outputs, then add only the `full-prod-azure.microtodosuite.online` CNAME, Terraform-owned HTTPS health checks, the AKS-issuer IAM OIDC provider, and separate exact-subject AWS-production/AKS DNS-01 solver roles to dev owner state with `enable_active_active=false`; restrict both roles to `_acme-challenge.app.microtodosuite.online` TXT changes and minimum read/status actions, produce a refreshed saved plan and Infracost, obtain exact-plan/cost approval, create an external state backup, apply only that saved plan, wait for trusted AKS destination HTTP-01 TLS, and make T122 pass.
 - [X] T135 [US5] Implement disabled-by-default GitOps scenarios and steady-state assertions under `experiments/full-profile/{pod-termination,network-latency,redis-saturation,aws-prod-outage,azure-outage}/`; make T123 pass.
   - Delivered as five independent, non-aggregated Kustomize roots with one
