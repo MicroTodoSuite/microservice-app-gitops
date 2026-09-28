@@ -1262,6 +1262,16 @@ while both profiles run, at the maintainer's request.
     > exposure: nginx cannot resolve `auth-api` by its short name. The
     > namespace-qualified upstreams fix it; this subtask is ticked once a
     > login and a todo list succeed through each host.
+    > **Recovery in progress, 2026-09-28.** After the AWS account rebuild,
+    > gitops#237 restored the active account and rebuilt resource references.
+    > This recovery revision aligns every active economical overlay for all
+    > five services with the signed manifest digests currently published in
+    > the rebuilt ECR repositories. It also forces the economical load balancer
+    > controller to restart after its IRSA
+    > ServiceAccount role changes. T174 stays unchecked until the registrar
+    > delegates to the active Route 53 hosted zone, Terraform-owned
+    > certificate/address records are applied from an approved saved plan, and
+    > all four economical hosts pass live HTTPS login and todo-list acceptance.
 
 ---
 

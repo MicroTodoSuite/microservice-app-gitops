@@ -23,4 +23,4 @@ patches:
 images:
   - name: users-api
     newName: 376784708420.dkr.ecr.us-east-1.amazonaws.com/lex-mts-shd-ecr-usersapi
-    digest: sha256:aff885d11f9e6fcc78c1bd21fcc302f2a0073459f5c784b067f289cf72e786af
+    digest: sha256:0dcbc4f39b535b01aa08dceb4201c5831b75446f8f1821ddb22512c53a4b4849

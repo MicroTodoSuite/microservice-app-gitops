@@ -31,6 +31,9 @@ patches:
         namespace: kube-system
       spec:
         template:
+          metadata:
+            annotations:
+              microtodosuite.io/lb-controller-irsa-revision: "account-376784708420-v1"
           spec:
             containers:
               - name: controller
