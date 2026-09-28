@@ -155,8 +155,9 @@ independent infrastructure roots.
   applies while the registration is active and accepts only the exact
   `value: []` quiescent shape that spec 009 T176 left and
   `tests/contract/economical-runtime-quiescence.sh` owns.
-- [X] T032 Give the `policy-contracts` job the ripgrep its contracts assert
-  through, and make those contracts fail closed without it. Surfaced by the
+- [X] T032 Free the `policy-contracts` job's text contracts from ripgrep,
+  which the runner does not ship, and keep them failing closed when their
+  search tool is missing. Surfaced by the
   maintainer's audit of 2026-09-27 once T031 wired the contract into
   `validate-gitops`. Reproduction: the `policy-contracts` run of
   `fix/audit-contract-repairs` (ubuntu-24.04 image 20260920.314.1). Output:
@@ -169,9 +170,20 @@ independent infrastructure roots.
   The runner image ships no ripgrep, so `require_text` got exit 127. Without
   rg, `reject_text`, the rendered `--*image=` argument check, and `rg -c`
   counts passed vacuously. Delivered: `platform-addons.sh`,
-  `service-onboarding.sh`, and `namespace-isolation.sh` stop with an explicit
-  error when rg is absent. The job installs ripgrep 15.2.0, checksum-pinned to
-  the release's published `.sha256` asset.
+  `service-onboarding.sh`, and `namespace-isolation.sh` assert through POSIX
+  extended `grep` in the C locale (`find` selects the files of the one
+  glob-filtered scan), stop with an explicit error when grep is absent, and
+  fail on any grep error instead of reading it as "no match".
+  `tests/contract/policy-contracts-portable.sh` rejects any rg call in them,
+  statically and at run time, as a `policy-contracts` step. On the tree of
+  2026-09-28 every one of the 527 searches returns the rg version's exit
+  status and output lines (rg's directory order is parallel, so lines compare
+  as sets), and ten injected violations fail both versions identically. The
+  one intended difference: a missing or unreadable path, which rg reported as
+  exit 2 and the contracts read as "no match", now fails the contract.
+  Superseded: an earlier commit on this branch installed ripgrep 15.2.0 in
+  the job, checksum-pinned but outside
+  `scripts/managed/full-profile-toolchain.lock`; that step is removed.
 
 ---
 

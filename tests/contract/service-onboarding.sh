@@ -9,10 +9,21 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 pass() { printf 'PASS: %s\n' "$*" >&2; }
 
-# require_text/reject_text/require_render_count read ripgrep's exit status
-# and output; without rg every rejection and count would pass vacuously.
-command -v rg >/dev/null 2>&1 \
-  || fail "ripgrep (rg) is required: without it this contract passes vacuously"
+# require_text/reject_text/require_render_count read grep's exit status
+# and output; without grep every rejection and count would pass vacuously.
+# search is grep with POSIX extended regular expressions in the C locale: the
+# stock runner image ships it, and bracket ranges and character classes match
+# by byte, as ripgrep's ASCII classes did, never by the runner's locale.
+# grep exits 1 for no match and 2 or more for an error, such as an unreadable
+# path; an error fails the contract instead of reading as "no match".
+command -v grep >/dev/null 2>&1 \
+  || fail "grep is required: without it this contract passes vacuously"
+search() {
+  local status=0
+  LC_ALL=C grep -E "$@" || status=$?
+  (( status < 2 )) || fail "grep -E $* exited $status"
+  return "$status"
+}
 
 render_kustomize() {
   if command -v kustomize >/dev/null 2>&1; then
@@ -28,24 +39,24 @@ require_file() {
 
 require_text() {
   local path="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
+  search -rq -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
 }
 
 reject_text() {
   local path="$1" pattern="$2" description="$3"
-  if rg -q -- "$pattern" "$ROOT/$path"; then
+  if search -rq -- "$pattern" "$ROOT/$path"; then
     fail "$description ($path)"
   fi
 }
 
 require_render_text() {
   local render="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$render" || fail "$description ($(basename "$render"))"
+  search -q -- "$pattern" "$render" || fail "$description ($(basename "$render"))"
 }
 
 require_render_count() {
   local render="$1" pattern="$2" expected="$3" description="$4" actual
-  actual="$(rg -c -- "$pattern" "$render" || true)"
+  actual="$(search -c -- "$pattern" "$render" || true)"
   [[ "$actual" == "$expected" ]] ||
     fail "$description: expected $expected, found $actual ($(basename "$render"))"
 }
@@ -176,7 +187,7 @@ require_text apps/frontend/base/configmap.yaml \
 require_text apps/frontend/base/configmap.yaml \
   'TODOS_API_ADDRESS: "http://todos-api:8082"' \
   "frontend todos proxy address is wrong"
-if rg -n '^kind: (Ingress|Gateway|HTTPRoute)$|type: NodePort|nodePort:' \
+if search -rn '^kind: (Ingress|Gateway|HTTPRoute)$|type: NodePort|nodePort:' \
     "$ROOT/apps/frontend"; then
   fail "frontend invents a local exposure mechanism"
 fi
@@ -203,7 +214,7 @@ require_text scripts/pilot/publish-services.sh \
 require_text scripts/pilot/verify-services.sh 'expectedRevision' \
   "suite verifier lacks machine-readable revision evidence"
 reject_text scripts/pilot/verify-services.sh \
-  'kubectl[^\n]*(apply|patch|scale|rollout|delete|create|replace)' \
+  'kubectl.*(apply|patch|scale|rollout|delete|create|replace)' \
   "suite verifier contains a direct managed-state mutation"
 
 new_desired_state=(
@@ -219,11 +230,19 @@ new_desired_state=(
 )
 # Managed environment overlays and the spec 009 full-profile destination
 # overlays carry provider values by design; everything else stays neutral.
-if rg -n -i \
-    --glob '!**/overlays/{dev,staging,prod,demo}/**' \
-    --glob '!**/profiles/full/destinations/**' \
+# find writes the list to a file, so a find error stops the contract under
+# set -e instead of shrinking the scan; the scan must never be empty.
+find "${new_desired_state[@]}" -type f \
+    ! -path '*/overlays/dev/*' ! -path '*/overlays/staging/*' \
+    ! -path '*/overlays/prod/*' ! -path '*/overlays/demo/*' \
+    ! -path '*/profiles/full/destinations/*' \
+    -print0 >"$TMP_DIR/provider-neutral-files"
+mapfile -d '' provider_neutral_files <"$TMP_DIR/provider-neutral-files"
+(( ${#provider_neutral_files[@]} > 0 )) \
+  || fail "the provider-neutrality scan found no files to check"
+if search -n -i \
     'amazonaws|azure|azurecr|workload\.identity|(^|[^[:alnum:]_])(aws|eks|aks|ecr)([^[:alnum:]_]|$)' \
-    "${new_desired_state[@]}"; then
+    "${provider_neutral_files[@]}"; then
   fail "environment-neutral service foundation contains a cloud-provider dependency"
 fi
 
@@ -244,7 +263,7 @@ require_text clusters/eks-dev/kustomization.yaml 'rolling-sync-apps.yaml' \
   "shared EKS registration does not apply its RollingSync policy"
 require_text clusters/eks-dev/rolling-sync-apps.yaml 'type: RollingSync' \
   "shared EKS registration is not configured for RollingSync"
-if [[ "$(rg -c 'maxUpdate: 1' "$ROOT/clusters/eks-dev/rolling-sync-apps.yaml" || true)" != 4 ]]; then
+if [[ "$(search -c 'maxUpdate: 1' "$ROOT/clusters/eks-dev/rolling-sync-apps.yaml" || true)" != 4 ]]; then
   fail "RollingSync must serialize every environment step with maxUpdate 1"
 fi
 for environment in dev staging prod demo; do
@@ -255,7 +274,7 @@ done
 require_text clusters/eks-dev/rolling-sync-apps.yaml \
   'path: /spec/template/spec/syncPolicy/automated' \
   "EKS RollingSync patch does not remove generated Application autosync"
-if [[ "$(rg -c '^    - env: (dev|staging|prod)$' \
+if [[ "$(search -c '^    - env: (dev|staging|prod)$' \
     "$ROOT/clusters/eks-dev-capacity-constrained/activation-apps.yaml" || true)" != 3 ]]; then
   fail "business activation must list exactly dev, staging, and prod"
 fi
