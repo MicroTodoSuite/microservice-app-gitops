@@ -437,6 +437,13 @@ request against exact evidence.
   `tests/contract/observability.sh`, then set `0.0.0.0:4317` and `0.0.0.0:4318`
   in `infrastructure/jaeger/config.yaml` and in the full profile's
   `infrastructure/profiles/full/jaeger/components/elasticsearch/config.yaml`.
+- [X] T056 Roll Jaeger when its configuration changes. `jaeger-config` is a
+  plain ConfigMap, so T055 reached the ConfigMap on `eks-dev` while the running
+  pod kept `127.0.0.1:4317`. Add the failing assertion to
+  `tests/contract/observability.sh` that each Jaeger root's pod template carries
+  `microtodosuite.io/config-sha256` equal to the sha256 of the `jaeger-config`
+  it renders, then add the annotation to `infrastructure/jaeger` and to the full
+  profile's Elasticsearch component.
 
 ---
 

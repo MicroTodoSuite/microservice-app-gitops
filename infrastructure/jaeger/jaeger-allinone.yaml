@@ -19,6 +19,10 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: jaeger
+      annotations:
+        # sha256 of config.yaml's data["config.yaml"]; tests/contract/observability.sh
+        # keeps it equal, so changing the configuration also rolls this pod.
+        microtodosuite.io/config-sha256: d6c1087fe0bd59ee7e11148638c08adbf4c5bd54e74d009af808c0c85c617ad5
     spec:
       automountServiceAccountToken: false
       securityContext:

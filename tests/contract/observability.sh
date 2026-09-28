@@ -189,6 +189,21 @@ require_resource "$TMP_DIR/jaeger.yaml" Service jaeger-query
 require_resource "$TMP_DIR/jaeger.yaml" PersistentVolumeClaim jaeger-storage
 require_text infrastructure/jaeger/config.yaml 'receivers:' \
   "Jaeger must receive OTLP directly (no separate otel-collector component)"
+# jaeger-config is a plain ConfigMap, so changing it does not restart Jaeger:
+# the OTLP listen-address fix reached the ConfigMap on eks-dev while the pod
+# kept serving the old configuration. Each root's rendered pod template must
+# carry the sha256 of the configuration that root renders, so a config change
+# is also a pod-template change.
+for jaeger_root in infrastructure/jaeger infrastructure/profiles/full/jaeger/aws \
+  infrastructure/profiles/full/jaeger/azure; do
+  jaeger_render="$(render_kustomize "$ROOT/$jaeger_root")" \
+    || fail "$jaeger_root does not render"
+  jaeger_sha="$(yq -r 'select(.kind == "ConfigMap" and .metadata.name == "jaeger-config") | .data["config.yaml"]' <<<"$jaeger_render" | sha256sum | cut -d' ' -f1)"
+  jaeger_annotation="$(yq -r 'select(.kind == "Deployment" and .metadata.name == "jaeger") | .spec.template.metadata.annotations["microtodosuite.io/config-sha256"] // ""' <<<"$jaeger_render")"
+  [[ "$jaeger_annotation" == "$jaeger_sha" ]] \
+    || fail "Jaeger's pod template must carry microtodosuite.io/config-sha256: $jaeger_sha, the sha256 of the jaeger-config it renders, so a config change rolls the pod (found '$jaeger_annotation' in $jaeger_root)"
+done
+
 # Jaeger 2.x (OpenTelemetry Collector) binds an OTLP receiver without an
 # endpoint to 127.0.0.1, so no pod could reach it through jaeger-collector.
 for jaeger_config in infrastructure/jaeger/config.yaml \

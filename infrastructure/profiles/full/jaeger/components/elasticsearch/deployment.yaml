@@ -9,6 +9,10 @@ metadata:
   namespace: observability
 spec:
   template:
+    metadata:
+      annotations:
+        # sha256 of this component's jaeger-config; see infrastructure/jaeger.
+        microtodosuite.io/config-sha256: 60dc29a50fcdee5df9be64c79345d6247a534332b352959678285811948fdfed
     spec:
       containers:
         - name: jaeger
