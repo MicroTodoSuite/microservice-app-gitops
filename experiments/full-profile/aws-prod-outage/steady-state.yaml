@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-prod-outage-steady-state
+  namespace: istio-system
+data:
+  targetCluster: eks-full-prod
+  maxDuration: 10m
+  abortProcedure: git-revert
+  steadyState: AKS remains independently reconciled and healthy while the AWS ingress is unavailable.
+  survivingDestination: aks-dr
+  recoveryObjective: 10m
+  abortConditions: |
+    - economical-regression
+    - selector-expansion
+    - both-destinations-unhealthy
+    - duration-exceeded
+    - release-digest-divergence
+    - telemetry-unavailable
+    - operator-abort

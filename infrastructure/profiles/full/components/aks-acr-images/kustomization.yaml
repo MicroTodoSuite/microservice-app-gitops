@@ -1,0 +1,157 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# T131 has not mirrored this graph yet. These are explicit pending ACR
+# references at the already locked source digests; the component is consumed
+# only by the activation-empty AKS destination roots.
+images:
+  - name: registry.istio.io/release/pilot
+    newName: pendingacr.azurecr.io/microtodosuite/platform/istio-pilot
+    digest: sha256:6b37817f7f8f8e0f6f6fffc832c44ae4d7e50feec7ef7f1f3719638d1bbdc45a
+  - name: registry.istio.io/release/proxyv2
+    newName: pendingacr.azurecr.io/microtodosuite/platform/istio-proxyv2
+    digest: sha256:485c87f71654b14e89911a9424a208d92b347b59c2bfefdc9707aaa83fe5618e
+  - name: quay.io/kiali/kiali
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kiali
+    digest: sha256:df636734606c220263c1eae85f473940b52ced3c026abfe7110c64014098fb41
+  - name: ghcr.io/kedacore/keda
+    newName: pendingacr.azurecr.io/microtodosuite/platform/keda
+    digest: sha256:8888d1896d316c9e087ce0ca3b72bd945dfbad6f3ef2d64ca24ee394feccc023
+  - name: ghcr.io/kedacore/keda-metrics-apiserver
+    newName: pendingacr.azurecr.io/microtodosuite/platform/keda-metrics-apiserver
+    digest: sha256:ba32172082a2ff935d5b62ffa0bd0698424d373b55c5cae0846db057e237b28e
+  - name: ghcr.io/kedacore/keda-admission-webhooks
+    newName: pendingacr.azurecr.io/microtodosuite/platform/keda-admission-webhooks
+    digest: sha256:0350cbb59471123623134801a3e9a753c90e0945bb4eb7e36086746fc4b35fb8
+  - name: registry.k8s.io/pause
+    newName: pendingacr.azurecr.io/microtodosuite/platform/pause
+    digest: sha256:278fb9dbcca9518083ad1e11276933a2e96f23de604a3a08cc3c80002767d24c
+  - name: quay.io/jetstack/cert-manager-controller
+    newName: pendingacr.azurecr.io/microtodosuite/platform/cert-manager-controller
+    digest: sha256:e370f7800a53078e9d74324287a7d52b553864e55f5b4e521f911c3f6c7da203
+  - name: quay.io/jetstack/cert-manager-cainjector
+    newName: pendingacr.azurecr.io/microtodosuite/platform/cert-manager-cainjector
+    digest: sha256:ad1dcc5b2fccc420f9b3fbee7ce8a869450c540fd4f2f41de2d95b1ca0c4d701
+  - name: quay.io/jetstack/cert-manager-webhook
+    newName: pendingacr.azurecr.io/microtodosuite/platform/cert-manager-webhook
+    digest: sha256:c33cca307541e2d58861a55b1af5f390b7e19c8741e48b433693b73a7cce88b3
+  - name: ghcr.io/external-secrets/external-secrets
+    newName: pendingacr.azurecr.io/microtodosuite/platform/external-secrets
+    digest: sha256:44eb290f1c7f5d8f4eec2168cea4a6cfbc72a955c6781eb835e1c40700475dbd
+  - name: reg.kyverno.io/kyverno/kyverno
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kyverno
+    digest: sha256:0a540e2ddf74d0d2d3d45f9ef248d7dbc96576accdbcc6a2dd7eaff9fea56504
+  - name: reg.kyverno.io/kyverno/background-controller
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kyverno-background-controller
+    digest: sha256:d62566ce41bd0d4a32bf2cf44b9ebfc02c36374f821f83070890287f62f68671
+  - name: reg.kyverno.io/kyverno/cleanup-controller
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kyverno-cleanup-controller
+    digest: sha256:b0395d29ae332276e6910eb40418be9bc127c068d659f90aa1bcddd6be99ccb4
+  - name: reg.kyverno.io/kyverno/reports-controller
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kyverno-reports-controller
+    digest: sha256:f09cf305170014e191b94e1c54f5be73163d8824eefad49349675c4efe43159a
+  - name: reg.kyverno.io/kyverno/kyvernopre
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kyverno-pre
+    digest: sha256:cd8cb4a31d25b3992734fb8f24a90ef691c90ce49338c89bea96792160eacb98
+  - name: quay.io/argoproj/argo-rollouts
+    newName: pendingacr.azurecr.io/microtodosuite/platform/argo-rollouts
+    digest: sha256:15c0d41f2c69a382d4399bcb28ed4f03ee9f58b56cfc9e6cd55bcbf0f311c06d
+  - name: quay.io/prometheus-operator/prometheus-operator
+    newName: pendingacr.azurecr.io/microtodosuite/platform/prometheus-operator
+    digest: sha256:3db296f8aca7b3abbcbb79afac165abfe08212ad54f4301c88f68f079ec9d9b7
+  - name: quay.io/brancz/kube-rbac-proxy
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kube-rbac-proxy
+    digest: sha256:53d5a3911ac076d000c92362d4939a3147ba21f231edf82926c82d16dbdd8850
+  - name: quay.io/prometheus/node-exporter
+    newName: pendingacr.azurecr.io/microtodosuite/platform/node-exporter
+    digest: sha256:0f422f62c15f154af8d8572b23d623aebfb10cec73a5c654d18f911f3f9df241
+  - name: registry.k8s.io/kube-state-metrics/kube-state-metrics
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kube-state-metrics
+    digest: sha256:6b2f0b6f2f86ac5b1aa883a033a8dd55bb96c16d191ec973393bdaadaddac914
+  - name: grafana/grafana
+    newName: pendingacr.azurecr.io/microtodosuite/platform/grafana
+    digest: sha256:3fd54ae1214669f8355f065ec9f6445d5279a3d77095ab048ca045685272429b
+  - name: jaegertracing/jaeger
+    newName: pendingacr.azurecr.io/microtodosuite/platform/jaeger
+    digest: sha256:46a886260e04002d8f45e213fc39063fa11a50446048fdaa64786fc0840cb9f8
+  - name: jaegertracing/jaeger-es-index-cleaner
+    newName: pendingacr.azurecr.io/microtodosuite/platform/jaeger-es-index-cleaner
+    digest: sha256:387d6532670c097999e6851ac7e22980804d5a4742b7f7ea03013d3397606add
+  - name: docker.elastic.co/eck/eck-operator
+    newName: pendingacr.azurecr.io/microtodosuite/platform/eck-operator
+    digest: sha256:b6f261372d9d9af7b00aab03efea25263314d16063c4d440ac322e52c2fdf314
+  - name: falcosecurity/falco
+    newName: pendingacr.azurecr.io/microtodosuite/platform/falco
+    digest: sha256:d0cfe422d6ac0e0f20857798f46c7d7273210e1b064b22821e4e6e7f843cde6b
+  - name: falcosecurity/falcosidekick
+    newName: pendingacr.azurecr.io/microtodosuite/platform/falcosidekick
+    digest: sha256:d4f0d7c538ede3fe4a491143c45c0787bf4fc24e6fcac6d39dff6721d75a9419
+  - name: ghcr.io/chaos-mesh/chaos-mesh
+    newName: pendingacr.azurecr.io/microtodosuite/platform/chaos-mesh
+    digest: sha256:9e48285bb44c63be80f2fe4468c54b0f2d7cdc447ba5f5bc9ded4ab6a973cd37
+  - name: ghcr.io/chaos-mesh/chaos-daemon
+    newName: pendingacr.azurecr.io/microtodosuite/platform/chaos-daemon
+    digest: sha256:0d28dbd95b033279f65605ea88c354d25fe902409197274016dd2efc28ef25cd
+  - name: ghcr.io/chaos-mesh/chaos-dashboard
+    newName: pendingacr.azurecr.io/microtodosuite/platform/chaos-dashboard
+    digest: sha256:8a8ec8d4c9ea61fb9c2201e8b01d0a2015069a31ea49abd3e00da244469edbe3
+  - name: ghcr.io/chaos-mesh/chaos-coredns
+    newName: pendingacr.azurecr.io/microtodosuite/platform/chaos-coredns
+    digest: sha256:38bfdf5e37749a097873d226351013c34ba74174a8ddcfbe2871ec952af2d7b3
+  - name: ghcr.io/opencost/opencost
+    newName: pendingacr.azurecr.io/microtodosuite/platform/opencost
+    digest: sha256:50052694785db32174332670920faf7b7f55d32a91ba3caec1e9207a58338ff5
+  - name: ghcr.io/opencost/opencost-ui
+    newName: pendingacr.azurecr.io/microtodosuite/platform/opencost-ui
+    digest: sha256:a2eaa7f585f418deba878e81cf571bdcb7ead07becf18a158138e2a39d28dc5c
+  - name: mirror.gcr.io/aquasec/trivy-operator
+    newName: pendingacr.azurecr.io/microtodosuite/platform/trivy-operator
+    digest: sha256:0e4f11e9632f34097f259f3a59d34bab4eea8cee9aef510d15cdfc7481d5e49c
+  - name: aquasec/kube-bench
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kube-bench
+    digest: sha256:75506f222d1eb6ce2a751a5533bdc0a3b54c898e2e49e7751d0ee22cfb862679
+  - name: aquasec/kube-hunter
+    newName: pendingacr.azurecr.io/microtodosuite/platform/kube-hunter
+    digest: sha256:e64fe49f059f513a09c772a8972172b2af6833d092c06cc311171d7135e4525a
+
+patches:
+  - target: {group: monitoring.coreos.com, version: v1, kind: Prometheus, name: k8s}
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: pendingacr.azurecr.io/microtodosuite/platform/prometheus@sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac
+  - target: {group: monitoring.coreos.com, version: v1, kind: Alertmanager, name: main}
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: pendingacr.azurecr.io/microtodosuite/platform/alertmanager@sha256:af26fbe4dd1886ac0efd7bd55cd9027da262e105b137a376522b7c14c3626e4a
+  - target: {group: elasticsearch.k8s.elastic.co, version: v1, kind: Elasticsearch, name: platform}
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: pendingacr.azurecr.io/microtodosuite/platform/elasticsearch@sha256:a3545404e436e348721786bed638042a81f2181ebe2e2636501bb43940677747
+  - target: {group: logstash.k8s.elastic.co, version: v1alpha1, kind: Logstash, name: platform}
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: pendingacr.azurecr.io/microtodosuite/platform/logstash@sha256:c1aeca2bbf56148c1c868957e1d0ea5aa020cba5b3dca3493a097f54c0efc544
+  - target: {group: kibana.k8s.elastic.co, version: v1, kind: Kibana, name: platform}
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: pendingacr.azurecr.io/microtodosuite/platform/kibana@sha256:fbdf2b53fd1a9cec892c69eed735e7ee27a912dabff600308f5a576138a9806f
+  - target: {group: beat.k8s.elastic.co, version: v1beta1, kind: Beat, name: platform}
+    patch: |-
+      - op: replace
+        path: /spec/image
+        value: pendingacr.azurecr.io/microtodosuite/platform/filebeat@sha256:fa4330da529e88e51241c5a3091ff6484f0ea74a79e516c78524bc7ac0faae79
+  - target: {group: apps, version: v1, kind: Deployment, name: cert-manager}
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args/3
+        value: --acme-http01-solver-image=pendingacr.azurecr.io/microtodosuite/platform/cert-manager-acmesolver@sha256:33ebbc2688578e37bd48dcc5b6b1f1362c919dff44fe5e5f602532a2d37d514f
+  - target: {version: v1, kind: ConfigMap, name: trivy-operator-trivy-config}
+    patch: |-
+      - op: replace
+        path: /data/trivy.repository
+        value: pendingacr.azurecr.io/microtodosuite/platform/trivy

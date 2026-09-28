@@ -32,7 +32,7 @@ patches:
       metadata:
         name: external-secrets-jwt
         annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-jwtprd
+          eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/lex-mts-eco-role-jwtprd
   - target:
       group: external-secrets.io
       version: v1

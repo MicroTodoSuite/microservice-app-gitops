@@ -6,16 +6,16 @@ EKS OIDC provider used by in-cluster IRSA workloads.
 
 ## Current contract
 
-- AWS account: `575172595729`
+- AWS account: `376784708420`
 - Region: `us-east-1`
-- Role: `arn:aws:iam::575172595729:role/lex-mts-shd-role-ecrpublish`
+- Role: `arn:aws:iam::376784708420:role/lex-mts-shd-role-ecrpublish`
 - Provider: `https://token.actions.githubusercontent.com`
 - Terraform owner:
   `microservice-app-ops/aws/modules/environment-foundation/github-oidc.tf`
 - Allowed subjects: the `main` branch of `auth-api`, `todos-api`, `users-api`,
   `frontend`, and `log-message-processor` repositories only
 - Allowed registry scope:
-  `575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>`
+  `376784708420.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/<service>`
 
 The reusable organization workflow validates the exact repository URI and role
 ARN before assuming the role. Pull-request runs test, build, scan, and generate

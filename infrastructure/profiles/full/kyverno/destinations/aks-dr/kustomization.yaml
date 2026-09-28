@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [../../aws]
+components: [../../../components/aks-acr-images]
+patches:
+  - target: {version: v1, kind: ServiceAccount, name: kyverno-admission-controller}
+    patch: |-
+      - op: remove
+        path: /metadata/annotations/eks.amazonaws.com~1role-arn
+  - target: {version: v1, kind: ConfigMap, name: kyverno}
+    patch: |-
+      - op: replace
+        path: /data/defaultRegistry
+        value: pendingacr.azurecr.io
+  - target: {group: kyverno.io, version: v1, kind: ClusterPolicy, name: require-immutable-images}
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/validate
+        value:
+          allowExistingViolations: true
+          message: Business and platform workload images must use an immutable ACR SHA-256 digest.
+          foreach:
+            - list: request.object.spec.[containers, initContainers, ephemeralContainers][]
+              pattern:
+                image: pendingacr.azurecr.io/*@sha256:*
+  - target: {group: kyverno.io, version: v1, kind: ClusterPolicy, name: verify-approved-release-signatures}
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/verifyImages/0/imageReferences
+        value:
+          - pendingacr.azurecr.io/pending-t131/authapi*
+          - pendingacr.azurecr.io/pending-t131/frontend*
+          - pendingacr.azurecr.io/pending-t131/logmsgproc*
+          - pendingacr.azurecr.io/pending-t131/todosapi*
+          - pendingacr.azurecr.io/pending-t131/usersapi*
+      - op: replace
+        path: /spec/rules/0/verifyImages/0/imageRegistryCredentials/providers
+        value: [azure]
