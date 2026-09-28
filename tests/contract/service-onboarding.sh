@@ -58,6 +58,14 @@ declare -A health_paths=(
   [frontend]='/'
   [log-message-processor]='/metrics'
 )
+# Managed overlays pull from the rebuilt shared ECR repositories
+# lex-mts-shd-ecr-<key> (752fdb2); the local pilot keeps the service name.
+declare -A image_keys=(
+  [todos-api]=todosapi
+  [users-api]=usersapi
+  [frontend]=frontend
+  [log-message-processor]=logmsgproc
+)
 
 for service in "${services[@]}"; do
   for file in \
@@ -68,7 +76,8 @@ for service in "${services[@]}"; do
     "apps/$service/base/configmap.yaml" \
     "apps/$service/components/topology-economical/kustomization.yaml" \
     "apps/$service/components/topology-full/kustomization.yaml" \
-    "apps/$service/topology/kustomization.yaml"; do
+    "apps/$service/profiles/economical/topology/kustomization.yaml" \
+    "apps/$service/profiles/full/topology/kustomization.yaml"; do
     require_file "$file"
   done
 
@@ -90,15 +99,21 @@ for service in "${services[@]}"; do
   reject_text "apps/$service/base/service.yaml" 'NodePort|nodePort:' \
     "$service contains a NodePort"
 
-  for environment in local dev staging prod; do
-    overlay="apps/$service/overlays/$environment"
+  for environment in local dev staging prod demo; do
+    if [[ "$environment" == local ]]; then
+      overlay="apps/$service/overlays/local"
+      image_repository="localhost:5001/$service"
+    else
+      overlay="apps/$service/profiles/economical/overlays/$environment"
+      image_repository="575172595729\\.dkr\\.ecr\\.us-east-1\\.amazonaws\\.com/lex-mts-shd-ecr-${image_keys[$service]}"
+    fi
     require_file "$overlay/kustomization.yaml"
     render="$TMP_DIR/$service-$environment.yaml"
     render_kustomize "$ROOT/$overlay" >"$render" \
       || fail "$service $environment overlay does not render"
     [[ -s "$render" ]] || fail "$service $environment rendered no resources"
     require_render_text "$render" \
-      "image: .*${service}@sha256:[a-f0-9]{64}" \
+      "image: ${image_repository}@sha256:[a-f0-9]{64}$" \
       "$service $environment image is not digest-selected"
     require_render_text "$render" \
       'app.kubernetes.io/part-of: microtodosuite' \
@@ -197,8 +212,11 @@ new_desired_state=(
   "$ROOT/scripts/pilot/publish-services.sh"
   "$ROOT/scripts/pilot/verify-services.sh"
 )
+# Managed environment overlays and the spec 009 full-profile destination
+# overlays carry provider values by design; everything else stays neutral.
 if rg -n -i \
-    --glob '!**/overlays/{dev,staging,prod}/**' \
+    --glob '!**/overlays/{dev,staging,prod,demo}/**' \
+    --glob '!**/profiles/full/destinations/**' \
     'amazonaws|azure|azurecr|workload\.identity|(^|[^[:alnum:]_])(aws|eks|aks|ecr)([^[:alnum:]_]|$)' \
     "${new_desired_state[@]}"; then
   fail "environment-neutral service foundation contains a cloud-provider dependency"
@@ -221,10 +239,10 @@ require_text clusters/eks-dev/kustomization.yaml 'rolling-sync-apps.yaml' \
   "shared EKS registration does not apply its RollingSync policy"
 require_text clusters/eks-dev/rolling-sync-apps.yaml 'type: RollingSync' \
   "shared EKS registration is not configured for RollingSync"
-if [[ "$(rg -c 'maxUpdate: 1' "$ROOT/clusters/eks-dev/rolling-sync-apps.yaml" || true)" != 3 ]]; then
+if [[ "$(rg -c 'maxUpdate: 1' "$ROOT/clusters/eks-dev/rolling-sync-apps.yaml" || true)" != 4 ]]; then
   fail "RollingSync must serialize every environment step with maxUpdate 1"
 fi
-for environment in dev staging prod; do
+for environment in dev staging prod demo; do
   require_text clusters/eks-dev/rolling-sync-apps.yaml \
     "values: \\[\"$environment\"\\]" \
     "RollingSync omits or mislabels the $environment step"
@@ -233,7 +251,7 @@ require_text clusters/eks-dev/rolling-sync-apps.yaml \
   'path: /spec/template/spec/syncPolicy/automated' \
   "EKS RollingSync patch does not remove generated Application autosync"
 if [[ "$(rg -c '^    - env: (dev|staging|prod)$' \
-    "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 3 ]]; then
+    "$ROOT/clusters/eks-dev-capacity-constrained/activation-apps.yaml" || true)" != 3 ]]; then
   fail "business activation must list exactly dev, staging, and prod"
 fi
 if [[ "$(find "$ROOT/apps" -mindepth 1 -maxdepth 1 -type d | wc -l)" != 5 ]]; then
@@ -250,17 +268,26 @@ require_text clusters/local-kind/activation-apps.yaml 'value: \[\]' \
 managed_services=(auth-api todos-api users-api frontend log-message-processor)
 for service in "${managed_services[@]}"; do
   component="apps/$service/components/strategy-canary"
+  economical_topology="apps/$service/profiles/economical/topology/kustomization.yaml"
+  full_topology="apps/$service/profiles/full/topology/kustomization.yaml"
+  prod_overlay="apps/$service/profiles/economical/overlays/prod/kustomization.yaml"
   require_file "$component/kustomization.yaml"
   require_file "$component/rollout.yaml"
   require_file "$component/canary-service.yaml"
-  require_text "apps/$service/topology/kustomization.yaml" \
-    '../components/topology-economical' \
+  require_text "$economical_topology" \
+    '../../../components/topology-economical' \
     "$service managed topology is not economical"
-  reject_text "apps/$service/topology/kustomization.yaml" \
+  reject_text "$economical_topology" \
     'components/topology-full' \
     "$service managed topology still selects the full profile"
-  require_text "apps/$service/overlays/prod/kustomization.yaml" \
-    '../../components/strategy-canary' \
+  require_text "$full_topology" \
+    '../../../components/topology-full' \
+    "$service full topology does not select the full component"
+  reject_text "$full_topology" \
+    'components/topology-economical' \
+    "$service full topology still selects the economical profile"
+  require_text "$prod_overlay" \
+    '../../../../components/strategy-canary' \
     "$service production overlay does not activate its Rollout component"
   require_text "$component/rollout.yaml" 'workloadRef:' \
     "$service Rollout does not reuse the base Deployment"
@@ -281,7 +308,7 @@ for service in "${managed_services[@]}"; do
     "$service Rollout does not reference the cluster-scoped metric gate"
 
   prod_render="$TMP_DIR/$service-prod-rollout.yaml"
-  render_kustomize "$ROOT/apps/$service/overlays/prod" >"$prod_render" ||
+  render_kustomize "$ROOT/apps/$service/profiles/economical/overlays/prod" >"$prod_render" ||
     fail "$service production Rollout overlay does not render"
   require_render_count "$prod_render" '^kind: Rollout$' 1 \
     "$service production render must contain one Rollout"

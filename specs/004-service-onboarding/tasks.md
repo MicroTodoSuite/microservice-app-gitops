@@ -152,6 +152,22 @@ layout supersedes its original single-topology paths.
   original structure, immutable-image, economical-topology, progressive-sync,
   and production-canary assertions against the replacement paths, and run the
   contract in `.github/workflows/validate-gitops.yml`.
+  > **Partial, 2026-09-28.** Repair, not retirement: the contract still guards
+  > live onboarding intent. It now reads the `profiles/{economical,full}/`
+  > topology and overlay paths, adds the `demo` environment, expects the
+  > managed images from the rebuilt `lex-mts-shd-ecr-<key>` repositories,
+  > reads business activation from `clusters/eks-dev-capacity-constrained/`,
+  > and exempts only the spec 009 `profiles/full/destinations/` overlays from
+  > the provider-neutrality scan; it is wired into `validate-gitops`. One
+  > assertion stays red and needs a maintainer decision: it requires
+  > `clusters/eks-dev/rolling-sync-apps.yaml` to remove the generated
+  > Applications' `syncPolicy.automated`, which gitops#47 deliberately kept.
+  > The Argo CD Progressive Syncs page (v3.3+, covering the pinned v3.5.0)
+  > states "RollingSync will force all generated Applications to have autosync
+  > disabled", so the patch comment's "keep automated + selfHeal" does not
+  > describe the effective behavior. Either restore the explicit removal in
+  > the patch or rewrite this assertion to the documented controller
+  > behavior; this task stays open until that decision lands.
 
 ---
 
