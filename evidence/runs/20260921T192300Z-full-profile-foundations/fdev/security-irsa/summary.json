@@ -1,0 +1,42 @@
+{
+  "root": "microservice-app-ops/aws/environments/fdev/security-irsa",
+  "tasks": "gitops specs/009-full-platform-rollout T060",
+  "account": "575172595729",
+  "region": "us-east-1",
+  "firstCreation": {
+    "date": "2026-09-14",
+    "evidenceDirectory": "~/backups-microtodosuite/full-bringup-20260914T213039Z/",
+    "planActions": {
+      "create": 15
+    },
+    "planSummary": "Plan: 15 to add, 0 to change, 0 to destroy.",
+    "applyResult": "Apply complete! Resources: 15 added, 0 changed, 0 destroyed.",
+    "savedPlanSha256": "f388a46deed6ddfe487893808f2d6ac51069661797f79cb346ec79c9ea998243",
+    "planJsonSha256": "14ec4a645f556d11a82b21c43b16ec23fb7b4e86c6242159e5924c72e8000f90",
+    "stateBackup": {
+      "kind": "no-prior-state receipt",
+      "path": "~/backups-microtodosuite/full-bringup-20260914T213039Z/fdev-security-irsa.no-prior-state",
+      "receipt": {
+        "root": "fdev/security-irsa",
+        "key": "fdev/security-irsa/terraform.tfstate",
+        "checked": "2026-09-14T22:05:35Z"
+      }
+    },
+    "infracost": "not recorded in the facts brief or the 2026-09-14 evidence directory"
+  },
+  "lifecycleReUp20260921": [
+    {
+      "bundle": "microservice-app-ops/.aws-profile-plans/full-up-20260921T210444Z",
+      "pass": "complete",
+      "planActions": {
+        "create": 15
+      },
+      "savedPlanSha256": "e0d01de5106ef4ddf6c7e968660e45d3a0f32e23dab421230ff42fafdf0e7e59",
+      "applyResult": "security-irsa 15 creates each (45); every other root no-op; EXIT=0.",
+      "stateBackup": "~/backups-microtodosuite/575172595729/20260921T210846Z/fdev-security-irsa.tfstate",
+      "infracost": "not recorded in the facts brief for this root and pass"
+    }
+  ],
+  "approval": "Exact-plan approval under the maintainer's standing authorization of 2026-09-20.",
+  "redaction": "Counts, summary lines, and SHA-256 checksums only. No plan JSON, state, resource ID, or ARN is copied."
+}
