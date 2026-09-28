@@ -4,7 +4,7 @@
 # AWS_ROLE_ARN. Changing only the ServiceAccount annotation, as
 # scripts/set-aws-account.sh does, leaves every running pod on the old role.
 # After the 2026-09-28 account repoint the load balancer controller kept
-# crash-looping on arn:aws:iam::575172595729:role/lex-mts-eco-role-lbcontrol.
+# crash-looping on the lex-mts-eco-role-lbcontrol role of the retired account.
 #
 # This contract renders every infrastructure root the economical cluster
 # activates and requires each Deployment whose ServiceAccount carries an IRSA
