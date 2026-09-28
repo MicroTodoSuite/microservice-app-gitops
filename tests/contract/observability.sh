@@ -211,6 +211,13 @@ done
 jaeger_strategy="$(render_kustomize "$ROOT/infrastructure/jaeger" | yq -r 'select(.kind == "Deployment" and .metadata.name == "jaeger") | .spec.strategy.type // ""')"
 [[ "$jaeger_strategy" == "Recreate" ]] \
   || fail "Jaeger's Deployment must use strategy Recreate, because Badger locks its single volume (found '$jaeger_strategy' in infrastructure/jaeger)"
+# ArgoCD applies server-side, which keeps the RollingUpdate defaults already on
+# the live object, and the API server then rejects the change: "spec.strategy.
+# rollingUpdate: Forbidden: may not be specified when strategy type is
+# 'Recreate'". Replacing the Deployment drops them.
+jaeger_sync_options="$(render_kustomize "$ROOT/infrastructure/jaeger" | yq -r 'select(.kind == "Deployment" and .metadata.name == "jaeger") | .metadata.annotations["argocd.argoproj.io/sync-options"] // ""')"
+[[ ",$jaeger_sync_options," == *",Replace=true,"* ]] \
+  || fail "Jaeger's Deployment must carry argocd.argoproj.io/sync-options Replace=true, so a server-side sync can move it off RollingUpdate (found '$jaeger_sync_options' in infrastructure/jaeger)"
 
 # Jaeger 2.x (OpenTelemetry Collector) binds an OTLP receiver without an
 # endpoint to 127.0.0.1, so no pod could reach it through jaeger-collector.

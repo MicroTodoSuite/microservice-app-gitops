@@ -449,6 +449,12 @@ request against exact evidence.
   while the old pod held it. Add the failing assertion to
   `tests/contract/observability.sh`, then give the Jaeger Deployment
   `strategy: Recreate`.
+- [X] T058 Let ArgoCD apply T057. Its server-side sync kept the live
+  Deployment's RollingUpdate defaults and the API server rejected the change
+  (`spec.strategy.rollingUpdate: Forbidden`). Add the failing assertion to
+  `tests/contract/observability.sh`, then annotate the Jaeger Deployment with
+  `argocd.argoproj.io/sync-options: Replace=true`, which takes precedence over
+  `ServerSideApply=true`.
 
 ---
 
