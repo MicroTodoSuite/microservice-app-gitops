@@ -444,6 +444,11 @@ request against exact evidence.
   `microtodosuite.io/config-sha256` equal to the sha256 of the `jaeger-config`
   it renders, then add the annotation to `infrastructure/jaeger` and to the full
   profile's Elasticsearch component.
+- [X] T057 Let Jaeger restart at all. The rollout T056 triggered deadlocked on
+  `eks-dev`: the new pod could not take Badger's lock on `/badger/data/keys`
+  while the old pod held it. Add the failing assertion to
+  `tests/contract/observability.sh`, then give the Jaeger Deployment
+  `strategy: Recreate`.
 
 ---
 

@@ -12,6 +12,10 @@ metadata:
     app.kubernetes.io/part-of: microtodosuite
 spec:
   replicas: 1
+  # Badger locks its single ReadWriteOnce volume, so a new pod can only start
+  # after the old one has released it.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: jaeger
