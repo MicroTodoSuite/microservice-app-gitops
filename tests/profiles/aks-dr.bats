@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AKS disaster-recovery root contract (spec 009 T120, US5).
+# AKS disaster-recovery root contract (spec 009 T120/T179, US5).
 #
 # Pins the minimum warm-standby inventory that T133 activation must keep true
 # for the independently reconciled Azure destination:
@@ -253,6 +253,8 @@ grep -Eq '^ *- env: prod$' "$planned" && grep -Eq '^ *destination: aks-dr$' "$pl
 
 mapfile -t infra_entries < <(planned_block "$planned" plannedInfrastructure)
 [[ "${#infra_entries[@]}" -gt 0 ]] || fail "planned inventory must declare plannedInfrastructure"
+[[ "${#infra_entries[@]}" -eq "${#required_capabilities[@]}" ]] \
+  || fail "plannedInfrastructure must contain exactly the ${#required_capabilities[@]} minimum warm-standby capabilities"
 declare -A planned_path=()
 for entry in "${infra_entries[@]}"; do
   IFS='|' read -r name path namespace <<<"$entry"
