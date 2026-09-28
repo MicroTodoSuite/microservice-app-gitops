@@ -9,6 +9,22 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 pass() { printf 'PASS: %s\n' "$*" >&2; }
 
+# require_text/reject_text/require_render_count read grep's exit status
+# and output; without grep every rejection and count would pass vacuously.
+# search is grep with POSIX extended regular expressions in the C locale: the
+# stock runner image ships it, and bracket ranges and character classes match
+# by byte, as ripgrep's ASCII classes did, never by the runner's locale.
+# grep exits 1 for no match and 2 or more for an error, such as an unreadable
+# path; an error fails the contract instead of reading as "no match".
+command -v grep >/dev/null 2>&1 \
+  || fail "grep is required: without it this contract passes vacuously"
+search() {
+  local status=0
+  LC_ALL=C grep -E "$@" || status=$?
+  (( status < 2 )) || fail "grep -E $* exited $status"
+  return "$status"
+}
+
 render_kustomize() {
   if command -v kustomize >/dev/null 2>&1; then
     kustomize build "$1"
@@ -23,24 +39,24 @@ require_file() {
 
 require_text() {
   local path="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
+  search -rq -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
 }
 
 reject_text() {
   local path="$1" pattern="$2" description="$3"
-  if rg -q -- "$pattern" "$ROOT/$path"; then
+  if search -rq -- "$pattern" "$ROOT/$path"; then
     fail "$description ($path)"
   fi
 }
 
 require_render_text() {
   local render="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$render" || fail "$description ($(basename "$render"))"
+  search -q -- "$pattern" "$render" || fail "$description ($(basename "$render"))"
 }
 
 require_render_count() {
   local render="$1" pattern="$2" expected="$3" description="$4" actual
-  actual="$(rg -c -- "$pattern" "$render" || true)"
+  actual="$(search -c -- "$pattern" "$render" || true)"
   [[ "$actual" == "$expected" ]] ||
     fail "$description: expected $expected, found $actual ($(basename "$render"))"
 }
@@ -63,6 +79,8 @@ base_files=(
   environments/base/networkpolicy-allow-intra-namespace.yaml
   environments/base/networkpolicy-allow-redis.yaml
   environments/base/networkpolicy-allow-observability-scrape.yaml
+  environments/base/networkpolicy-allow-tracing-egress.yaml
+  environments/base/networkpolicy-allow-load-balancer.yaml
   environments/base/redis-serviceaccount.yaml
   environments/base/redis-deployment.yaml
   environments/base/redis-service.yaml
@@ -115,13 +133,37 @@ require_text environments/base/role.yaml \
   "maintainer Role configuration resources drifted"
 require_text environments/base/role.yaml 'resources: \["pods", "pods/log"\]' \
   "maintainer Role observation resources drifted"
-if [[ "$(rg -c '^  - apiGroups:' "$ROOT/environments/base/role.yaml")" != 3 ]]; then
+if [[ "$(search -c '^  - apiGroups:' "$ROOT/environments/base/role.yaml")" != 3 ]]; then
   fail "maintainer Role must contain exactly three reviewed rules"
 fi
-if rg -n 'microtodo-(dev|staging|prod)|ipBlock:|0\.0\.0\.0/0' \
+if search -n 'microtodo-(dev|staging|prod)|0\.0\.0\.0/0' \
     "$ROOT/environments/base"/networkpolicy-*.yaml; then
   fail "managed base contains a broad cross-environment or internet allowance"
 fi
+load_balancer_policy="$ROOT/environments/base/networkpolicy-allow-load-balancer.yaml"
+unexpected_ipblock_files="$(search -l 'ipBlock:' "$ROOT/environments/base"/networkpolicy-*.yaml \
+  | grep -Fvx "$load_balancer_policy" || true)"
+[[ -z "$unexpected_ipblock_files" ]] \
+  || fail "only the reviewed load-balancer policy may use an ipBlock peer: $unexpected_ipblock_files"
+if [[ "$(search -c -- '- ipBlock:' "$load_balancer_policy")" != 3 ]] \
+    || [[ "$(search -c '^[[:space:]]+cidr:' "$load_balancer_policy")" != 3 ]]; then
+  fail "load-balancer ingress must contain exactly the three reviewed public-subnet CIDRs"
+fi
+for cidr in 10.10.0.0/24 10.10.1.0/24 10.10.2.0/24; do
+  require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+    "cidr: $cidr" "load-balancer ingress omits reviewed CIDR $cidr"
+done
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  'app.kubernetes.io/name: frontend' \
+  "load-balancer ingress is not limited to frontend pods"
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  '^[[:space:]]+- Ingress$' "load-balancer policy is not ingress-only"
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  'protocol: TCP' "load-balancer ingress is not limited to TCP"
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  'port: 8080' "load-balancer ingress is not limited to the frontend port"
+reject_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  '^[[:space:]]+egress:' "load-balancer policy unexpectedly permits egress"
 
 environments=(dev staging prod)
 declare -A namespaces=(
@@ -134,6 +176,8 @@ declare -A cpu_limits=([dev]=2300m [staging]=2700m [prod]=3)
 declare -A memory_requests=([dev]=896Mi [staging]=1Gi [prod]=1152Mi)
 declare -A memory_limits=([dev]=2304Mi [staging]=2816Mi [prod]=3Gi)
 declare -A pod_limits=([dev]=12 [staging]=14 [prod]=18)
+# Rebuilt lex-mts-eco-<type>-jwt<key> names (spec 009 naming contract).
+declare -A jwt_keys=([dev]=jwtdev [staging]=jwtstg [prod]=jwtprd)
 
 for environment in "${environments[@]}"; do
   overlay="environments/$environment"
@@ -188,8 +232,8 @@ for environment in "${environments[@]}"; do
     "$environment render must contain exactly one ExternalSecret"
   require_render_text "$render" "namespace: ${namespaces[$environment]}" \
     "$environment resources are not namespace-scoped correctly"
-  final_policy_count=5
-  [[ "$environment" == dev ]] && final_policy_count=6
+  final_policy_count=7
+  [[ "$environment" == dev ]] && final_policy_count=8
   require_render_count "$render" '^kind: NetworkPolicy$' "$final_policy_count" \
     "$environment steady state must contain default deny plus exact allowances"
   require_render_text "$render" 'name: default-deny' \
@@ -199,22 +243,22 @@ for environment in "${environments[@]}"; do
   require_render_text "$render" 'name: external-secrets-jwt' \
     "$environment render lacks its exact JWT synchronization ServiceAccount"
   require_render_text "$render" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-${environment}-jwt-reader" \
+    "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-${jwt_keys[$environment]}$" \
     "$environment JWT ServiceAccount role mapping drifted"
   require_render_text "$render" \
-    "key: microtodosuite/$environment/auth-api-secrets" \
+    "key: lex-mts-eco-sm-${jwt_keys[$environment]}$" \
     "$environment ExternalSecret reads the wrong source secret"
   check_rendered_images "$render"
 
   foundation_render="$TMP_DIR/environment-$environment-foundation.yaml"
   render_kustomize "$ROOT/tests/fixtures/namespace-isolation/foundation/$environment" \
     >"$foundation_render" || fail "$environment foundation fixture does not render"
-  foundation_policy_count=4
-  [[ "$environment" == dev ]] && foundation_policy_count=5
+  foundation_policy_count=6
+  [[ "$environment" == dev ]] && foundation_policy_count=7
   require_render_count "$foundation_render" '^kind: NetworkPolicy$' \
     "$foundation_policy_count" \
     "$environment foundation must retain only its exact allow policies"
-  if rg -q 'name: default-deny' "$foundation_render"; then
+  if search -q 'name: default-deny' "$foundation_render"; then
     fail "$environment foundation fixture activates default deny"
   fi
   require_render_count "$foundation_render" '^kind: Deployment$' 1 \
@@ -255,7 +299,7 @@ analysis_memory_limits=32
 (( prod_steady_memory_limits + largest_surge_memory_limits + analysis_memory_limits <= 3072 )) ||
   fail "production memory-limit quota cannot fit steady state plus one surge and analysis"
 
-if [[ "$(rg --no-filename 'name: microtodosuite:(dev|staging|prod)-maintainers' \
+if [[ "$(search -h 'name: microtodosuite:(dev|staging|prod)-maintainers' \
     "$ROOT/environments"/{dev,staging,prod}/rolebinding.yaml | sort -u | wc -l)" != 3 ]]; then
   fail "environment RoleBindings do not contain exactly three distinct groups"
 fi
@@ -278,7 +322,7 @@ for environment in "${environments[@]}"; do
     'name: environment-workload-maintainer' \
     "$environment RoleBinding does not reference the bounded workload Role"
 done
-if rg -n '^kind: (ClusterRole|ClusterRoleBinding)$' \
+if search -rn '^kind: (ClusterRole|ClusterRoleBinding)$' \
     "$ROOT/environments"/{base,dev,staging,prod}; then
   fail "managed environment access escaped the namespace boundary"
 fi
@@ -286,26 +330,26 @@ fi
 require_file clusters/local-kind/activation-infrastructure.yaml
 require_file clusters/eks-dev/activation-infrastructure.yaml
 require_file clusters/eks-dev/activation-infrastructure-retired.yaml
-if [[ "$(rg -c '^    - env: (dev|staging|prod|demo)$' \
+if [[ "$(search -c '^    - env: (dev|staging|prod|demo)$' \
     "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 4 ]]; then
   fail "managed business activation must list exactly dev, staging, prod, and demo"
 fi
-if [[ "$(rg -c '^      server: https://kubernetes.default.svc$' \
+if [[ "$(search -c '^      server: https://kubernetes.default.svc$' \
     "$ROOT/clusters/eks-dev/activation-apps.yaml" || true)" != 4 ]]; then
   fail "every managed business activation must target the in-cluster API server"
 fi
 reject_text clusters/eks-dev/activation-apps.yaml \
   'env: local|env: production' \
   "managed business activation contains an unsupported environment"
-if [[ "$(rg -c '^    - env:' \
+if [[ "$(search -c '^    - env:' \
     "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 4 ]]; then
   fail "managed environment activation contains an extra or missing element"
 fi
-if [[ "$(rg -c '^    - env: (dev|staging|prod|demo)$' \
+if [[ "$(search -c '^    - env: (dev|staging|prod|demo)$' \
     "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 4 ]]; then
   fail "managed environment activation must list exactly dev, staging, prod, and demo"
 fi
-if [[ "$(rg -c '^      server: https://kubernetes.default.svc$' \
+if [[ "$(search -c '^      server: https://kubernetes.default.svc$' \
     "$ROOT/clusters/eks-dev/activation-environments.yaml" || true)" != 4 ]]; then
   fail "every managed environment must target the in-cluster API server"
 fi
@@ -315,7 +359,7 @@ reject_text clusters/eks-dev/activation-environments.yaml \
 require_text environments/base/kustomization.yaml \
   'networkpolicy-default-deny.yaml' \
   "steady-state environment root does not activate default deny"
-if rg -n 'tests/fixtures/namespace-isolation' \
+if search -rn 'tests/fixtures/namespace-isolation' \
     "$ROOT/environments"/{base,dev,staging,prod}; then
   fail "verification fixtures are activated by steady-state environment desired state"
 fi
@@ -352,7 +396,7 @@ for service in todos-api log-message-processor; do
     require_render_text "$managed_render" \
       'runtime-config.microtodosuite.io/revision: namespace-local-redis-v1' \
       "$service $environment render does not roll pods for its managed Redis endpoint"
-    if rg -q 'REDIS_HOST: redis\.redis\.svc\.cluster\.local' "$managed_render"; then
+    if search -q 'REDIS_HOST: redis\.redis\.svc\.cluster\.local' "$managed_render"; then
       fail "$service $environment render retains the retired shared Redis endpoint"
     fi
   done
@@ -383,11 +427,11 @@ done
 require_text scripts/managed/verify-namespace-isolation.sh \
   '--expected-cluster-id' "observer does not bind evidence to an exact cluster identity"
 
-if rg -n \
-    'kubectl[^#\n]*(apply|create|patch|replace|scale|rollout|delete)|argocd[^#\n]*(sync|app set|app delete)' \
+if search -rn \
+    'kubectl[^#]*(apply|create|patch|replace|scale|rollout|delete)|argocd[^#]*(sync|app set|app delete)' \
     "$ROOT/scripts/managed" \
-    | rg -v 'scripts/managed/bootstrap-cluster\.sh:' \
-    | rg -v 'auth can-i'; then
+    | search -v 'scripts/managed/bootstrap-cluster\.sh:' \
+    | search -v 'auth can-i'; then
   fail "managed observer contains a direct mutation command"
 fi
 require_text tests/fixtures/namespace-isolation/quota-violation/deployment.yaml \
@@ -397,7 +441,7 @@ require_text tests/fixtures/namespace-isolation/quota-violation/deployment.yaml 
   "quota fixture does not name a comparison outside microtodo-dev"
 require_text tests/fixtures/namespace-isolation/quota-violation/deployment.yaml \
   'cpu: 25m' "quota fixture request does not remain within the approved minimum/default range"
-if [[ "$(rg -c 'memory: (32|64)Mi' \
+if [[ "$(search -c 'memory: (32|64)Mi' \
     "$ROOT/tests/fixtures/namespace-isolation/quota-violation/deployment.yaml")" != 2 ]]; then
   fail "quota fixture must keep both memory quantities within the 512Mi maximum"
 fi

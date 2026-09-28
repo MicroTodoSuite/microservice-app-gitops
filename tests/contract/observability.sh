@@ -478,6 +478,21 @@ reject_text "infrastructure/prometheus/rules/golden-signals.yaml" \
   'user_id|todo_id|request_id' \
   "golden-signal rules must not group by unbounded-cardinality labels"
 
+# --- WorkloadHighLatency can select its series (spec 006 T054) ---
+# The alert reads avg5m{revision="stable"}, so the recording rule must keep the
+# revision label: both sides of the ratio group like the rate and ratio rules.
+latency_avg_expr="$(rule_expr 'workload:http_request_duration_seconds:avg5m')"
+[[ -n "$latency_avg_expr" ]] \
+  || fail "workload:http_request_duration_seconds:avg5m recording rule is missing"
+[[ "$(grep -c 'sum by (namespace, workload, revision) ($' <<<"$latency_avg_expr")" == 2 ]] \
+  || fail "workload:http_request_duration_seconds:avg5m must group numerator and denominator by namespace, workload, revision"
+if grep -Eq 'sum by \(workload\)' <<<"$latency_avg_expr"; then
+  fail "workload:http_request_duration_seconds:avg5m drops the revision label WorkloadHighLatency selects"
+fi
+require_text infrastructure/prometheus/rules/golden-signals.yaml \
+  'expr: workload:http_request_duration_seconds:avg5m\{revision="stable"\} > 1$' \
+  "WorkloadHighLatency must alert on stable-revision average latency above 1s"
+
 # --- Registration contract ---
 registration="asserted"
 if runtime_activation_is_quiesced; then

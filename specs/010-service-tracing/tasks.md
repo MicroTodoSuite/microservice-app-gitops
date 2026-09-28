@@ -243,6 +243,15 @@ finds no Zipkin export path.
 - [ ] T017 [US3] Extend `tests/contract/service-tracing.sh` with a failing
   assertion that no rendered application or environment contains `ZIPKIN_URL`
   or any other Zipkin setting (fails today on `apps/frontend/base/configmap.yaml`)
+  > **Partial, 2026-09-28.** The assertion is in `service-tracing.sh`, which
+  > `validate-gitops` already runs as a blocking step: every rendered root under
+  > `apps/` and `environments/` must be free of any Zipkin setting. The
+  > failing form cannot merge while T018 is blocked (it needs the T011 frontend
+  > image promoted, which needs the rebuilt registry), so the assertion
+  > carries one named exception, the exact frontend `ZIPKIN_URL` line, and
+  > fails as stale once that value is gone. The failing-first commit moves
+  > into T018's pull request: delete the exception (red), then remove the
+  > value (green). Tick this with T018.
 - [ ] T018 [US3] Remove `ZIPKIN_URL` from `apps/frontend/base/configmap.yaml`
   only after the T011 frontend image is promoted to every economical
   environment (the current image's `nginx.conf.template` needs the value to
@@ -252,6 +261,29 @@ finds no Zipkin export path.
   five service repositories' `main` branches, excluding `CHANGELOG.md` and
   historical specifications and evidence, and record the result (SC-004) in
   the T018 pull request; any hit becomes a task before this one is ticked
+  > **Partial, 2026-09-28.** First run (gitops `4c7640d`; service `main`
+  > at auth-api `a7814fc`, todos-api `19115b7`, users-api `1bcdfbf`, frontend
+  > `fed6277`, log-message-processor `f9d30d3`). Hits needing work: gitops
+  > `apps/frontend/base/configmap.yaml:10` (T018), gitops
+  > `apps/auth-api/base/configmap.yaml:12-13` (T022), auth-api
+  > `Gopkg.lock:44` and `Gopkg.toml:34` (T023), and todos-api's committed
+  > `coverage/lcov-report/` (T024). Not Zipkin configuration or export paths:
+  > negative test assertions in todos-api `test/tracing.test.js`, users-api
+  > `TracingConfigurationTests.java`, frontend
+  > `test/unit/operational-contract.test.js`, and log-message-processor
+  > `tests/test_tracing.py`, plus the upstream API text on B3 headers in the
+  > vendored `infrastructure/istio/vendor/v1.30.3/install.yaml`. Re-run the
+  > search and record it in the T018 pull request, as written, before ticking.
+- [ ] T022 [US3] Remove the stale `ZIPKIN_URL` comment from
+  `apps/auth-api/base/configmap.yaml` (lines 12-13, pointing at a `main.go`
+  Zipkin path auth-api no longer has); found by T019
+- [ ] T023 [US3] [in `auth-api` repo] Delete the legacy `dep` manifests
+  `Gopkg.toml` and `Gopkg.lock`, which still pin
+  `github.com/openzipkin/zipkin-go` though the module builds from `go.mod`,
+  or record why they must stay; found by T019
+- [ ] T024 [US3] [in `todos-api` repo] Stop tracking the generated
+  `coverage/` report, whose `lcov-report/todoController.js.html` still shows
+  the retired Zipkin tracer, and ignore it; found by T019
 
 **Checkpoint**: The desired state and all service code are Zipkin-free.
 
@@ -307,7 +339,9 @@ Setup (T001)
 | `microservice-app-frontend` | T008, T011 |
 | `microservice-app-auth-api` | T013, T015 |
 | `microservice-app-users-api` | T014, T016 |
-| `microservice-app-gitops` (cleanup) | T017, T018, T019 |
+| `microservice-app-gitops` (cleanup) | T017, T018, T019, T022 |
+| `microservice-app-auth-api` (cleanup) | T023 |
+| `microservice-app-todos-api` (cleanup) | T024 |
 
 ## Parallel Opportunities
 

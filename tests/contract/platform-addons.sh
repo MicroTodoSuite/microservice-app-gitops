@@ -15,6 +15,22 @@ pass() {
   printf 'PASS: %s\n' "$*" >&2
 }
 
+# require_text/reject_text/check_rendered_images read grep's exit status and
+# output; without grep every rejection and --*image= check would pass vacuously.
+# search is grep with POSIX extended regular expressions in the C locale: the
+# stock runner image ships it, and bracket ranges and character classes match
+# by byte, as ripgrep's ASCII classes did, never by the runner's locale.
+# grep exits 1 for no match and 2 or more for an error, such as an unreadable
+# path; an error fails the contract instead of reading as "no match".
+command -v grep >/dev/null 2>&1 \
+  || fail "grep is required: without it this contract passes vacuously"
+search() {
+  local status=0
+  LC_ALL=C grep -E "$@" || status=$?
+  (( status < 2 )) || fail "grep -E $* exited $status"
+  return "$status"
+}
+
 render_kustomize() {
   if command -v kustomize >/dev/null 2>&1; then
     kustomize build "$1"
@@ -29,12 +45,12 @@ require_file() {
 
 require_text() {
   local path="$1" pattern="$2" description="$3"
-  rg -q -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
+  search -rq -- "$pattern" "$ROOT/$path" || fail "$description ($path)"
 }
 
 reject_text() {
   local path="$1" pattern="$2" description="$3"
-  if rg -q -- "$pattern" "$ROOT/$path"; then
+  if search -rq -- "$pattern" "$ROOT/$path"; then
     fail "$description ($path)"
   fi
 }
@@ -76,7 +92,7 @@ check_rendered_images() {
   while IFS= read -r image_ref; do
     [[ "$image_ref" == *@sha256:* ]] \
       || fail "rendered image argument is not digest-pinned: $image_ref"
-  done < <(rg -o -- '--[a-z0-9-]*image=[^[:space:]]+' "$render" | sed 's/^[^=]*=//')
+  done < <(search -o -- '--[a-z0-9-]*image=[^[:space:]]+' "$render" | sed 's/^[^=]*=//')
 }
 
 declare -A VERSIONS=(
@@ -97,8 +113,6 @@ infrastructure_root_names=()
 for addon_root in "$ROOT"/infrastructure/*/kustomization.yaml; do
   infrastructure_root_names+=("$(basename "$(dirname "$addon_root")")")
 done
-[[ "${#infrastructure_root_names[@]}" == "15" ]] \
-  || fail "expected exactly fifteen infrastructure roots, found ${#infrastructure_root_names[@]}"
 
 for addon in keda cert-manager external-secrets kyverno; do
   [[ " ${infrastructure_root_names[*]} " == *" $addon "* ]] \
@@ -170,15 +184,15 @@ require_text infrastructure/redis/deployment.yaml 'redis-cli' \
 require_text infrastructure/redis/README.md 'non-durable' \
   "Redis continuity risk is not documented"
 
-if [[ "$(rg -c '^  validationFailureAction: Enforce$' \
+if [[ "$(search -c '^  validationFailureAction: Enforce$' \
     "$ROOT/infrastructure/kyverno/policies.yaml")" != "3" ]]; then
   fail "all three Kyverno policies must be in Enforce mode"
 fi
-if [[ "$(rg -c '^  background: true$' \
+if [[ "$(search -c '^  background: true$' \
     "$ROOT/infrastructure/kyverno/policies.yaml")" != "2" ]]; then
   fail "digest and probe policies must retain background reports"
 fi
-if [[ "$(rg -c '^  background: false$' \
+if [[ "$(search -c '^  background: false$' \
     "$ROOT/infrastructure/kyverno/policies.yaml")" != "1" ]]; then
   fail "private-ECR signature verification must avoid credentialless background scans"
 fi
@@ -205,9 +219,16 @@ require_text infrastructure/kyverno/kustomization.yaml \
   "Kyverno admission ServiceAccount lacks its exact ECR verifier IRSA role"
 require_text infrastructure/kyverno/policies.yaml 'verifyImages:' \
   "Kyverno lacks enforcing signature verification"
-require_text infrastructure/kyverno/policies.yaml \
-  '575172595729\.dkr\.ecr\.us-east-1\.amazonaws\.com/microtodosuite/\*' \
-  "signature verification is not limited to neutral MicroTodoSuite ECR"
+# Signature verification covers exactly the five rebuilt shared ECR repositories
+# (lex-mts-shd-ecr-<key>, commit 752fdb2) and no broader registry pattern.
+if [[ "$(search -c 'dkr\.ecr\.' "$ROOT/infrastructure/kyverno/policies.yaml")" != "5" ]]; then
+  fail "signature verification must reference exactly the five MicroTodoSuite ECR repositories"
+fi
+for image_key in authapi frontend logmsgproc todosapi usersapi; do
+  require_text infrastructure/kyverno/policies.yaml \
+    "^            - \"575172595729\\.dkr\\.ecr\\.us-east-1\\.amazonaws\\.com/lex-mts-shd-ecr-${image_key}\\*\"$" \
+    "signature verification is not limited to the $image_key MicroTodoSuite ECR repository"
+done
 require_text infrastructure/kyverno/policies.yaml \
   'https://token\.actions\.githubusercontent\.com' \
   "signature verification lacks the approved GitHub OIDC issuer"
@@ -236,7 +257,7 @@ require_text clusters/base/infrastructure.yaml 'path: "\{\{ \.path \}\}"' \
   "infrastructure source path is not driven by explicit values"
 require_text clusters/base/infrastructure.yaml 'namespace: "\{\{ \.namespace \}\}"' \
   "infrastructure namespace is not driven by explicit values"
-if [[ "$(rg -c '^    - name: ' "$ROOT/clusters/local-kind/activation-infrastructure.yaml")" != "5" ]]; then
+if [[ "$(search -c '^    - name: ' "$ROOT/clusters/local-kind/activation-infrastructure.yaml")" != "5" ]]; then
   fail "local infrastructure activation must contain exactly five entries"
 fi
 require_text clusters/base/infrastructure.yaml 'CreateNamespace=true' \
@@ -248,7 +269,7 @@ require_text clusters/base/infrastructure.yaml 'prune: true' \
 require_text clusters/base/infrastructure.yaml 'selfHeal: true' \
   "infrastructure applications do not self-heal"
 reject_text scripts/pilot/verify-platform.sh \
-  'kubectl[^\n]*(apply|patch|scale|rollout|delete|create|replace)' \
+  'kubectl.*(apply|patch|scale|rollout|delete|create|replace)' \
   "platform verifier contains a direct managed-state mutation"
 require_text scripts/pilot/lib/common.sh 'read-only kubectl only; refused verb' \
   "read-only kubectl wrapper does not reject mutating verbs"
@@ -276,7 +297,7 @@ for addon in keda cert-manager external-secrets redis; do
     && first_party_files+=("$ROOT/infrastructure/$addon/capability-check.yaml")
   [[ -f "$ROOT/infrastructure/$addon/policies.yaml" ]] \
     && first_party_files+=("$ROOT/infrastructure/$addon/policies.yaml")
-  if rg -n -i 'eks\.amazonaws|amazonaws\.com|azure\.com|azurecr\.io|workload\.identity|SecretStore|ClusterSecretStore|(^|[^[:alnum:]_])(aws|azure|eks|aks|ecr)([^[:alnum:]_]|$)' \
+  if search -n -i 'eks\.amazonaws|amazonaws\.com|azure\.com|azurecr\.io|workload\.identity|SecretStore|ClusterSecretStore|(^|[^[:alnum:]_])(aws|azure|eks|aks|ecr)([^[:alnum:]_]|$)' \
       "${first_party_files[@]}"; then
     fail "$addon first-party desired state contains a provider dependency"
   fi
@@ -367,20 +388,32 @@ for crd in rollouts.argoproj.io analysisruns.argoproj.io analysistemplates.argop
   require_resource "$TMP_DIR/argo-rollouts.yaml" CustomResourceDefinition "$crd"
 done
 
-if [[ "$(rg -c '^    - name:' "$ROOT/clusters/eks-dev/activation-infrastructure.yaml" || true)" != 13 ]]; then
-  fail "shared EKS infrastructure activation must contain exactly thirteen final controllers"
+# The economical registration is either active with the exact final controller
+# set or fully quiesced for an approved teardown (spec 009 T170-T177). The
+# quiescent shape is exactly `value: []`, which
+# tests/contract/economical-runtime-quiescence.sh also enforces; any other
+# shape must be the complete active set.
+eks_infrastructure_activation="$ROOT/clusters/eks-dev/activation-infrastructure.yaml"
+if search -q '^  value: \[\]$' "$eks_infrastructure_activation"; then
+  if search -n '^    - ' "$eks_infrastructure_activation"; then
+    fail "quiescent shared EKS infrastructure activation still lists controllers"
+  fi
+else
+  if [[ "$(search -c '^    - name:' "$eks_infrastructure_activation" || true)" != 13 ]]; then
+    fail "shared EKS infrastructure activation must contain exactly thirteen final controllers"
+  fi
+  for addon in keda cert-manager external-secrets kyverno argo-rollouts ebs-csi-driver prometheus grafana jaeger loki falco kube-bench kube-hunter; do
+    require_text clusters/eks-dev/activation-infrastructure.yaml \
+      "name: $addon" "shared EKS infrastructure activation omits $addon"
+  done
 fi
-for addon in keda cert-manager external-secrets kyverno argo-rollouts ebs-csi-driver prometheus grafana jaeger loki falco kube-bench kube-hunter; do
-  require_text clusters/eks-dev/activation-infrastructure.yaml \
-    "name: $addon" "shared EKS infrastructure activation omits $addon"
-done
 reject_text clusters/eks-dev/activation-infrastructure.yaml \
   'name: redis' "shared EKS infrastructure activation retains shared Redis"
 
 recovery_profile="clusters/eks-dev-capacity-constrained"
 require_file "$recovery_profile/kustomization.yaml"
 require_file "$recovery_profile/activation-infrastructure.yaml"
-if [[ "$(rg -c '^    - name:' "$ROOT/$recovery_profile/activation-infrastructure.yaml" || true)" != 5 ]]; then
+if [[ "$(search -c '^    - name:' "$ROOT/$recovery_profile/activation-infrastructure.yaml" || true)" != 5 ]]; then
   fail "capacity-constrained EKS profile must activate exactly five required controllers"
 fi
 for addon in keda cert-manager external-secrets kyverno argo-rollouts; do

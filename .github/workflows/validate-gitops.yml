@@ -113,6 +113,36 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
+      - name: Check out service workflow contracts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: MicroTodoSuite/microservice-app-auth-api
+          path: .ci-workspace/microservice-app-auth-api
+
+      - name: Check out todos-api workflow contract
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: MicroTodoSuite/microservice-app-todos-api
+          path: .ci-workspace/microservice-app-todos-api
+
+      - name: Check out users-api workflow contract
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: MicroTodoSuite/microservice-app-users-api
+          path: .ci-workspace/microservice-app-users-api
+
+      - name: Check out frontend workflow contract
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: MicroTodoSuite/microservice-app-frontend
+          path: .ci-workspace/microservice-app-frontend
+
+      - name: Check out log processor workflow contract
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: MicroTodoSuite/microservice-app-log-message-processor
+          path: .ci-workspace/microservice-app-log-message-processor
+
       - name: Validate GitHub Actions runtime pins
         run: tests/contract/github-actions-runtime.sh
 
@@ -169,6 +199,39 @@ jobs:
 
       - name: Validate the observability platform static contract (spec 006)
         run: tests/contract/observability.sh
+
+      # promtool from the Prometheus release the observability root deploys
+      # (vendored kube-prometheus v0.18.0 -> Prometheus v3.12.0); checksum from
+      # that release's sha256sums.txt.
+      - name: Install checksum-pinned promtool
+        run: |
+          set -euo pipefail
+          version=3.12.0
+          checksum=20da47f8e5303f74aecb78edd7f7e39041dac08ac4939dba75efd7a900ae8867
+          archive="$(mktemp)"
+          extract_dir="$(mktemp -d)"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            "https://github.com/prometheus/prometheus/releases/download/v${version}/prometheus-${version}.linux-amd64.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
+          tar -xzf "$archive" -C "$extract_dir" "prometheus-${version}.linux-amd64/promtool"
+          sudo install -m 0755 "$extract_dir/prometheus-${version}.linux-amd64/promtool" /usr/local/bin/promtool
+          promtool --version
+
+      - name: Prove the golden-signal alerts can fire (spec 006 T054)
+        run: tests/platform/golden-signals-rules.bats
+
+      - name: Prove the policy contracts need no ripgrep (spec 003 T032)
+        run: tests/contract/policy-contracts-portable.sh
+
+      - name: Validate the platform add-on contract (spec 003 T031)
+        run: tests/contract/platform-addons.sh
+
+      - name: Validate the service onboarding contract (spec 004 T035)
+        run: tests/contract/service-onboarding.sh
+
+      - name: Validate namespace isolation (spec 005 T096-T098)
+        run: tests/contract/namespace-isolation.sh
 
       - name: Validate the runtime security static contract (spec 008)
         run: tests/contract/security.sh
@@ -231,8 +294,10 @@ jobs:
       - name: Validate the full-profile observability roots (spec 009 T085)
         run: tests/platform/observability-full.bats
 
-      - name: Validate the admission and runtime security hardening (spec 009 T088)
-        run: tests/platform/security-hardening.bats
+      - name: Validate locale-independent admission and runtime security hardening (spec 008 T040)
+        run: |
+          LC_ALL=C tests/platform/security-hardening.bats
+          LC_ALL=en_US.UTF-8 tests/platform/security-hardening.bats
 
       - name: Validate the full-profile service runtime (spec 009 T090)
         run: tests/platform/service-runtime-full.bats
@@ -254,3 +319,8 @@ jobs:
       # the wrong cluster or an unreviewed revision.
       - name: Verify the managed cluster bootstrap boundary
         run: tests/bootstrap/managed-cluster-bootstrap.bats
+
+      - name: Validate the value-blind SonarQube bootstrap (spec 009 T103)
+        env:
+          MICROTODO_WORKSPACE_ROOT: ${{ github.workspace }}/.ci-workspace
+        run: tests/promotion/bootstrap-sonarqube.bats

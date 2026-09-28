@@ -131,7 +131,7 @@ request against exact evidence.
 **Purpose**: Keep the feature-owned static contract valid as later features add
 independent infrastructure roots.
 
-- [ ] T031 Reconcile the stale global root-count assertion in
+- [X] T031 Reconcile the stale global root-count assertion in
   `tests/contract/platform-addons.sh`. Reproduction:
   `tests/contract/platform-addons.sh`. Output:
   `FAIL: expected exactly fifteen infrastructure roots, found 27`.
@@ -140,6 +140,50 @@ independent infrastructure roots.
   feature 003 owns only its required platform-add-on roots. The corrected
   contract MUST validate the feature-owned inventory without rejecting
   unrelated roots added by later specifications.
+  Reconciled 2026-09-28: the repository has 28 direct infrastructure roots
+  (every `infrastructure/*/kustomization.yaml`; `infrastructure/profiles/` is
+  not a root). The quoted 27 predates the spec 012 `velero` root (00cb1ac,
+  2026-09-22), and fifteen predates the spec 009 full-profile roots. No global
+  count is the right number: feature 003 owns only its KEDA, cert-manager,
+  External Secrets, and Kyverno roots (plus the Redis and SonarQube roots it
+  names), so the contract checks those by name and keeps their exact
+  resource/provenance assertions. Two further stale assertions surfaced once
+  the count stopped failing first, and were reconciled the same way: the
+  Kyverno signature scope now names exactly the five rebuilt
+  `lex-mts-shd-ecr-<key>` repositories (752fdb2) instead of the retired
+  `microtodosuite/*` prefix, and the thirteen-controller EKS activation check
+  applies while the registration is active and accepts only the exact
+  `value: []` quiescent shape that spec 009 T176 left and
+  `tests/contract/economical-runtime-quiescence.sh` owns.
+- [X] T032 Free the `policy-contracts` job's text contracts from ripgrep,
+  which the runner does not ship, and keep them failing closed when their
+  search tool is missing. Surfaced by the
+  maintainer's audit of 2026-09-27 once T031 wired the contract into
+  `validate-gitops`. Reproduction: the `policy-contracts` run of
+  `fix/audit-contract-repairs` (ubuntu-24.04 image 20260920.314.1). Output:
+  `FAIL: Redis image is not versioned and digest-pinned
+  (infrastructure/redis/deployment.yaml)`, preceded by
+  `tests/contract/platform-addons.sh: line 32: rg: command not found`.
+  Diagnosis: the Redis pin is correct, and the runner lacks ripgrep. `crane
+  digest redis:7.4.9-alpine` resolves to the committed
+  `sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99`.
+  The runner image ships no ripgrep, so `require_text` got exit 127. Without
+  rg, `reject_text`, the rendered `--*image=` argument check, and `rg -c`
+  counts passed vacuously. Delivered: `platform-addons.sh`,
+  `service-onboarding.sh`, and `namespace-isolation.sh` assert through POSIX
+  extended `grep` in the C locale (`find` selects the files of the one
+  glob-filtered scan), stop with an explicit error when grep is absent, and
+  fail on any grep error instead of reading it as "no match".
+  `tests/contract/policy-contracts-portable.sh` rejects any rg call in them,
+  statically and at run time, as a `policy-contracts` step. On the tree of
+  2026-09-28 every one of the 527 searches returns the rg version's exit
+  status and output lines (rg's directory order is parallel, so lines compare
+  as sets), and ten injected violations fail both versions identically. The
+  one intended difference: a missing or unreadable path, which rg reported as
+  exit 2 and the contracts read as "no match", now fails the contract.
+  Superseded: an earlier commit on this branch installed ripgrep 15.2.0 in
+  the job, checksum-pinned but outside
+  `scripts/managed/full-profile-toolchain.lock`; that step is removed.
 
 ---
 

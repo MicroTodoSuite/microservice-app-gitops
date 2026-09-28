@@ -49,7 +49,9 @@ command -v "$GH_BIN" >/dev/null 2>&1 || err "gh is required."
 "$GH_BIN" auth status >/dev/null 2>&1 || err "gh is not authenticated; this script never substitutes a PAT."
 
 [[ -f "$SONAR_ADMIN_PASSWORD_FILE" ]] || err "SONAR_ADMIN_PASSWORD_FILE does not exist: $SONAR_ADMIN_PASSWORD_FILE"
-mode="$(stat -f '%Lp' "$SONAR_ADMIN_PASSWORD_FILE" 2>/dev/null || stat -c '%a' "$SONAR_ADMIN_PASSWORD_FILE" 2>/dev/null || true)"
+# GNU stat accepts -f with different semantics and exits successfully, so try
+# its mode format first. BSD stat rejects -c and then uses its native format.
+mode="$(stat -c '%a' "$SONAR_ADMIN_PASSWORD_FILE" 2>/dev/null || stat -f '%Lp' "$SONAR_ADMIN_PASSWORD_FILE" 2>/dev/null || true)"
 [[ "$mode" == "600" ]] || err "SONAR_ADMIN_PASSWORD_FILE must be mode 0600, found: ${mode:-unreadable}"
 
 # Read once into a process-local variable; never echoed, logged, or persisted

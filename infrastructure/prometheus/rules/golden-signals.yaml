@@ -65,17 +65,18 @@ spec:
         # and todos-api need the Histogram added by this feature's Story 1
         # tasks (T016/T017) before this series has data for them; until then
         # this recording rule correctly returns no data for those two,
-        # rather than a fabricated value.
+        # rather than a fabricated value. Grouped like the rate and ratio
+        # rules, so WorkloadHighLatency can select revision="stable".
         - record: workload:http_request_duration_seconds:avg5m
           expr: |
-            sum by (workload) (
+            sum by (namespace, workload, revision) (
               label_replace(rate(auth_api_request_duration_seconds_sum[5m]), "workload", "auth-api", "", "")
               or label_replace(rate(todo_api_request_duration_seconds_sum[5m]), "workload", "todos-api", "", "")
               or label_replace(rate(http_server_requests_seconds_sum{job="users-api"}[5m]), "workload", "users-api", "", "")
               or label_replace(rate(log_message_processing_duration_seconds_sum[5m]), "workload", "log-message-processor", "", "")
             )
             /
-            sum by (workload) (
+            sum by (namespace, workload, revision) (
               label_replace(rate(auth_api_request_duration_seconds_count[5m]), "workload", "auth-api", "", "")
               or label_replace(rate(todo_api_request_duration_seconds_count[5m]), "workload", "todos-api", "", "")
               or label_replace(rate(http_server_requests_seconds_count{job="users-api"}[5m]), "workload", "users-api", "", "")

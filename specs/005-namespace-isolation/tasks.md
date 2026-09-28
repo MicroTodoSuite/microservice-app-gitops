@@ -259,7 +259,7 @@ account without exceeding the replacement cluster's two-node capacity.
 **Purpose**: Keep the feature-owned isolation contract aligned with approved
 cross-feature policy additions.
 
-- [ ] T096 Reconcile the stale exact NetworkPolicy count in
+- [X] T096 Reconcile the stale exact NetworkPolicy count in
   `tests/contract/namespace-isolation.sh`. Reproduction:
   `tests/contract/namespace-isolation.sh`. Output:
   `FAIL: dev steady state must contain default deny plus exact allowances: expected 6, found 7 (environment-dev.yaml)`.
@@ -268,7 +268,7 @@ cross-feature policy additions.
   to the shared environment base. The corrected contract MUST account for that
   approved policy while retaining exact selector, direction, protocol, and port
   assertions.
-- [ ] T097 Resolve the broad-allowance failure in
+- [X] T097 Resolve the broad-allowance failure in
   `tests/contract/namespace-isolation.sh`. Reproduction:
   `tests/contract/namespace-isolation.sh`. Output:
   `FAIL: managed base contains a broad cross-environment or internet allowance`.
@@ -281,6 +281,20 @@ cross-feature policy additions.
 - [ ] T098 Run `tests/contract/namespace-isolation.sh` in CI. No workflow in
   `.github/workflows/` calls it, which is why T096 and T097 reached `main`
   unnoticed.
+  > **Partial, 2026-09-28.** `validate-gitops` now runs the contract, and the
+  > T096/T097 failures are resolved: the counts include the approved tracing
+  > egress and load-balancer ingress policies, and the only permitted
+  > `ipBlock` peers are the three economical public subnets
+  > `10.10.{0,1,2}.0/24` (microservice-app-ops
+  > `aws/environments/eco/networking/eco.tfvars.example:11`), ingress-only to
+  > frontend TCP 8080. The JWT ServiceAccount and source-secret assertions now
+  > expect the rebuilt `lex-mts-eco-role-jwt<key>` and `lex-mts-eco-sm-jwt<key>`
+  > names. The contract is still red at
+  > `FAIL: managed business activation must list exactly dev, staging, prod, and demo`:
+  > `clusters/eks-dev/` is quiesced (`value: []`, spec 009 T176), and the
+  > assertion describes the active registration. Reconcile it like spec 003
+  > T031 did (exact active shape, or exactly the quiescent shape owned by
+  > `tests/contract/economical-runtime-quiescence.sh`), then tick this task.
 
 ---
 
