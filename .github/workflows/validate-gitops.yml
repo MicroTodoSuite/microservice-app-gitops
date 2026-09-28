@@ -240,6 +240,9 @@ jobs:
       - name: Prove the golden-signal alerts can fire (spec 006 T054)
         run: tests/platform/golden-signals-rules.bats
 
+      - name: Prove the policy contracts need no ripgrep (spec 003 T032)
+        run: tests/contract/policy-contracts-portable.sh
+
       - name: Validate the platform add-on contract (spec 003 T031)
         run: tests/contract/platform-addons.sh
 
