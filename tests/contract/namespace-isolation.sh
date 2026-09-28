@@ -63,6 +63,8 @@ base_files=(
   environments/base/networkpolicy-allow-intra-namespace.yaml
   environments/base/networkpolicy-allow-redis.yaml
   environments/base/networkpolicy-allow-observability-scrape.yaml
+  environments/base/networkpolicy-allow-tracing-egress.yaml
+  environments/base/networkpolicy-allow-load-balancer.yaml
   environments/base/redis-serviceaccount.yaml
   environments/base/redis-deployment.yaml
   environments/base/redis-service.yaml
@@ -118,10 +120,34 @@ require_text environments/base/role.yaml 'resources: \["pods", "pods/log"\]' \
 if [[ "$(rg -c '^  - apiGroups:' "$ROOT/environments/base/role.yaml")" != 3 ]]; then
   fail "maintainer Role must contain exactly three reviewed rules"
 fi
-if rg -n 'microtodo-(dev|staging|prod)|ipBlock:|0\.0\.0\.0/0' \
+if rg -n 'microtodo-(dev|staging|prod)|0\.0\.0\.0/0' \
     "$ROOT/environments/base"/networkpolicy-*.yaml; then
   fail "managed base contains a broad cross-environment or internet allowance"
 fi
+load_balancer_policy="$ROOT/environments/base/networkpolicy-allow-load-balancer.yaml"
+unexpected_ipblock_files="$(rg -l 'ipBlock:' "$ROOT/environments/base"/networkpolicy-*.yaml \
+  | grep -Fvx "$load_balancer_policy" || true)"
+[[ -z "$unexpected_ipblock_files" ]] \
+  || fail "only the reviewed load-balancer policy may use an ipBlock peer: $unexpected_ipblock_files"
+if [[ "$(rg -c -- '- ipBlock:' "$load_balancer_policy")" != 3 ]] \
+    || [[ "$(rg -c '^[[:space:]]+cidr:' "$load_balancer_policy")" != 3 ]]; then
+  fail "load-balancer ingress must contain exactly the three reviewed public-subnet CIDRs"
+fi
+for cidr in 10.10.0.0/24 10.10.1.0/24 10.10.2.0/24; do
+  require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+    "cidr: $cidr" "load-balancer ingress omits reviewed CIDR $cidr"
+done
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  'app.kubernetes.io/name: frontend' \
+  "load-balancer ingress is not limited to frontend pods"
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  '^[[:space:]]+- Ingress$' "load-balancer policy is not ingress-only"
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  'protocol: TCP' "load-balancer ingress is not limited to TCP"
+require_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  'port: 8080' "load-balancer ingress is not limited to the frontend port"
+reject_text environments/base/networkpolicy-allow-load-balancer.yaml \
+  '^[[:space:]]+egress:' "load-balancer policy unexpectedly permits egress"
 
 environments=(dev staging prod)
 declare -A namespaces=(
@@ -134,6 +160,8 @@ declare -A cpu_limits=([dev]=2300m [staging]=2700m [prod]=3)
 declare -A memory_requests=([dev]=896Mi [staging]=1Gi [prod]=1152Mi)
 declare -A memory_limits=([dev]=2304Mi [staging]=2816Mi [prod]=3Gi)
 declare -A pod_limits=([dev]=12 [staging]=14 [prod]=18)
+# Rebuilt lex-mts-eco-<type>-jwt<key> names (spec 009 naming contract).
+declare -A jwt_keys=([dev]=jwtdev [staging]=jwtstg [prod]=jwtprd)
 
 for environment in "${environments[@]}"; do
   overlay="environments/$environment"
@@ -188,8 +216,8 @@ for environment in "${environments[@]}"; do
     "$environment render must contain exactly one ExternalSecret"
   require_render_text "$render" "namespace: ${namespaces[$environment]}" \
     "$environment resources are not namespace-scoped correctly"
-  final_policy_count=5
-  [[ "$environment" == dev ]] && final_policy_count=6
+  final_policy_count=7
+  [[ "$environment" == dev ]] && final_policy_count=8
   require_render_count "$render" '^kind: NetworkPolicy$' "$final_policy_count" \
     "$environment steady state must contain default deny plus exact allowances"
   require_render_text "$render" 'name: default-deny' \
@@ -199,18 +227,18 @@ for environment in "${environments[@]}"; do
   require_render_text "$render" 'name: external-secrets-jwt' \
     "$environment render lacks its exact JWT synchronization ServiceAccount"
   require_render_text "$render" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/microtodosuite-${environment}-jwt-reader" \
+    "eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-${jwt_keys[$environment]}$" \
     "$environment JWT ServiceAccount role mapping drifted"
   require_render_text "$render" \
-    "key: microtodosuite/$environment/auth-api-secrets" \
+    "key: lex-mts-eco-sm-${jwt_keys[$environment]}$" \
     "$environment ExternalSecret reads the wrong source secret"
   check_rendered_images "$render"
 
   foundation_render="$TMP_DIR/environment-$environment-foundation.yaml"
   render_kustomize "$ROOT/tests/fixtures/namespace-isolation/foundation/$environment" \
     >"$foundation_render" || fail "$environment foundation fixture does not render"
-  foundation_policy_count=4
-  [[ "$environment" == dev ]] && foundation_policy_count=5
+  foundation_policy_count=6
+  [[ "$environment" == dev ]] && foundation_policy_count=7
   require_render_count "$foundation_render" '^kind: NetworkPolicy$' \
     "$foundation_policy_count" \
     "$environment foundation must retain only its exact allow policies"
