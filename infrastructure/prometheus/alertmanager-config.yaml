@@ -9,7 +9,7 @@ kind: ServiceAccount
 metadata:
   name: observability-external-secrets-jwt
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-obssecret
+    eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/lex-mts-eco-role-obssecret
 automountServiceAccountToken: false
 ---
 apiVersion: external-secrets.io/v1

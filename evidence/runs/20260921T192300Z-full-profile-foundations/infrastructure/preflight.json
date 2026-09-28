@@ -1,0 +1,117 @@
+{
+  "task": "gitops specs/009-full-platform-rollout T052",
+  "result": "pass",
+  "checkedAt": "2026-09-21",
+  "account": "575172595729",
+  "region": "us-east-1",
+  "source": "Lead facts brief t052-t060-facts.md (2026-09-21), from read-only discovery; the raw outputs are retained outside Git.",
+  "makeCheck": {
+    "command": "make check PROFILE=full",
+    "result": "every full root READY",
+    "backendConfigPresent": true,
+    "tfvarsPresent": true
+  },
+  "serviceQuotas": {
+    "L-1216C47A": {
+      "name": "On-Demand standard vCPU",
+      "value": 16
+    },
+    "L-34B43A08": {
+      "name": "Spot standard vCPU",
+      "value": 32
+    },
+    "L-0263D0A3": {
+      "name": "Elastic IPs",
+      "value": 5
+    },
+    "L-F678F1CE": {
+      "name": "VPCs per Region",
+      "value": 5
+    },
+    "L-A4707A72": {
+      "name": "Internet gateways per Region",
+      "value": 5
+    },
+    "L-1194D53C": {
+      "name": "EKS clusters",
+      "value": 100
+    }
+  },
+  "usageBeforeFullUp": {
+    "elasticIps": {
+      "used": 3,
+      "limit": 5
+    },
+    "vpcs": {
+      "used": 4,
+      "limit": 5,
+      "owners": [
+        "eco",
+        "fdev",
+        "fstg",
+        "fprd"
+      ],
+      "defaultVpc": "already deleted"
+    },
+    "eksClusters": 1,
+    "runningVcpu": 6,
+    "transitGateways": 0
+  },
+  "availabilityZones": {
+    "instanceType": "m7i-flex.large",
+    "offeredIn": [
+      "us-east-1a",
+      "us-east-1b",
+      "us-east-1c",
+      "us-east-1d",
+      "us-east-1f"
+    ],
+    "usedBySpokes": [
+      "us-east-1a",
+      "us-east-1b",
+      "us-east-1c"
+    ]
+  },
+  "cidrs": {
+    "matchLiveVpcs": true,
+    "shd": "10.50.0.0/16",
+    "eco": "10.10.0.0/16",
+    "fdev": "10.40.0.0/16",
+    "fstg": "10.20.0.0/16",
+    "fprd": "10.30.0.0/16"
+  },
+  "ownership": {
+    "prefix": "lex-mts-f*",
+    "resourceKinds": [
+      "named IAM roles",
+      "Secrets Manager secrets",
+      "security groups"
+    ],
+    "allOwnedByTerraformState": true,
+    "orphans": 0,
+    "statement": "All 27 live named IAM roles, Secrets Manager secrets, and security groups with the lex-mts-f* prefix are owned by Terraform state (wording of the facts brief)."
+  },
+  "stateObjects": {
+    "readThrough": "deploy role",
+    "resourceCounts": {
+      "shd/security": 20,
+      "shd/registry": 10,
+      "shd/dns": 2,
+      "fdev/networking": 21,
+      "fstg/networking": 21,
+      "fprd/networking": 21,
+      "fdev/security": 31,
+      "fstg/security": 31,
+      "fprd/security": 31,
+      "fdev/workload": 0,
+      "fstg/workload": 0,
+      "fprd/workload": 0,
+      "fdev/security-irsa": 0,
+      "fstg/security-irsa": 0,
+      "fprd/security-irsa": 0
+    },
+    "note": "Spoke networking and security are persistent roots, first applied on 2026-09-14; workload and security-irsa were empty before the 2026-09-21 up."
+  },
+  "deviationsFromRebuiltRootReadmes": [],
+  "redaction": "No secret, ARN, resource ID, or state content is recorded. The only account-bound value is the account ID that config/aws-account.env already declares."
+}

@@ -1,0 +1,28 @@
+# Bootstrap applies this root only after its revision is merged to protected
+# main. It reconciles exclusively through the AKS cluster's in-cluster API.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+    targetRevision: main
+    path: clusters/aks-dr
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

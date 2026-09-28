@@ -1,0 +1,6 @@
+# Production overlays deploy real user traffic. FR-008 requires explicit
+# human approval before that promotion merges; the repo-wide one-approval
+# branch protection rule already covers every path, but this designates
+# specific approvers for production changes rather than leaving it to
+# whichever reviewer happens to be available. See docs/service-delivery.md.
+apps/*/profiles/*/overlays/prod/** @Juanmadiaz45 @EstebanGZam @Tiago0507

@@ -1,0 +1,45 @@
+PR #150:
+apps/auth-api/profiles/economical/overlays/dev/kustomization.yaml
+
+PR #151:
+apps/todos-api/profiles/economical/overlays/dev/kustomization.yaml
+
+PR #152:
+apps/auth-api/profiles/economical/overlays/staging/kustomization.yaml
+
+PR #153:
+apps/frontend/profiles/economical/overlays/dev/kustomization.yaml
+
+PR #154:
+apps/todos-api/profiles/economical/overlays/staging/kustomization.yaml
+
+PR #155:
+apps/log-message-processor/profiles/economical/overlays/dev/kustomization.yaml
+
+PR #156:
+apps/frontend/profiles/economical/overlays/staging/kustomization.yaml
+
+PR #157:
+apps/log-message-processor/profiles/economical/overlays/staging/kustomization.yaml
+
+PR #158:
+apps/users-api/profiles/economical/overlays/dev/kustomization.yaml
+
+PR #159:
+apps/users-api/profiles/economical/overlays/staging/kustomization.yaml
+
+PR #160:
+apps/auth-api/profiles/economical/overlays/prod/kustomization.yaml
+
+PR #161:
+apps/users-api/profiles/economical/overlays/prod/kustomization.yaml
+
+PR #162:
+apps/log-message-processor/profiles/economical/overlays/prod/kustomization.yaml
+
+PR #163:
+apps/frontend/profiles/economical/overlays/prod/kustomization.yaml
+
+PR #164:
+apps/todos-api/profiles/economical/overlays/prod/kustomization.yaml
+

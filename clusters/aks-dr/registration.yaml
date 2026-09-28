@@ -1,0 +1,20 @@
+# Planned non-secret values for the AKS DR destination. T125 has not produced
+# Terraform outputs yet, so every Azure-owned value is an explicit pending
+# placeholder. Replacing them is a later reviewed activation prerequisite.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-registration
+  namespace: argocd
+data:
+  repoURL: https://github.com/MicroTodoSuite/microservice-app-gitops.git
+  revision: main
+  physicalCluster: pending-aks-dr
+  destination: aks-dr
+  promotionStrategy: dr-rolling
+  environment: prod
+  profile: full
+  cloud: azure
+  containerRegistry: pendingacr.azurecr.io
+  ingressPublicIpName: pending-t125-ingress-ip
+  ingressPublicIpResourceGroup: pending-t125-ingress-rg
