@@ -69,6 +69,9 @@ patches:
         name: trivy-operator
       spec:
         template:
+          metadata:
+            annotations:
+              microtodosuite.io/aws-account: "376784708420"
           spec:
             containers:
               - name: trivy-operator
@@ -95,4 +98,4 @@ patches:
       metadata:
         name: trivy-operator
         annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-trivyecr
+          eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/lex-mts-eco-role-trivyecr

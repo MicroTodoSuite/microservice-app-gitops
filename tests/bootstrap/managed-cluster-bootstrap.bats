@@ -42,7 +42,7 @@ run_bootstrap() {
   PATH="$FIXTURES/$fixture/bin:$PATH" \
     "$BOOTSTRAP" \
       --cluster "lex-mts-fdev-eks-main" \
-      --expected-account "575172595729" \
+      --expected-account "376784708420" \
       --revision "main" \
       --root-app "clusters/eks-full-dev/root-app.yaml" \
       --transcript "$TMP/$name.transcript" \

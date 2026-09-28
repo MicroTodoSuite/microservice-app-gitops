@@ -1,0 +1,4 @@
+# EMPTY AT BOOTSTRAP. The reviewed inventory is documentation only until T133.
+- op: replace
+  path: /spec/generators/0/list/elements
+  value: []

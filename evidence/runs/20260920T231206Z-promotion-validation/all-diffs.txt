@@ -1,0 +1,167 @@
+diff --git a/apps/auth-api/profiles/economical/overlays/dev/kustomization.yaml b/apps/auth-api/profiles/economical/overlays/dev/kustomization.yaml
+index 0149aa8..3e9d0bf 100644
+--- a/apps/auth-api/profiles/economical/overlays/dev/kustomization.yaml
++++ b/apps/auth-api/profiles/economical/overlays/dev/kustomization.yaml
+@@ -37,6 +37,6 @@ patches:
+ 
+ # The neutral ECR repository is shared across managed environments.
+ images:
+-- digest: sha256:7946d32f94101781683974ca34687ed4f7931b3813345f2b371e2fb39abb3cf2
++- digest: sha256:b8aba84e88ec6593cd99631977664ed5ec1900fe80e0b98aa02404ff680abf8b
+   name: auth-api
+   newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+=== END PR #150 ===
+diff --git a/apps/todos-api/profiles/economical/overlays/dev/kustomization.yaml b/apps/todos-api/profiles/economical/overlays/dev/kustomization.yaml
+index dff575c..0d4135b 100644
+--- a/apps/todos-api/profiles/economical/overlays/dev/kustomization.yaml
++++ b/apps/todos-api/profiles/economical/overlays/dev/kustomization.yaml
+@@ -30,4 +30,4 @@ patches:
+ images:
+   - name: todos-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
+-    digest: sha256:d87af1c7b126522453a10a7474f164d9de450c3bcd0d8e928dc3748baa9cf191
++    digest: sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+=== END PR #151 ===
+diff --git a/apps/auth-api/profiles/economical/overlays/staging/kustomization.yaml b/apps/auth-api/profiles/economical/overlays/staging/kustomization.yaml
+index b486f5b..5a6add1 100644
+--- a/apps/auth-api/profiles/economical/overlays/staging/kustomization.yaml
++++ b/apps/auth-api/profiles/economical/overlays/staging/kustomization.yaml
+@@ -37,4 +37,4 @@ patches:
+ images:
+   - name: auth-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+-    digest: sha256:7946d32f94101781683974ca34687ed4f7931b3813345f2b371e2fb39abb3cf2
++    digest: sha256:b8aba84e88ec6593cd99631977664ed5ec1900fe80e0b98aa02404ff680abf8b
+=== END PR #152 ===
+diff --git a/apps/frontend/profiles/economical/overlays/dev/kustomization.yaml b/apps/frontend/profiles/economical/overlays/dev/kustomization.yaml
+index 5d52db1..42fa735 100644
+--- a/apps/frontend/profiles/economical/overlays/dev/kustomization.yaml
++++ b/apps/frontend/profiles/economical/overlays/dev/kustomization.yaml
+@@ -20,4 +20,4 @@ patches:
+ images:
+   - name: frontend
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
+-    digest: sha256:ebb0184f1d35d278d92488212358597bf3eb9cbd611d36311ccf91b073cb8e86
++    digest: sha256:ff9f348fe90afc3438c77b29aa6a61595dd6733b4c9975a4e4e3f2656e814b85
+=== END PR #153 ===
+diff --git a/apps/todos-api/profiles/economical/overlays/staging/kustomization.yaml b/apps/todos-api/profiles/economical/overlays/staging/kustomization.yaml
+index e1ba7e2..126c252 100644
+--- a/apps/todos-api/profiles/economical/overlays/staging/kustomization.yaml
++++ b/apps/todos-api/profiles/economical/overlays/staging/kustomization.yaml
+@@ -30,4 +30,4 @@ patches:
+ images:
+   - name: todos-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
+-    digest: sha256:d87af1c7b126522453a10a7474f164d9de450c3bcd0d8e928dc3748baa9cf191
++    digest: sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+=== END PR #154 ===
+diff --git a/apps/log-message-processor/profiles/economical/overlays/dev/kustomization.yaml b/apps/log-message-processor/profiles/economical/overlays/dev/kustomization.yaml
+index 8864df6..46c3693 100644
+--- a/apps/log-message-processor/profiles/economical/overlays/dev/kustomization.yaml
++++ b/apps/log-message-processor/profiles/economical/overlays/dev/kustomization.yaml
+@@ -30,4 +30,4 @@ patches:
+ images:
+   - name: log-message-processor
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
+-    digest: sha256:6a28da9a405a0c29b743626c073f45908940e772ea6b59a89eea317327622445
++    digest: sha256:b6bc3d24b1d96be4423e94e10655aee79e4df36388fa1d3f5387ca8d375a9684
+=== END PR #155 ===
+diff --git a/apps/frontend/profiles/economical/overlays/staging/kustomization.yaml b/apps/frontend/profiles/economical/overlays/staging/kustomization.yaml
+index 56b6eb0..edf5303 100644
+--- a/apps/frontend/profiles/economical/overlays/staging/kustomization.yaml
++++ b/apps/frontend/profiles/economical/overlays/staging/kustomization.yaml
+@@ -20,4 +20,4 @@ patches:
+ images:
+   - name: frontend
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
+-    digest: sha256:ebb0184f1d35d278d92488212358597bf3eb9cbd611d36311ccf91b073cb8e86
++    digest: sha256:ff9f348fe90afc3438c77b29aa6a61595dd6733b4c9975a4e4e3f2656e814b85
+=== END PR #156 ===
+diff --git a/apps/log-message-processor/profiles/economical/overlays/staging/kustomization.yaml b/apps/log-message-processor/profiles/economical/overlays/staging/kustomization.yaml
+index 1b901c0..8bf1f8d 100644
+--- a/apps/log-message-processor/profiles/economical/overlays/staging/kustomization.yaml
++++ b/apps/log-message-processor/profiles/economical/overlays/staging/kustomization.yaml
+@@ -30,4 +30,4 @@ patches:
+ images:
+   - name: log-message-processor
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
+-    digest: sha256:6a28da9a405a0c29b743626c073f45908940e772ea6b59a89eea317327622445
++    digest: sha256:b6bc3d24b1d96be4423e94e10655aee79e4df36388fa1d3f5387ca8d375a9684
+=== END PR #157 ===
+diff --git a/apps/users-api/profiles/economical/overlays/dev/kustomization.yaml b/apps/users-api/profiles/economical/overlays/dev/kustomization.yaml
+index 5d1b89e..c0233bf 100644
+--- a/apps/users-api/profiles/economical/overlays/dev/kustomization.yaml
++++ b/apps/users-api/profiles/economical/overlays/dev/kustomization.yaml
+@@ -23,4 +23,4 @@ patches:
+ images:
+   - name: users-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
+-    digest: sha256:aff885d11f9e6fcc78c1bd21fcc302f2a0073459f5c784b067f289cf72e786af
++    digest: sha256:82c4ea7911297129da943a5b7f8ae95e42cc40bb7689e856cb5f067faef67aa1
+=== END PR #158 ===
+diff --git a/apps/users-api/profiles/economical/overlays/staging/kustomization.yaml b/apps/users-api/profiles/economical/overlays/staging/kustomization.yaml
+index 7e1a174..e005eb4 100644
+--- a/apps/users-api/profiles/economical/overlays/staging/kustomization.yaml
++++ b/apps/users-api/profiles/economical/overlays/staging/kustomization.yaml
+@@ -23,4 +23,4 @@ patches:
+ images:
+   - name: users-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
+-    digest: sha256:aff885d11f9e6fcc78c1bd21fcc302f2a0073459f5c784b067f289cf72e786af
++    digest: sha256:82c4ea7911297129da943a5b7f8ae95e42cc40bb7689e856cb5f067faef67aa1
+=== END PR #159 ===
+diff --git a/apps/auth-api/profiles/economical/overlays/prod/kustomization.yaml b/apps/auth-api/profiles/economical/overlays/prod/kustomization.yaml
+index 5d663d7..9e63752 100644
+--- a/apps/auth-api/profiles/economical/overlays/prod/kustomization.yaml
++++ b/apps/auth-api/profiles/economical/overlays/prod/kustomization.yaml
+@@ -42,4 +42,4 @@ patches:
+ images:
+   - name: auth-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/auth-api
+-    digest: sha256:7946d32f94101781683974ca34687ed4f7931b3813345f2b371e2fb39abb3cf2
++    digest: sha256:b8aba84e88ec6593cd99631977664ed5ec1900fe80e0b98aa02404ff680abf8b
+=== END PR #160 ===
+diff --git a/apps/users-api/profiles/economical/overlays/prod/kustomization.yaml b/apps/users-api/profiles/economical/overlays/prod/kustomization.yaml
+index 318e821..f8eee14 100644
+--- a/apps/users-api/profiles/economical/overlays/prod/kustomization.yaml
++++ b/apps/users-api/profiles/economical/overlays/prod/kustomization.yaml
+@@ -27,4 +27,4 @@ patches:
+ images:
+   - name: users-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/users-api
+-    digest: sha256:aff885d11f9e6fcc78c1bd21fcc302f2a0073459f5c784b067f289cf72e786af
++    digest: sha256:82c4ea7911297129da943a5b7f8ae95e42cc40bb7689e856cb5f067faef67aa1
+=== END PR #161 ===
+diff --git a/apps/log-message-processor/profiles/economical/overlays/prod/kustomization.yaml b/apps/log-message-processor/profiles/economical/overlays/prod/kustomization.yaml
+index 23391bf..229bfd5 100644
+--- a/apps/log-message-processor/profiles/economical/overlays/prod/kustomization.yaml
++++ b/apps/log-message-processor/profiles/economical/overlays/prod/kustomization.yaml
+@@ -32,4 +32,4 @@ patches:
+ images:
+   - name: log-message-processor
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/log-message-processor
+-    digest: sha256:6a28da9a405a0c29b743626c073f45908940e772ea6b59a89eea317327622445
++    digest: sha256:b6bc3d24b1d96be4423e94e10655aee79e4df36388fa1d3f5387ca8d375a9684
+=== END PR #162 ===
+diff --git a/apps/frontend/profiles/economical/overlays/prod/kustomization.yaml b/apps/frontend/profiles/economical/overlays/prod/kustomization.yaml
+index 5331593..8a43cd6 100644
+--- a/apps/frontend/profiles/economical/overlays/prod/kustomization.yaml
++++ b/apps/frontend/profiles/economical/overlays/prod/kustomization.yaml
+@@ -24,4 +24,4 @@ patches:
+ images:
+   - name: frontend
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/frontend
+-    digest: sha256:ebb0184f1d35d278d92488212358597bf3eb9cbd611d36311ccf91b073cb8e86
++    digest: sha256:ff9f348fe90afc3438c77b29aa6a61595dd6733b4c9975a4e4e3f2656e814b85
+=== END PR #163 ===
+diff --git a/apps/todos-api/profiles/economical/overlays/prod/kustomization.yaml b/apps/todos-api/profiles/economical/overlays/prod/kustomization.yaml
+index 7a11f3c..720df44 100644
+--- a/apps/todos-api/profiles/economical/overlays/prod/kustomization.yaml
++++ b/apps/todos-api/profiles/economical/overlays/prod/kustomization.yaml
+@@ -32,4 +32,4 @@ patches:
+ images:
+   - name: todos-api
+     newName: 575172595729.dkr.ecr.us-east-1.amazonaws.com/microtodosuite/todos-api
+-    digest: sha256:d87af1c7b126522453a10a7474f164d9de450c3bcd0d8e928dc3748baa9cf191
++    digest: sha256:82d121a8741b794b4a8b2e07483af55de1d6de148d496de5480e39e972cc11ad
+=== END PR #164 ===
