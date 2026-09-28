@@ -204,6 +204,14 @@ for jaeger_root in infrastructure/jaeger infrastructure/profiles/full/jaeger/aws
     || fail "Jaeger's pod template must carry microtodosuite.io/config-sha256: $jaeger_sha, the sha256 of the jaeger-config it renders, so a config change rolls the pod (found '$jaeger_annotation' in $jaeger_root)"
 done
 
+# Badger holds an exclusive directory lock on its ReadWriteOnce volume. A
+# RollingUpdate starts the new pod beside the old one, the new pod cannot take
+# the lock ("Cannot acquire directory lock on /badger/data/keys"), and the old
+# pod never leaves: the rollout deadlocks, as it did on eks-dev.
+jaeger_strategy="$(render_kustomize "$ROOT/infrastructure/jaeger" | yq -r 'select(.kind == "Deployment" and .metadata.name == "jaeger") | .spec.strategy.type // ""')"
+[[ "$jaeger_strategy" == "Recreate" ]] \
+  || fail "Jaeger's Deployment must use strategy Recreate, because Badger locks its single volume (found '$jaeger_strategy' in infrastructure/jaeger)"
+
 # Jaeger 2.x (OpenTelemetry Collector) binds an OTLP receiver without an
 # endpoint to 127.0.0.1, so no pod could reach it through jaeger-collector.
 for jaeger_config in infrastructure/jaeger/config.yaml \
