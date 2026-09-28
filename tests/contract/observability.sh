@@ -189,6 +189,15 @@ require_resource "$TMP_DIR/jaeger.yaml" Service jaeger-query
 require_resource "$TMP_DIR/jaeger.yaml" PersistentVolumeClaim jaeger-storage
 require_text infrastructure/jaeger/config.yaml 'receivers:' \
   "Jaeger must receive OTLP directly (no separate otel-collector component)"
+# Jaeger 2.x (OpenTelemetry Collector) binds an OTLP receiver without an
+# endpoint to 127.0.0.1, so no pod could reach it through jaeger-collector.
+for jaeger_config in infrastructure/jaeger/config.yaml \
+  infrastructure/profiles/full/jaeger/components/elasticsearch/config.yaml; do
+  require_text "$jaeger_config" 'endpoint: 0\.0\.0\.0:4317' \
+    "Jaeger's OTLP gRPC receiver must listen on every interface, not the 127.0.0.1 default"
+  require_text "$jaeger_config" 'endpoint: 0\.0\.0\.0:4318' \
+    "Jaeger's OTLP HTTP receiver must listen on every interface, not the 127.0.0.1 default"
+done
 require_text infrastructure/jaeger/config.yaml 'ttl:' \
   "Jaeger Badger storage must declare an explicit retention TTL"
 require_text infrastructure/jaeger/config.yaml 'spans: 72h' \
