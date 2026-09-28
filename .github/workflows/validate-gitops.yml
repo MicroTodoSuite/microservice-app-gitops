@@ -168,6 +168,25 @@ jobs:
           kustomize version
           kubeconform -v
 
+      # The ubuntu-24.04 runner image ships no ripgrep, and the platform-addons,
+      # service-onboarding, and namespace-isolation contracts assert through rg.
+      # Checksum from the release's published .sha256 asset.
+      - name: Install checksum-pinned ripgrep
+        run: |
+          set -euo pipefail
+          version=15.2.0
+          checksum=33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c
+          asset="ripgrep-${version}-x86_64-unknown-linux-musl"
+          archive="$(mktemp)"
+          extract_dir="$(mktemp -d)"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            "https://github.com/BurntSushi/ripgrep/releases/download/${version}/${asset}.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
+          tar -xzf "$archive" -C "$extract_dir" "${asset}/rg"
+          sudo install -m 0755 "$extract_dir/${asset}/rg" /usr/local/bin/rg
+          rg --version
+
       - name: Validate the full-topology mesh policy render (spec 009 T069)
         run: tests/platform/mesh-policy.bats
 

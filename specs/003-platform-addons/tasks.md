@@ -155,6 +155,23 @@ independent infrastructure roots.
   applies while the registration is active and accepts only the exact
   `value: []` quiescent shape that spec 009 T176 left and
   `tests/contract/economical-runtime-quiescence.sh` owns.
+- [X] T032 Give the `policy-contracts` job the ripgrep its contracts assert
+  through, and make those contracts fail closed without it. Surfaced by the
+  maintainer's audit of 2026-09-27 once T031 wired the contract into
+  `validate-gitops`. Reproduction: the `policy-contracts` run of
+  `fix/audit-contract-repairs` (ubuntu-24.04 image 20260920.314.1). Output:
+  `FAIL: Redis image is not versioned and digest-pinned
+  (infrastructure/redis/deployment.yaml)`, preceded by
+  `tests/contract/platform-addons.sh: line 32: rg: command not found`.
+  Diagnosis: the Redis pin is correct, and the runner lacks ripgrep. `crane
+  digest redis:7.4.9-alpine` resolves to the committed
+  `sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99`.
+  The runner image ships no ripgrep, so `require_text` got exit 127. Without
+  rg, `reject_text`, the rendered `--*image=` argument check, and `rg -c`
+  counts passed vacuously. Delivered: `platform-addons.sh`,
+  `service-onboarding.sh`, and `namespace-isolation.sh` stop with an explicit
+  error when rg is absent. The job installs ripgrep 15.2.0, checksum-pinned to
+  the release's published `.sha256` asset.
 
 ---
 
