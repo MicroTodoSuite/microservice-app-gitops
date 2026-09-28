@@ -1139,6 +1139,13 @@ twelve-digit number across every repository.
   workflow changes that read it in `../.github/.github/workflows/ci.yml` and the
   five service `.github/workflows/ci.yml` files, and observe one green reviewed-main
   publication run.
+- [ ] T182 Repoint this repository to account `376784708420` with
+  `scripts/set-aws-account.sh 376784708420`, retiring `575172595729`, as
+  microservice-app-ops#133 did for ops on 2026-09-27, so the IRSA role ARNs,
+  Secrets Manager references, Kyverno registry patterns, and image registry host
+  that the rebuilt economical cluster reconciles name the account it runs in,
+  and rerun `tests/contract/aws-account-parameter.sh`. Publishing images to the
+  new account's registry stays with the service delivery pipeline.
 
 ---
 
