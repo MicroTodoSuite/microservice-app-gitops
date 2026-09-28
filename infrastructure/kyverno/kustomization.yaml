@@ -33,7 +33,7 @@ patches:
       metadata:
         name: kyverno-admission-controller
         annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::575172595729:role/lex-mts-eco-role-kyvernoecr
+          eks.amazonaws.com/role-arn: arn:aws:iam::376784708420:role/lex-mts-eco-role-kyvernoecr
   - target:
       group: apps
       version: v1
@@ -49,6 +49,7 @@ patches:
           metadata:
             annotations:
               microtodosuite.io/ecr-verifier-irsa-revision: "v1"
+              microtodosuite.io/aws-account: "376784708420"
 
 images:
   - name: reg.kyverno.io/kyverno/kyverno

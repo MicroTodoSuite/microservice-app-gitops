@@ -1,0 +1,16 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: aws-prod-outage
+  namespace: istio-system
+  labels:
+    microtodosuite.io/experiment: aws-prod-outage
+    microtodosuite.io/target-cluster: eks-full-prod
+spec:
+  action: pod-failure
+  mode: all
+  duration: 10m
+  selector:
+    namespaces: [istio-system]
+    labelSelectors:
+      istio: ingressgateway

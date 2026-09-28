@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../istio
+components:
+  - ../../../components/aks-acr-images
+patches:
+  - target: {version: v1, kind: Service, name: istio-ingressgateway}
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: istio-ingressgateway
+        annotations:
+          service.beta.kubernetes.io/azure-pip-name: pending-t125-ingress-ip
+          service.beta.kubernetes.io/azure-load-balancer-resource-group: pending-t125-ingress-rg
+  - target: {version: v1, kind: ConfigMap, name: istio-sidecar-injector}
+    patch: |-
+      - op: replace
+        path: /data/values
+        value: '{"global":{"hub":"pendingacr.azurecr.io/microtodosuite/platform","tag":"pending-t131"}}'
+  - target: {version: v1, kind: ConfigMap, name: values}
+    patch: |-
+      - op: replace
+        path: /data/merged-values
+        value: '{"global":{"hub":"pendingacr.azurecr.io/microtodosuite/platform","tag":"pending-t131"}}'
+      - op: replace
+        path: /data/original-values
+        value: '{"global":{"hub":"pendingacr.azurecr.io/microtodosuite/platform","tag":"pending-t131"}}'

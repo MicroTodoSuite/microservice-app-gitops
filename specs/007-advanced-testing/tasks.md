@@ -66,12 +66,35 @@ is already there). Fetch and diff `origin/main` before touching any repo.
   `/users/{username}`, actuator); lint + conformance; wire gate.
 - [X] T010 [P] [svc:log-message-processor] Bind the T004 AsyncAPI consumer +
   message validation against `log_channel`; wire gate.
-- [ ] T011 [P] [svc:frontend] Author Pact consumer contracts against auth-api and
+- [X] T011 [P] [svc:frontend] Author Pact consumer contracts against auth-api and
   todos-api.
-- [ ] T012 Add Pact provider verification (auth-api←frontend; users-api←auth-api;
+
+  > **Delivered.** `todos-api` consumer contract already existed;
+  > `frontend-auth-api.json` added, authored from auth-api's real verified
+  > `/login` behavior (built and ran the service locally to capture the exact
+  > response). See `microservice-app-frontend` PR #35.
+- [X] T012 Add Pact provider verification (auth-api←frontend; users-api←auth-api;
   todos-api←frontend; log-message-processor↔todos-api over AsyncAPI).
-- [ ] T013 Verify a deliberate contract-breaking change turns the contract gate red,
+
+  > **Delivered.** `todos-api←frontend` already existed. Added
+  > `auth-api←frontend` and `users-api←auth-api` (the latter a
+  > service-to-service pact: auth-api is itself the consumer of users-api's
+  > `/users/{username}`, authored from the real verified response).
+  > `log-message-processor↔todos-api` needs no Pact contract: it is already
+  > covered by the AsyncAPI producer/consumer binding (T004/T010). Ran all
+  > three Pact contracts against the real five-service `e2e/compose.yaml`
+  > stack: 3 interactions, 0 failures; confirmed green in real CI
+  > (`microservice-app-frontend` PR #35: `ci`, `pact`, `conformance`, `e2e`
+  > all passed). See
+  > `evidence/runs/20260921T010000Z-advanced-testing-validation/README.md`.
+- [X] T013 Verify a deliberate contract-breaking change turns the contract gate red,
   then revert (SC-001/SC-002).
+
+  > **Delivered.** Corrupted `auth-api-users-api.json`'s expected `lastname`
+  > against the live stack: real failure, exit code 1
+  > (`Expected "WRONG-VALUE" but got "Bar"`). Reverted: exit code 0, 0
+  > failures. See
+  > `evidence/runs/20260921T010000Z-advanced-testing-validation/pact-break-revert.txt`.
 
 ## Phase 3: US2 - Integration against real dependencies (P1)
 
@@ -83,8 +106,21 @@ is already there). Fetch and diff `origin/main` before touching any repo.
   ensure it runs in `mvn verify`.
 - [X] T017 [P] [svc:auth-api] `/login` integration against a stubbed users-api HTTP
   boundary.
-- [ ] T018 Verify each integration gate exercises the real dependency and fails when
+- [X] T018 Verify each integration gate exercises the real dependency and fails when
   the interaction breaks (SC-003).
+
+  > **Delivered.** For all four (T014-T017): ran the real baseline (green),
+  > introduced one targeted regression in the actual interaction code, ran
+  > again (real failure), reverted, confirmed green. todos-api: broke the
+  > real Testcontainers-Redis publish path (renamed the `CREATE` opName) ->
+  > `AssertionError: expected a CREATE event on log_channel`.
+  > log-message-processor: broke the real Testcontainers-Redis consume path
+  > (message no longer delivered to the logger) -> `assert 0 == 1`.
+  > users-api: corrupted the real H2 seed data -> `expected:<Foo> but
+  > was:<BROKEN>`. auth-api: off-by-one in the real retry loop over the
+  > httptest HTTP boundary -> `FAIL: transient_error_is_retried`. All four
+  > repos reverted and confirmed clean/green. See
+  > `evidence/runs/20260921T010000Z-advanced-testing-validation/integration-gate-breaks.txt`.
 
 ## Phase 4: US3 - End-to-end (P2)
 
@@ -105,9 +141,31 @@ is already there). Fetch and diff `origin/main` before touching any repo.
 
 - [X] T025 [P] Ensure each suite emits a coverage report consumed by SonarQube once
   its server exists (FR-011).
-- [ ] T026 Verify SC-006 (every gate value-activated through the central workflow,
+- [X] T026 Verify SC-006 (every gate value-activated through the central workflow,
   no per-repo duplication) and SC-007 (no framework/remediation/GitOps changes).
-- [ ] T027 Verify SC-009-style "enabled-but-empty fails visibly" once per gate.
+
+  > **Delivered.** Compared all five services' `ci.yml` callers on
+  > `origin/main` byte-for-byte: identical job structure, differing only in
+  > `with:` values. Zero per-repo gate duplication. The five frontend
+  > stack-level gates (e2e/perf/dast/conformance/pact) each contain a single
+  > `uses: .../stack-tests.yml` call. SC-007: this task's changes touch only
+  > `e2e/pact/` and `.github`'s reusable workflows -- no unit-test framework,
+  > no spec-006 remediation file, no GitOps manifest changed. See
+  > `evidence/runs/20260921T010000Z-advanced-testing-validation/README.md`.
+- [X] T027 Verify SC-009-style "enabled-but-empty fails visibly" once per gate.
+
+  > **Delivered, two real defects found and fixed, not one.** Auditing every
+  > required (non-optional) gate-command input found the same "required but
+  > satisfiable by empty string" shape in **two** places: `ci.yml`'s
+  > `test-command` (already fixed for gitops T024, `.github#27`) and
+  > `stack-tests.yml`'s `stack-command`, which backs five separate gates
+  > (e2e/perf/dast/pact/conformance) -- found specifically while checking
+  > T027's "once per gate" requirement and fixed in `.github#29`, with the
+  > same live-verified before/after evidence and a new
+  > `tests/workflows/stack-tests-contract.bats` wired into a self-test.
+  > `source-audit-command`/`contract-command` (optional, `if:`-guarded) and
+  > `sonar-required` (fail-closed, pre-existing) already behave correctly.
+  > See `evidence/runs/20260921T010000Z-advanced-testing-validation/README.md`.
 
 ## Dependencies & order
 

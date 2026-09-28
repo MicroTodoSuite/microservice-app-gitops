@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pod-termination-steady-state
+  namespace: microtodo-prod
+data:
+  targetCluster: eks-full-prod
+  maxDuration: 5m
+  abortProcedure: git-revert
+  steadyState: All five production services are healthy before and after one auth-api pod is replaced.
+  abortConditions: |
+    - economical-regression
+    - selector-expansion
+    - both-destinations-unhealthy
+    - duration-exceeded
+    - release-digest-divergence
+    - telemetry-unavailable
+    - operator-abort
