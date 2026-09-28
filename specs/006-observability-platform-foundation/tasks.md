@@ -430,6 +430,13 @@ request against exact evidence.
   `tests/contract/observability.sh` first, then group the rule by
   `namespace, workload, revision` like the rate and ratio rules beside it, and
   prove the alert can fire through `promtool test rules`.
+- [X] T055 Make Jaeger reachable over OTLP. Jaeger 2.20 binds an OTLP receiver
+  that declares no endpoint to `127.0.0.1`, so on the rebuilt `eks-dev` every
+  service exporter failed with `connection refused` through `jaeger-collector`
+  and Jaeger listed no service. Add the failing assertion to
+  `tests/contract/observability.sh`, then set `0.0.0.0:4317` and `0.0.0.0:4318`
+  in `infrastructure/jaeger/config.yaml` and in the full profile's
+  `infrastructure/profiles/full/jaeger/components/elasticsearch/config.yaml`.
 
 ---
 
