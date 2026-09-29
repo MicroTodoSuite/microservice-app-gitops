@@ -455,6 +455,10 @@ request against exact evidence.
   `tests/contract/observability.sh`, then annotate the Jaeger Deployment with
   `argocd.argoproj.io/sync-options: Replace=true`, which takes precedence over
   `ServerSideApply=true`.
+- [X] T059 Keep Grafana alive while it renders a dashboard. On `eks-dev` it was
+  OOMKilled three times at its 256Mi limit. Add the failing assertion to
+  `tests/contract/observability.sh`, then raise the Grafana container to a
+  256Mi request and a 512Mi limit in `infrastructure/grafana/deployment.yaml`.
 
 ---
 
