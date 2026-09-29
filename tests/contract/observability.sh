@@ -189,6 +189,15 @@ require_resource "$TMP_DIR/jaeger.yaml" Service jaeger-query
 require_resource "$TMP_DIR/jaeger.yaml" PersistentVolumeClaim jaeger-storage
 require_text infrastructure/jaeger/config.yaml 'receivers:' \
   "Jaeger must receive OTLP directly (no separate otel-collector component)"
+# Grafana 13 was OOMKilled at a 256Mi limit on eks-dev as soon as an operator
+# opened the golden-signals dashboard; it needs at least 512Mi.
+grafana_limit="$(render_kustomize "$ROOT/infrastructure/grafana" | yq -r 'select(.kind == "Deployment" and .metadata.name == "grafana") | .spec.template.spec.containers[] | select(.name == "grafana") | .resources.limits.memory // ""')"
+case "$grafana_limit" in
+  [0-9]*Mi) (( ${grafana_limit%Mi} >= 512 )) || fail "Grafana's memory limit must be at least 512Mi (found $grafana_limit in infrastructure/grafana)" ;;
+  [0-9]*Gi) ;;
+  *) fail "Grafana's memory limit must be at least 512Mi (found '$grafana_limit' in infrastructure/grafana)" ;;
+esac
+
 # jaeger-config is a plain ConfigMap, so changing it does not restart Jaeger:
 # the OTLP listen-address fix reached the ConfigMap on eks-dev while the pod
 # kept serving the old configuration. Each root's rendered pod template must
